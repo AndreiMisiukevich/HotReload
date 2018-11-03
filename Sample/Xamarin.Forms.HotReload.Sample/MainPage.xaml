@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             xmlns:local="clr-namespace:Xamarin.Forms.HotReload.Sample"
+             xmlns:test="clr-namespace:Xamarin.Forms.HotReload.Sample"
+             x:Class="Xamarin.Forms.HotReload.Sample.MainPage"
+             BackgroundColor="Silver">
+    <StackLayout>
+        <StackLayout VerticalOptions="CenterAndExpand">
+            <Label Text="Welcome to HotReload!" 
+                   HorizontalOptions="Center" 
+                   FontSize="20"/>
+            <Button Command="{Binding PushCommand}" 
+                    Text="CLICK TO SEE THE SECOND PAGE"
+                    TextColor="Red"
+                    FontAttributes="Bold"
+                    FontSize="15"/> 
+            <test:TestContentView />
+        </StackLayout>
+    </StackLayout>
+</ContentPage>
