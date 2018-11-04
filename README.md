@@ -31,7 +31,8 @@ namespace Xamarin.Forms.HotReload.Sample
     }
 }
 ```
-* ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be setup like
+
+* ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be set up like
 ```csharp
     using Xamarin.Forms.HotReload.Reloader;
 
@@ -47,7 +48,6 @@ namespace Xamarin.Forms.HotReload.Sample
         }
     }
 ```
-HotReloader runs http listener at http://127.0.0.1:8000 (by default) or at you passed url.
 
 * Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start observer.exe via terminal (for MAC) or via command line (Windows)
@@ -57,6 +57,10 @@ Optionaly you can set specific folder for observing files (if you didn't put obs
 Optionaly you can set specific device url for sending changes
 ```mono observer.exe u=http://192.168.0.3```
 * Run your app and enjoy
+
+## How it works
+- Observer uses *FileSystemWatcher* for detecting all xaml files changes in specific folder and subfolders (by default it's current folder for observer.exe, but you can specify it). When observer detects that xaml file is updated, it sends http POST request with updated file to specified url (http://127.0.0.1:8000 by default).
+- Reloader runs *TcpListener* at specified url (http://127.0.0.1:8000 by default). When reloader get POST request, it updates all related views.
 
 Are there any questions? 🇧🇾 ***just ask me =)*** 🇧🇾
 
