@@ -50,13 +50,10 @@ namespace Xamarin.Forms.HotReload.Sample
 ```
 
 * Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
-* Start observer.exe via terminal (for MAC) or via command line (Windows)
-``` mono observer.exe ``` FOR MAC
-* Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder).
-```mono observer.exe p=/Users/andrei/SpecificFolder/```
-* Optionaly you can set specific device url for sending changes
-```mono observer.exe u=http://192.168.0.3```
-* Run your app and enjoy
+* Start observer.exe via terminal (for MAC) ```mono observer.exe``` or via command line (Windows) ```observer.exe```
+* Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
+```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
+* Run your app and start developing with hot reload!
 
 ## How it works
 - Observer uses *FileSystemWatcher* for detecting all xaml files changes in specific folder and subfolders (by default it's current folder for observer.exe, but you can specify it). When observer detects that xaml file is updated, it sends http POST request with updated file to specified url (http://127.0.0.1:8000 by default).
