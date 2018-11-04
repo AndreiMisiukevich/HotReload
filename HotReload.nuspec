@@ -22,9 +22,7 @@
   <files>
     <!--Net Standard-->
     <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\netstandard2.0\ExpandableView.dll" />
-    <file src="Observer\Xamarin.Forms.HotReload.Observer\bin\Release\Xamarin.Forms.HotReload.Observer.exe" target="content\netstandard2.0\reload.exe" />
     <!--Core PCL-->
     <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\portable-win+net45+wp80+win81+wpa81\ExpandableView.dll" />
-    <file src="Observer\Xamarin.Forms.HotReload.Observer\bin\Release\Xamarin.Forms.HotReload.Observer.exe" target="content\portable-win+net45+wp80+win81+wpa81\reload.exe" />
   </files>
 </package>
