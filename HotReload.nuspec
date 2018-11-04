@@ -21,8 +21,8 @@
   </metadata>
   <files>
     <!--Net Standard-->
-    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" />
+    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.*" target="lib\netstandard2.0" />
     <!--Core PCL-->
-    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\portable-win+net45+wp80+win81+wpa81\Xamarin.Forms.HotReload.Reloader.dll" />
+    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.*" target="lib\portable-win+net45+wp80+win81+wpa81" />
   </files>
 </package>
