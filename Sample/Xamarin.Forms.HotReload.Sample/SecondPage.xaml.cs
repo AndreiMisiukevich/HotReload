@@ -9,7 +9,6 @@ namespace Xamarin.Forms.HotReload.Sample
         {
 #if DEBUG
             this.InitializeElement();
-
 #else
             InitializeComponent();
 #endif
