@@ -52,9 +52,9 @@ namespace Xamarin.Forms.HotReload.Sample
 * Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start observer.exe via terminal (for MAC) or via command line (Windows)
 ``` mono observer.exe ``` FOR MAC
-Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder).
+* Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder).
 ```mono observer.exe p=/Users/andrei/SpecificFolder/```
-Optionaly you can set specific device url for sending changes
+* Optionaly you can set specific device url for sending changes
 ```mono observer.exe u=http://192.168.0.3```
 * Run your app and enjoy
 
