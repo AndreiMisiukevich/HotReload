@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Xamarin.HotReload</id>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <title>Xamarin.HotReload</title>
     <authors>Andrei Misiukevich</authors>
     <owners>Andrei Misiukevich</owners>
@@ -21,8 +21,8 @@
   </metadata>
   <files>
     <!--Net Standard-->
-    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\netstandard2.0\ExpandableView.dll" />
+    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" />
     <!--Core PCL-->
-    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\portable-win+net45+wp80+win81+wpa81\ExpandableView.dll" />
+    <file src="Reloader\Xamarin.Forms.HotReload.Reloader\bin\Release\netstandard2.0\Xamarin.Forms.HotReload.Reloader.dll" target="lib\portable-win+net45+wp80+win81+wpa81\Xamarin.Forms.HotReload.Reloader.dll" />
   </files>
 </package>
