@@ -55,6 +55,8 @@ namespace Xamarin.Forms.HotReload.Sample
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
 * Run your app and start developing with hot reload!
 
+* IF YOU CANNOT COMPILE ANDROID PROJECT ADD ```System.Threading.Tasks.Extensions``` OF VERSION ```4.4.0```(!) TO YOUR ANDROID PROJECT
+
 ## How does it work?
 - Observer uses *FileSystemWatcher* for detecting all xaml files changes in specific folder and subfolders (by default it's current folder for observer.exe, but you can specify it). When observer detects that xaml file is updated, it sends http POST request with updated file to specified url (http://127.0.0.1:8000 by default).
 - Reloader runs *TcpListener* at specified url (http://127.0.0.1:8000 by default). When reloader get POST request, it updates all related views.
