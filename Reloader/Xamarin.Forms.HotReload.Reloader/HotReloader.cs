@@ -96,6 +96,10 @@ namespace Xamarin.Forms.HotReload
                         .Select(r => Observable.FromAsync(() => HandleRequestAsync(r, httpSender)))
                         .Concat()
                         .Subscribe();
+                                       
+            Console.WriteLine($"HOTRELOAD STARTED AT {url}");
+            var ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork).ToString();
+            Console.WriteLine($"LOCAL IP ADDRESS IS {ip}");
         }
 
         private async Task HandleRequestAsync(IHttpRequestResponse request, HttpSender httpSender)
