@@ -98,8 +98,17 @@ namespace Xamarin.Forms.HotReload
                         .Subscribe();
                                        
             Console.WriteLine($"HOTRELOAD STARTED AT {url}");
-            var ip = Dns.GetHostEntry(Dns.GetHostName()).AddressList.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork).ToString();
-            Console.WriteLine($"LOCAL IP ADDRESS IS {ip}");
+        }
+
+        public void Start(int port)
+        {
+            var ip = Dns.GetHostEntry(Dns.GetHostName())
+                        ?.AddressList
+                        ?.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork)
+                        ?.ToString()
+                        ?? "127.0.0.1";
+
+            Start($"http://{ip}:{port}");
         }
 
         private async Task HandleRequestAsync(IHttpRequestResponse request, HttpSender httpSender)
