@@ -5,6 +5,8 @@ using System.Net.Http;
 using static System.Math;
 using System.Security.Permissions;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -19,10 +21,15 @@ namespace Xamarin.Forms.HotReload.Observer
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private static void Run()
         {
-            var args = Environment.GetCommandLineArgs();
+            var ip = Dns.GetHostEntry(Dns.GetHostName())
+                        ?.AddressList
+                        ?.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork)
+                        ?.ToString()
+                        ?? "127.0.0.1";
 
+            var args = Environment.GetCommandLineArgs();
             var path = RetrieveCommandLineArgument("p=", Environment.CurrentDirectory, args);
-            var url = RetrieveCommandLineArgument("u=", "http://127.0.0.1:8000", args);
+            var url = RetrieveCommandLineArgument("u=", $"http://{ip}:8000", args);
             
             try
             {

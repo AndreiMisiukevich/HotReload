@@ -77,7 +77,7 @@ namespace Xamarin.Forms.HotReload
             _fileMapping = null;
         }
 
-        public void Start(string url = "http://127.0.0.1:8000")
+        public void Start(string url)
         {
             Stop();
             IsRunning = true;
@@ -100,7 +100,7 @@ namespace Xamarin.Forms.HotReload
             Console.WriteLine($"HOTRELOAD STARTED AT {url}");
         }
 
-        public void Start(int port)
+        public void Start(int port = 8000)
         {
             var ip = Dns.GetHostEntry(Dns.GetHostName())
                         ?.AddressList
