@@ -23,9 +23,11 @@ namespace Xamarin.Forms.HotReload.Sample
         public App()
         {
 #if DEBUG
-            HotReloader.Current.Start(); //you can pass specific url, if you want to run it on real device
-#endif
+            HotReloader.Current.Start(); //you can pass specific url/port, if you want to run it on real device (default - your local ip)
+            this.InitializeElement();
+#else
             InitializeComponent();
+#endif
             MainPage = new NavigationPage(new MainPage());
         }
     }
