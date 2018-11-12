@@ -1,4 +1,5 @@
-﻿
+﻿using Xamarin.Forms.HotReload.Reloader;
+
 #if !DEBUG
 using Xamarin.Forms.Xaml;
 
@@ -13,8 +14,10 @@ namespace Xamarin.Forms.HotReload.Sample
         {
 #if DEBUG
             HotReloader.Current.Start();
-#endif
+            this.InitializeElement();
+#else
             InitializeComponent();
+#endif
             MainPage = new NavigationPage(new MainPage());
         }
     }
