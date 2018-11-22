@@ -9,10 +9,10 @@ Xamarin.Forms XAML hot reload, live reload, live xaml
 * Add nuget package to your Xamarin.Forms NETSTANDARD/PCL project.
 * Setup App class like (DISABLE XamlCompilationOptions FOR DEBUG!)
 ```csharp
-
-#if !DEBUG
+#if DEBUG
+using Xamarin.Forms.HotReload.Reloader;
+#else
 using Xamarin.Forms.Xaml;
-
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 #endif
 
@@ -23,7 +23,7 @@ namespace Xamarin.Forms.HotReload.Sample
         public App()
         {
 #if DEBUG
-            HotReloader.Current.Start(); //you can pass specific url/port, if you want to run it on real device (default - your local ip)
+            HotReloader.Current.Start();
             this.InitializeElement();
 #else
             InitializeComponent();
@@ -36,8 +36,14 @@ namespace Xamarin.Forms.HotReload.Sample
 
 * ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be set up like
 ```csharp
-    using Xamarin.Forms.HotReload.Reloader;
+#if DEBUG
+using Xamarin.Forms.HotReload.Reloader;
+#endif
 
+using System.Windows.Input;
+
+namespace Xamarin.Forms.HotReload.Sample
+{
     public partial class MainPage : ContentPage
     {
         public MainPage()
@@ -49,6 +55,7 @@ namespace Xamarin.Forms.HotReload.Sample
 #endif
         }
     }
+}
 ```
 
 * Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
