@@ -18,6 +18,7 @@ using Xamarin.Forms.Xaml;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
+using System.Net.NetworkInformation;
 
 namespace Xamarin.Forms.HotReload
 {
@@ -79,12 +80,19 @@ namespace Xamarin.Forms.HotReload
 
         public void Start(int port = 8000)
         {
-            var ip = Dns.GetHostEntry(Dns.GetHostName())
-                        ?.AddressList
-                        ?.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork)
-                        ?.ToString()
-                        ?? "127.0.0.1";
+            var addresses = NetworkInterface.GetAllNetworkInterfaces()
+                          .SelectMany(x => x.GetIPProperties().UnicastAddresses)
+                          .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
+                          .Select(x => x.Address.MapToIPv4())
+                          .Where(x => x.ToString() != "127.0.0.1")
+                          .ToArray();
 
+            foreach(var address in addresses)
+            {
+                Console.WriteLine($"HOTRELOAD AVAILABLE IP: {address}");
+            }
+
+            var ip = addresses.FirstOrDefault()?.ToString() ?? "127.0.0.1";
             Start(ip, port);
         }
 
@@ -137,7 +145,6 @@ namespace Xamarin.Forms.HotReload
                 item.Xaml = xaml;
 
                 ReloadElements(className, item, oldXaml);
-
             }
 
             var response = new HttpResponse
