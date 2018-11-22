@@ -77,6 +77,19 @@ namespace Xamarin.Forms.HotReload
             _fileMapping = null;
         }
 
+        public void Start(int port = 8000)
+        {
+            var ip = Dns.GetHostEntry(Dns.GetHostName())
+                        ?.AddressList
+                        ?.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork)
+                        ?.ToString()
+                        ?? "127.0.0.1";
+
+            Start(ip, port);
+        }
+
+        public void Start(string ip, int port) => Start($"http://{ip}:{port}");
+
         public void Start(string url)
         {
             Stop();
@@ -98,17 +111,6 @@ namespace Xamarin.Forms.HotReload
                         .Subscribe();
                                        
             Console.WriteLine($"HOTRELOAD STARTED AT {url}");
-        }
-
-        public void Start(int port = 8000)
-        {
-            var ip = Dns.GetHostEntry(Dns.GetHostName())
-                        ?.AddressList
-                        ?.FirstOrDefault(i => i.AddressFamily == AddressFamily.InterNetwork)
-                        ?.ToString()
-                        ?? "127.0.0.1";
-
-            Start($"http://{ip}:{port}");
         }
 
         private async Task HandleRequestAsync(IHttpRequestResponse request, HttpSender httpSender)
