@@ -1,4 +1,7 @@
-﻿using Xamarin.Forms.HotReload.Reloader;
+﻿#if DEBUG
+using Xamarin.Forms.HotReload.Reloader;
+#endif
+
 using System.Windows.Input;
 
 namespace Xamarin.Forms.HotReload.Sample
@@ -9,7 +12,6 @@ namespace Xamarin.Forms.HotReload.Sample
         {
 #if DEBUG
             this.InitializeElement();
-
 #else
             InitializeComponent();
 #endif

@@ -1,8 +1,7 @@
-﻿using Xamarin.Forms.HotReload.Reloader;
-
-#if !DEBUG
-using Xamarin.Forms.Xaml;
-
+﻿using Xamarin.Forms.Xaml;
+#if DEBUG
+using Xamarin.Forms.HotReload.Reloader;
+#else
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 #endif
 

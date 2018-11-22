@@ -1,4 +1,6 @@
-﻿using Xamarin.Forms.HotReload.Reloader;
+﻿#if DEBUG
+using Xamarin.Forms.HotReload.Reloader;
+#endif
 using System.Collections.Generic;
 
 namespace Xamarin.Forms.HotReload.Sample
