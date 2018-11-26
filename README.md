@@ -64,8 +64,6 @@ namespace Xamarin.Forms.HotReload.Sample
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
 * Run your app and start developing with hot reload!
 
-* IF YOU CANNOT COMPILE ANDROID PROJECT ADD ```System.Threading.Tasks.Extensions``` OF VERSION ```4.4.0```(!) TO YOUR ANDROID PROJECT
-
 * **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd
 
 ## How does it work?
