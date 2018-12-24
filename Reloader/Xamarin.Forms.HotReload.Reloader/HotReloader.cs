@@ -42,6 +42,11 @@ namespace Xamarin.Forms.HotReload
 
         public void InitializeElement<TXaml>(TXaml element) where TXaml : Element
         {
+            InitializeElement(element, typeof(TXaml));
+        }
+
+        public void InitializeElement(Element element, Type elementType)
+        {
             if(!IsRunning)
             {
                 return;
@@ -49,8 +54,7 @@ namespace Xamarin.Forms.HotReload
 
             element.PropertyChanged += OnElementPropertyChanged;
 
-            var classType = typeof(TXaml);
-            var className = RetriveClassName(classType);
+            var className = RetriveClassName(elementType);
             if(!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
                 item = new ReloadItem();
@@ -61,7 +65,7 @@ namespace Xamarin.Forms.HotReload
 
             if (string.IsNullOrWhiteSpace(item.Xaml))
             {
-                element.LoadFromXaml(classType);
+                element.LoadFromXaml(elementType);
                 _fileMapping[className] = item;
                 return;
             }
