@@ -73,6 +73,7 @@ namespace Xamarin.Forms.HotReload.Observer
 
             observer.Changed += OnFileChanged;
             observer.Created += OnFileChanged;
+            observer.Renamed += OnFileChanged;
             do
             {
                 Console.WriteLine("\nPRESS \'ESC\' TO STOP.");
@@ -80,6 +81,7 @@ namespace Xamarin.Forms.HotReload.Observer
 
             observer.Changed -= OnFileChanged;
             observer.Created -= OnFileChanged;
+            observer.Renamed -= OnFileChanged;
         }
 
         private static string RetrieveCommandLineArgument(string key, string defaultValue, string[] args)
