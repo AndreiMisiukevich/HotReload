@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -61,7 +62,8 @@ namespace Xamarin.Forms.HotReload.Observer
                 Path = path,
                 NotifyFilter = NotifyFilters.LastWrite,
                 Filter = "*.xaml",
-                EnableRaisingEvents = true
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = true,
             };
 
             _client = new HttpClient
@@ -88,6 +90,12 @@ namespace Xamarin.Forms.HotReload.Observer
         
         private static void OnFileChanged(object source, FileSystemEventArgs e)
         {
+            string fullpath = e.FullPath;
+            if (Regex.IsMatch(fullpath, "(/|^)((obj)|(bin))/"))
+            {
+                return;
+            }
+
             var now = DateTime.Now;
             lock (_locker)
             {
@@ -98,7 +106,7 @@ namespace Xamarin.Forms.HotReload.Observer
                 _lastChangeTime = now;
             }
 
-            var filePath = e.FullPath.Replace("/.#", "/");
+            var filePath = fullpath.Replace("/.#", "/");
             Console.WriteLine($"CHANGED {now}: {filePath}");
             SendFile(filePath);
         }
