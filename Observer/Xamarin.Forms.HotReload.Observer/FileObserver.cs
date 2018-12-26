@@ -92,8 +92,8 @@ namespace Xamarin.Forms.HotReload.Observer
         
         private static void OnFileChanged(object source, FileSystemEventArgs e)
         {
-            string fullpath = e.FullPath;
-            if (Regex.IsMatch(fullpath, "(/|^)((obj)|(bin))/"))
+            string fullPath = e.FullPath;
+            if (Regex.IsMatch(fullPath, "(/|^)((obj)|(bin))/"))
             {
                 return;
             }
@@ -108,7 +108,7 @@ namespace Xamarin.Forms.HotReload.Observer
                 _lastChangeTime = now;
             }
 
-            var filePath = fullpath.Replace("/.#", "/");
+            var filePath = fullPath.Replace("/.#", "/");
             Console.WriteLine($"CHANGED {now}: {filePath}");
             SendFile(filePath);
         }
