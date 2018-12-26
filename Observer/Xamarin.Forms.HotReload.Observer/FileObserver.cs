@@ -7,6 +7,7 @@ using System.Security.Permissions;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
+using System.Text.RegularExpressions;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -61,7 +62,8 @@ namespace Xamarin.Forms.HotReload.Observer
                 Path = path,
                 NotifyFilter = NotifyFilters.LastWrite,
                 Filter = "*.xaml",
-                EnableRaisingEvents = true
+                EnableRaisingEvents = true,
+                IncludeSubdirectories = true
             };
 
             _client = new HttpClient
@@ -71,6 +73,7 @@ namespace Xamarin.Forms.HotReload.Observer
 
             observer.Changed += OnFileChanged;
             observer.Created += OnFileChanged;
+            observer.Renamed += OnFileChanged;
             do
             {
                 Console.WriteLine("\nPRESS \'ESC\' TO STOP.");
@@ -78,6 +81,7 @@ namespace Xamarin.Forms.HotReload.Observer
 
             observer.Changed -= OnFileChanged;
             observer.Created -= OnFileChanged;
+            observer.Renamed -= OnFileChanged;
         }
 
         private static string RetrieveCommandLineArgument(string key, string defaultValue, string[] args)
