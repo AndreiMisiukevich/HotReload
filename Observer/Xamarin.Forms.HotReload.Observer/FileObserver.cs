@@ -63,7 +63,7 @@ namespace Xamarin.Forms.HotReload.Observer
                 NotifyFilter = NotifyFilters.LastWrite,
                 Filter = "*.xaml",
                 EnableRaisingEvents = true,
-                IncludeSubdirectories = true,
+                IncludeSubdirectories = true
             };
 
             _client = new HttpClient
