@@ -6,10 +6,8 @@
         {
 #if DEBUG
             HotReloader.Current.Start();
-            this.InitializeElement();
-#else
-            InitializeComponent();
 #endif
+            this.InitComponent(InitializeComponent);
             MainPage = new NavigationPage(new MainPage());
         }
     }

@@ -4,11 +4,7 @@
     {
         public TestContentView()
         {
-#if DEBUG
-            this.InitializeElement();
-#else
-            InitializeComponent();
-#endif
+            this.InitComponent(InitializeComponent);
         }
     }
 }

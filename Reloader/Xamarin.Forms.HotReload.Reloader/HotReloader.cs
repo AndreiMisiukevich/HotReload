@@ -42,10 +42,11 @@ namespace Xamarin.Forms
 
         public bool IsRunning { get; private set; }
 
-        public void InitializeElement(Element element)
+        public void InitializeElement(Element element, Action defaultInitializer = null)
         {
             if(!IsRunning)
             {
+                defaultInitializer?.Invoke();
                 return;
             }
 
@@ -63,6 +64,14 @@ namespace Xamarin.Forms
 
             if (string.IsNullOrWhiteSpace(item.Xaml))
             {
+                _fileMapping[className] = item;
+
+                if (defaultInitializer != null)
+                {
+                    defaultInitializer.Invoke();
+                    return;
+                }
+
                 try
                 {
                     element.LoadFromXaml(elementType);
@@ -74,7 +83,6 @@ namespace Xamarin.Forms
                         .Invoke(element, null);
                 }
                 SetupNamedChildren(element);
-                _fileMapping[className] = item;
                 return;
             }
 

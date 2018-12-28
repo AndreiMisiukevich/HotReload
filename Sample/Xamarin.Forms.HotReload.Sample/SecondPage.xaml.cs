@@ -6,11 +6,7 @@ namespace Xamarin.Forms.HotReload.Sample
     {
         public SecondPage()
         {
-#if DEBUG
-            this.InitializeElement();
-#else
-            InitializeComponent();
-#endif
+            this.InitComponent(InitializeComponent);
             BindingContext = new SecondViewModel();
         }
     }
