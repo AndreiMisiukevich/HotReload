@@ -40,18 +40,14 @@ namespace Xamarin.Forms.HotReload
 
         public bool IsRunning { get; private set; }
 
-        public void InitializeElement<TXaml>(TXaml element) where TXaml : Element
-        {
-            InitializeElement(element, typeof(TXaml));
-        }
-
-        public void InitializeElement(Element element, Type elementType)
+        public void InitializeElement(Element element)
         {
             if(!IsRunning)
             {
                 return;
             }
 
+            var elementType = element.GetType();
             element.PropertyChanged += OnElementPropertyChanged;
 
             var className = RetriveClassName(elementType);
