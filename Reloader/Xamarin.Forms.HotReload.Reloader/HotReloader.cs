@@ -63,7 +63,16 @@ namespace Xamarin.Forms.HotReload
 
             if (string.IsNullOrWhiteSpace(item.Xaml))
             {
-                element.LoadFromXaml(elementType);
+                try
+                {
+                    element.LoadFromXaml(elementType);
+                }
+                catch(XamlParseException)
+                {
+                    elementType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                        .FirstOrDefault(m => m.IsDefined(typeof(GeneratedCodeAttribute), true))
+                        .Invoke(element, null);
+                }
                 SetupNamedChildren(element);
                 _fileMapping[className] = item;
                 return;

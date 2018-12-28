@@ -7,7 +7,6 @@ using System.Security.Permissions;
 using System.Linq;
 using System.Net.Sockets;
 using System.Net.NetworkInformation;
-using System.Text.RegularExpressions;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
