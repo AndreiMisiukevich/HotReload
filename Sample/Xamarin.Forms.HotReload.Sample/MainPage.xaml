@@ -14,7 +14,14 @@
                     Text="CLICK TO SEE THE SECOND PAGE"
                     TextColor="Red"
                     FontAttributes="Bold"
-                    FontSize="15"/> 
+                    FontSize="15"/>
+            <Button 
+                    x:Name="Btn"
+                    Clicked="Handle_Clicked"
+                    Text="0"
+                    TextColor="Blue"
+                    FontAttributes="Bold"
+                    FontSize="20"/> 
             <test:TestContentView />
         </StackLayout>
     </StackLayout>

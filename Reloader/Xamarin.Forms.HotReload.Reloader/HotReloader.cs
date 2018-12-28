@@ -19,6 +19,8 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Net.NetworkInformation;
+using System.CodeDom.Compiler;
+using System.Reflection;
 
 namespace Xamarin.Forms.HotReload
 {
@@ -47,9 +49,9 @@ namespace Xamarin.Forms.HotReload
                 return;
             }
 
-            var elementType = element.GetType();
             element.PropertyChanged += OnElementPropertyChanged;
 
+            var elementType = element.GetType();
             var className = RetriveClassName(elementType);
             if(!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
@@ -62,6 +64,7 @@ namespace Xamarin.Forms.HotReload
             if (string.IsNullOrWhiteSpace(item.Xaml))
             {
                 element.LoadFromXaml(elementType);
+                SetupNamedChildren(element);
                 _fileMapping[className] = item;
                 return;
             }
@@ -201,9 +204,9 @@ namespace Xamarin.Forms.HotReload
             });
         }
 
-        private void ReloadElement(Element view, string xaml)
+        private void ReloadElement(Element element, string xaml)
         {
-            switch(view)
+            switch(element)
             {
                 case ContentPage contentPage:
                     contentPage.Content = null;
@@ -218,7 +221,21 @@ namespace Xamarin.Forms.HotReload
                     layout.Children.Clear();
                     break;
             }
-            view.LoadFromXaml(xaml);
+            element.LoadFromXaml(xaml);
+            SetupNamedChildren(element);
+        }
+
+        private void SetupNamedChildren(Element element)
+        {
+            var fields = element.GetType()
+                .GetFields(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Where(f => f.IsDefined(typeof(GeneratedCodeAttribute), true));
+
+            foreach (var field in fields)
+            {
+                var value = element.FindByName<object>(field.Name);
+                field.SetValue(element, value);
+            }
         }
 
         private void OnElementPropertyChanged(object sender, PropertyChangedEventArgs args)

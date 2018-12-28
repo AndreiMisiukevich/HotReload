@@ -20,6 +20,12 @@ namespace Xamarin.Forms.HotReload.Sample
         }
 
         public ICommand PushCommand { get; }
+
+        void Handle_Clicked(object sender, System.EventArgs e)
+        {
+            Btn.Text = (int.Parse(Btn.Text) + 1).ToString();
+        }
+
     }
 
     public class MainViewModel
