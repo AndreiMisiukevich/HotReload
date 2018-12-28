@@ -1,4 +1,6 @@
-﻿namespace Xamarin.Forms.HotReload.Reloader
+﻿using Xamarin.Forms.HotReload;
+
+namespace Xamarin.Forms
 {
     public static class HotReloaderExtensions
     {

@@ -22,7 +22,7 @@ using System.Net.NetworkInformation;
 using System.CodeDom.Compiler;
 using System.Reflection;
 
-namespace Xamarin.Forms.HotReload
+namespace Xamarin.Forms
 {
     public sealed class HotReloader
     {

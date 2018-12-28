@@ -1,8 +1,4 @@
-﻿#if DEBUG
-using Xamarin.Forms.HotReload.Reloader;
-#endif
-
-namespace Xamarin.Forms.HotReload.Sample
+﻿namespace Xamarin.Forms.HotReload.Sample
 {
     public partial class TestContentView : ContentView
     {

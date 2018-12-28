@@ -1,8 +1,4 @@
-﻿#if DEBUG
-using Xamarin.Forms.HotReload.Reloader;
-#endif
-
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace Xamarin.Forms.HotReload.Sample
 {

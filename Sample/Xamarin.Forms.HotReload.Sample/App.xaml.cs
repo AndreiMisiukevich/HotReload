@@ -1,11 +1,4 @@
-﻿#if DEBUG
-using Xamarin.Forms.HotReload.Reloader;
-#else
-using Xamarin.Forms.Xaml;
-[assembly: XamlCompilation(XamlCompilationOptions.Compile)]
-#endif
-
-namespace Xamarin.Forms.HotReload.Sample
+﻿namespace Xamarin.Forms.HotReload.Sample
 {
     public partial class App : Application
     {
