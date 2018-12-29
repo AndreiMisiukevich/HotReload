@@ -42,9 +42,13 @@ namespace Xamarin.Forms
 
         public bool IsRunning { get; private set; }
 
+        [Obsolete("THIS METHOD IS OBSOLETE. PLEASE, USE InitComponent INSTEAD")]
         public void InitializeElement(Element element, Action defaultInitializer = null)
+        => InitComponent(element);
+
+        public void InitComponent(Element element, Action defaultInitializer = null)
         {
-            if(!IsRunning)
+            if (!IsRunning)
             {
                 defaultInitializer?.Invoke();
                 return;
@@ -54,11 +58,12 @@ namespace Xamarin.Forms
 
             var elementType = element.GetType();
             var className = RetriveClassName(elementType);
-            if(!_fileMapping.TryGetValue(className, out ReloadItem item))
+            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
                 item = new ReloadItem();
             }
-            item.Elements.Add(new ElementEntry {
+            item.Elements.Add(new ElementEntry
+            {
                 Element = element
             });
 
@@ -76,7 +81,7 @@ namespace Xamarin.Forms
                 {
                     element.LoadFromXaml(elementType);
                 }
-                catch(XamlParseException)
+                catch (XamlParseException)
                 {
                     elementType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
                         .FirstOrDefault(m => m.IsDefined(typeof(GeneratedCodeAttribute), true))
@@ -107,7 +112,7 @@ namespace Xamarin.Forms
                           .Where(x => x.ToString() != "127.0.0.1")
                           .ToArray();
 
-            foreach(var address in addresses)
+            foreach (var address in addresses)
             {
                 Console.WriteLine($"HOTRELOAD AVAILABLE IP: {address}");
             }
@@ -137,7 +142,7 @@ namespace Xamarin.Forms
                         .Select(r => Observable.FromAsync(() => HandleRequestAsync(r, httpSender)))
                         .Concat()
                         .Subscribe();
-                                       
+
             Console.WriteLine($"HOTRELOAD STARTED AT {url}");
         }
 
@@ -150,7 +155,7 @@ namespace Xamarin.Forms
                 var xaml = Encoding.UTF8.GetString(request.Body.ToArray());
                 var className = RetriveClassName(xaml);
 
-                if(string.IsNullOrWhiteSpace(className))
+                if (string.IsNullOrWhiteSpace(className))
                 {
                     Debug.WriteLine("HOTRELOAD ERROR: 'x:Class' NOT FOUND.");
                     return;
@@ -205,9 +210,9 @@ namespace Xamarin.Forms
                         ReloadElement(element, item.Xaml);
                     }
 
-                    foreach(var affectedItem in affectedItems)
+                    foreach (var affectedItem in affectedItems)
                     {
-                        foreach(var element in affectedItem.Elements.Where(e => e.HasRenderer).Select(e => e.Element).ToArray())
+                        foreach (var element in affectedItem.Elements.Where(e => e.HasRenderer).Select(e => e.Element).ToArray())
                         {
                             ReloadElement(element, affectedItem.Xaml);
                         }
@@ -223,7 +228,7 @@ namespace Xamarin.Forms
 
         private void ReloadElement(Element element, string xaml)
         {
-            switch(element)
+            switch (element)
             {
                 case ContentPage contentPage:
                     contentPage.Content = null;
@@ -257,24 +262,24 @@ namespace Xamarin.Forms
 
         private void OnElementPropertyChanged(object sender, PropertyChangedEventArgs args)
         {
-            if(args.PropertyName != "Renderer")
+            if (args.PropertyName != "Renderer")
             {
                 return;
             }
 
             var element = sender as Element;
             var className = RetriveClassName(element.GetType());
-            if(!_fileMapping.TryGetValue(className, out ReloadItem item))
+            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
                 return;
             }
 
             var entry = item.Elements.FirstOrDefault(x => x.Element == element);
-            if(entry == null)
+            if (entry == null)
             {
                 return;
             }
-            if(entry.HasRenderer)
+            if (entry.HasRenderer)
             {
                 entry.Element.PropertyChanged -= OnElementPropertyChanged;
                 entry.HasRenderer = false;

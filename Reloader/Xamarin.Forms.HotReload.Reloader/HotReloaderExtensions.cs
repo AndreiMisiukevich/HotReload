@@ -9,6 +9,6 @@ namespace Xamarin.Forms
         => InitComponent(element);
 
         public static void InitComponent(this Element element, Action defaultInitializer = null)
-        => HotReloader.Current.InitializeElement(element, defaultInitializer);
+        => HotReloader.Current.InitComponent(element, defaultInitializer);
     }
 }

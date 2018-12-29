@@ -106,12 +106,14 @@ namespace Xamarin.Forms.HotReload.Observer
             SendFile(filePath);
         }
 
-        private static void SendFile(string filePath)
+        private static async void SendFile(string filePath)
         {
             var xaml = File.ReadAllText(filePath);
             var data = Encoding.UTF8.GetBytes(xaml);
-            var content = new ByteArrayContent(data);
-            _client.PostAsync("reload", content);
+            using (var content = new ByteArrayContent(data))
+            {
+                await _client.PostAsync("reload", content).ConfigureAwait(false);
+            }
         }
     }
 }
