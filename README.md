@@ -57,7 +57,7 @@ namespace YourNamespace
 
 * **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd
 
-* If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called every loading (INCLUDING FIRST!)
+* If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called every loading (INCLUDING FIRST! So you needn't duplicate code in constructor)
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
