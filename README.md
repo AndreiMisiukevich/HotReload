@@ -7,52 +7,43 @@ Xamarin.Forms XAML hot reload, live reload, live xaml
 ## Setup
 * Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
 * Add nuget package to your Xamarin.Forms NETSTANDARD/PCL project.
-* Setup App class like (DISABLE XamlCompilationOptions FOR DEBUG!)
+* Setup Reloader
 ```csharp
-#if DEBUG
-using Xamarin.Forms.HotReload.Reloader;
-#else
-using Xamarin.Forms.Xaml;
-[assembly: XamlCompilation(XamlCompilationOptions.Compile)]
-#endif
+using Xamarin.Forms;
 
-namespace Xamarin.Forms.HotReload.Sample
+namespace YourNamespace
 {
     public partial class App : Application
     {
         public App()
         {
 #if DEBUG
-            HotReloader.Current.Start();
-            this.InitializeElement();
-#else
-            InitializeComponent();
+            HotReloader.Current.Start();     
 #endif
+            this.InitComponent(InitializeComponent);
             MainPage = new NavigationPage(new MainPage());
         }
     }
 }
 ```
 
-* ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be set up like
+* ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be set up like:
 ```csharp
-#if DEBUG
-using Xamarin.Forms.HotReload.Reloader;
-#endif
+using Xamarin.Forms;
 
-using System.Windows.Input;
-
-namespace Xamarin.Forms.HotReload.Sample
+namespace YourNamespace
 {
     public partial class MainPage : ContentPage
     {
         public MainPage()
         {
-#if DEBUG
-            this.InitializeElement();
-#else
-            InitializeComponent();
-#endif
+            this.InitComponent(InitializeComponent);
+            //OR
+//#if DEBUG
+//            this.InitComponent();
+//#else
+//            InitializeComponent();
+//#endif
         }
     }
 }
@@ -62,7 +53,7 @@ namespace Xamarin.Forms.HotReload.Sample
 * Start observer.exe via terminal (for MAC) ```mono observer.exe``` or via command line (Windows) ```observer.exe```
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
-* Run your app and start developing with hot reload!
+* Run your app and start developing with **HotReload**!
 
 * **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd
 
