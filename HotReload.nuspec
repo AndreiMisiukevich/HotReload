@@ -7,6 +7,7 @@
     <authors>Andrei Misiukevich</authors>
     <owners>Andrei Misiukevich</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <licenseUrl>https://github.com/AndreiMisiukevich/HotReload/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/AndreiMisiukevich/HotReload</projectUrl>
     <iconUrl>https://cdn3.iconfinder.com/data/icons/lexter-flat-colorfull-file-formats/56/xaml-512.png</iconUrl>
     <description>Allows reloading XAML views from Visual Studio on your running app</description>
