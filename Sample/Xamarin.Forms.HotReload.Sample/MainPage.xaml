@@ -17,7 +17,6 @@
                     FontSize="15"/>
             <Button 
                     x:Name="Btn"
-                    Clicked="Handle_Clicked"
                     Text="0"
                     TextColor="Blue"
                     FontAttributes="Bold"

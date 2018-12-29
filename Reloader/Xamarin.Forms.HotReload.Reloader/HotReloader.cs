@@ -51,6 +51,7 @@ namespace Xamarin.Forms
             if (!IsRunning)
             {
                 defaultInitializer?.Invoke();
+                OnLoaded(element);
                 return;
             }
 
@@ -74,6 +75,7 @@ namespace Xamarin.Forms
                 if (defaultInitializer != null)
                 {
                     defaultInitializer.Invoke();
+                    OnLoaded(element);
                     return;
                 }
 
@@ -88,6 +90,7 @@ namespace Xamarin.Forms
                         .Invoke(element, null);
                 }
                 SetupNamedChildren(element);
+                OnLoaded(element);
                 return;
             }
 
@@ -245,6 +248,7 @@ namespace Xamarin.Forms
             }
             element.LoadFromXaml(xaml);
             SetupNamedChildren(element);
+            OnLoaded(element);
         }
 
         private void SetupNamedChildren(Element element)
@@ -259,6 +263,8 @@ namespace Xamarin.Forms
                 field.SetValue(element, value);
             }
         }
+
+        private void OnLoaded(Element element) => (element as IReloadable)?.OnLoaded();
 
         private void OnElementPropertyChanged(object sender, PropertyChangedEventArgs args)
         {

@@ -2,7 +2,7 @@
 
 namespace Xamarin.Forms.HotReload.Sample
 {
-    public partial class MainPage : ContentPage
+    public partial class MainPage : ContentPage, IReloadable
     {
         public MainPage()
         {
@@ -12,6 +12,11 @@ namespace Xamarin.Forms.HotReload.Sample
         }
 
         public ICommand PushCommand { get; }
+
+        public void OnLoaded()
+        {
+            Btn.Clicked += Handle_Clicked;
+        }
 
         void Handle_Clicked(object sender, System.EventArgs e)
         {
