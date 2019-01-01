@@ -56,7 +56,7 @@ namespace YourNamespace
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
 * Run your app and start developing with **HotReload**!
 
-* **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd
+* **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd. Application output shows the IP of your device/emulator - observer must send it there. Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
 
 * If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called every loading (INCLUDING FIRST! So you needn't duplicate code in constructor)
 
