@@ -235,6 +235,9 @@ namespace Xamarin.Forms
                 case ContentView contentView:
                     contentView.Content = null;
                     break;
+                case ScrollView scrollView:
+                    scrollView.Content = null;
+                    break;
                 case ViewCell viewCell:
                     viewCell.View = null;
                     break;
