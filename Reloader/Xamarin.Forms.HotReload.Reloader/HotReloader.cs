@@ -42,10 +42,6 @@ namespace Xamarin.Forms
 
         public bool IsRunning { get; private set; }
 
-        [Obsolete("THIS METHOD IS OBSOLETE. PLEASE, USE InitComponent INSTEAD")]
-        public void InitializeElement(Element element, Action defaultInitializer = null)
-        => InitComponent(element);
-
         public void InitComponent(Element element, Action defaultInitializer = null)
         {
             if (!IsRunning)
