@@ -70,7 +70,6 @@ namespace Xamarin.Forms.HotReload.Observer
                 BaseAddress = new Uri(url)
             };
 
-           observer.Deleted += OnFileChanged;
             observer.Changed += OnFileChanged;
             observer.Created += OnFileChanged;
             observer.Renamed += OnFileChanged;
@@ -79,7 +78,6 @@ namespace Xamarin.Forms.HotReload.Observer
                 Console.WriteLine("\nPRESS \'ESC\' TO STOP.");
             } while (Console.ReadKey().Key != ConsoleKey.Escape);
 
-            observer.Deleted -= OnFileChanged;
             observer.Changed -= OnFileChanged;
             observer.Created -= OnFileChanged;
             observer.Renamed -= OnFileChanged;
