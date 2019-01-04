@@ -59,7 +59,7 @@ namespace Xamarin.Forms.HotReload.Observer
             var observer = new FileSystemWatcher
             {
                 Path = path,
-                NotifyFilter = NotifyFilters.LastWrite,
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Attributes | NotifyFilters.Size | NotifyFilters.CreationTime,          
                 Filter = "*.xaml",
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true
