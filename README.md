@@ -80,6 +80,39 @@ public partial class MainPage : ContentPage, IReloadable
 }
 ```
 
+## Android Emulator
+In case your `observer.exe` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your `127.0.0.1`:
+
+- Update your Application code to listen to the emulator `127.0.0.1`
+```csharp
+using Xamarin.Forms;
+
+namespace YourNamespace
+{
+    public partial class App : Application
+    {
+        public App()
+        {
+#if DEBUG
+            HotReloader.Current.Start("127.0.0.1",8000);
+            // or
+            // to listen to all possible ip addresses use
+            //HotReloader.Current.Start("0.0.0.0",8000); 
+#endif
+            this.InitComponent(InitializeComponent);
+            MainPage = new NavigationPage(new MainPage());
+        }
+    }
+}
+```
+- You also need to forward the port to your pc/mac using `adb`
+
+```
+adb forward tcp:8000 tcp:8000
+```
+
+- Now you can run `observer.exe` with `u=http://127.0.0.1:8000` and all updates will be forwarded to the emultor 
+
 ## How does it work?
 - Observer uses *FileSystemWatcher* for detecting all xaml files changes in specific folder and subfolders (by default it's current folder for observer.exe, but you can specify it). When observer detects that xaml file is updated, it sends http POST request with updated file to specified url (http://127.0.0.1:8000 by default).
 - Reloader runs *TcpListener* at specified url (http://127.0.0.1:8000 by default). When reloader get POST request, it updates all related views.
