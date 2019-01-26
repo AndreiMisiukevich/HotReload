@@ -1,12 +1,12 @@
 ﻿using System;
 using System.IO;
-using System.Text;
-using System.Net.Http;
-using static System.Math;
-using System.Security.Permissions;
 using System.Linq;
-using System.Net.Sockets;
+using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Security.Permissions;
+using System.Text;
+using static System.Math;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -16,7 +16,10 @@ namespace Xamarin.Forms.HotReload.Observer
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
 
-        public static void Main() => Run();
+        public static void Main()
+        {
+            Run();
+        }
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private static void Run()
@@ -33,7 +36,7 @@ namespace Xamarin.Forms.HotReload.Observer
             var args = Environment.GetCommandLineArgs();
             var path = RetrieveCommandLineArgument("p=", Environment.CurrentDirectory, args);
             var url = RetrieveCommandLineArgument("u=", $"http://{ip}:8000", args);
-            
+
             try
             {
                 Directory.GetDirectories(path);
@@ -59,7 +62,8 @@ namespace Xamarin.Forms.HotReload.Observer
             var observer = new FileSystemWatcher
             {
                 Path = path,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Attributes | NotifyFilters.Size | NotifyFilters.CreationTime,          
+                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Attributes | NotifyFilters.Size | NotifyFilters.CreationTime
+                 | NotifyFilters.FileName,
                 Filter = "*.xaml",
                 EnableRaisingEvents = true,
                 IncludeSubdirectories = true
@@ -88,22 +92,27 @@ namespace Xamarin.Forms.HotReload.Observer
             var value = args.FirstOrDefault(x => x.StartsWith(key, StringComparison.InvariantCultureIgnoreCase));
             return value != null ? value.Substring(2, value.Length - 2) : defaultValue;
         }
-        
+
         private static void OnFileChanged(object source, FileSystemEventArgs e)
         {
-            var now = DateTime.Now;
-            lock (_locker)
+            // check if file is ending with .xaml
+            // as vs temp file get picked by the system watcher
+            if (e.FullPath.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
             {
-                if (Abs((now - _lastChangeTime).TotalMilliseconds) < 900)
+                var now = DateTime.Now;
+                lock (_locker)
                 {
-                    return;
+                    if (Abs((now - _lastChangeTime).TotalMilliseconds) < 900)
+                    {
+                        return;
+                    }
+                    _lastChangeTime = now;
                 }
-                _lastChangeTime = now;
-            }
 
-            var filePath = e.FullPath.Replace("/.#", "/");
-            Console.WriteLine($"CHANGED {now}: {filePath}");
-            SendFile(filePath);
+                var filePath = e.FullPath.Replace("/.#", "/");
+                Console.WriteLine($"CHANGED {now}: {filePath}");
+                SendFile(filePath);
+            }
         }
 
         private static async void SendFile(string filePath)
