@@ -12,14 +12,12 @@ namespace Xamarin.Forms.HotReload.Observer
 {
     public static class FileObserver
     {
+        private static readonly string[] _supportedFileExtensions = { ".xml" };
         private static readonly object _locker = new object();
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
 
-        public static void Main()
-        {
-            Run();
-        }
+        public static void Main() => Run();
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private static void Run()
@@ -59,32 +57,36 @@ namespace Xamarin.Forms.HotReload.Observer
             Console.WriteLine($"\n> PATH: {path}");
             Console.WriteLine($"\n> URL: {url}\n");
 
-            var observer = new FileSystemWatcher
-            {
-                Path = path,
-                NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Attributes | NotifyFilters.Size | NotifyFilters.CreationTime
-                 | NotifyFilters.FileName,
-                Filter = "*.xaml",
-                EnableRaisingEvents = true,
-                IncludeSubdirectories = true
-            };
 
             _client = new HttpClient
             {
                 BaseAddress = new Uri(url)
             };
 
-            observer.Changed += OnFileChanged;
-            observer.Created += OnFileChanged;
-            observer.Renamed += OnFileChanged;
+            foreach(var fileExtension in _supportedFileExtensions)
+            {
+                var observer = new FileSystemWatcher
+                {
+                    Path = path,
+                    NotifyFilter = NotifyFilters.LastWrite |
+                        NotifyFilters.Attributes |
+                        NotifyFilters.Size |
+                        NotifyFilters.CreationTime |
+                        NotifyFilters.FileName,
+                    Filter = $"*{fileExtension}",
+                    EnableRaisingEvents = true,
+                    IncludeSubdirectories = true
+                };
+
+                observer.Changed += OnFileChanged;
+                observer.Created += OnFileChanged;
+                observer.Renamed += OnFileChanged;
+            }
+
             do
             {
                 Console.WriteLine("\nPRESS \'ESC\' TO STOP.");
             } while (Console.ReadKey().Key != ConsoleKey.Escape);
-
-            observer.Changed -= OnFileChanged;
-            observer.Created -= OnFileChanged;
-            observer.Renamed -= OnFileChanged;
         }
 
         private static string RetrieveCommandLineArgument(string key, string defaultValue, string[] args)
@@ -95,24 +97,19 @@ namespace Xamarin.Forms.HotReload.Observer
 
         private static void OnFileChanged(object source, FileSystemEventArgs e)
         {
-            // check if file is ending with .xaml
-            // as vs temp file get picked by the system watcher
-            if (e.FullPath.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
+            var filePath = e.FullPath.Replace("/.#", "/");
+            var now = DateTime.Now;
+            lock (_locker)
             {
-                var now = DateTime.Now;
-                lock (_locker)
+                if (Abs((now - _lastChangeTime).TotalMilliseconds) < 900 ||
+                    _supportedFileExtensions.All(fileExt => !filePath.EndsWith(fileExt, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (Abs((now - _lastChangeTime).TotalMilliseconds) < 900)
-                    {
-                        return;
-                    }
-                    _lastChangeTime = now;
+                    return;
                 }
-
-                var filePath = e.FullPath.Replace("/.#", "/");
-                Console.WriteLine($"CHANGED {now}: {filePath}");
-                SendFile(filePath);
+                _lastChangeTime = now;
             }
+            Console.WriteLine($"CHANGED {now}: {filePath}");
+            SendFile(filePath);
         }
 
         private static async void SendFile(string filePath)
