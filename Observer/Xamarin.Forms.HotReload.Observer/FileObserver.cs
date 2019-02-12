@@ -7,12 +7,13 @@ using System.Net.Sockets;
 using System.Security.Permissions;
 using System.Text;
 using static System.Math;
+using System.Diagnostics;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
     public static class FileObserver
     {
-        private static readonly string[] _supportedFileExtensions = { ".xml" };
+        private static readonly string[] _supportedFileExtensions = { ".xaml" };
         private static readonly object _locker = new object();
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
@@ -114,11 +115,18 @@ namespace Xamarin.Forms.HotReload.Observer
 
         private static async void SendFile(string filePath)
         {
-            var xaml = File.ReadAllText(filePath);
-            var data = Encoding.UTF8.GetBytes(xaml);
-            using (var content = new ByteArrayContent(data))
+            try
             {
-                await _client.PostAsync("reload", content).ConfigureAwait(false);
+                var xaml = File.ReadAllText(filePath);
+                var data = Encoding.UTF8.GetBytes(xaml);
+                using (var content = new ByteArrayContent(data))
+                {
+                    await _client.PostAsync("reload", content).ConfigureAwait(false);
+                }
+            }
+            catch(HttpRequestException)
+            {
+                Console.WriteLine("ERROR: NO CONNECTION.");
             }
         }
     }
