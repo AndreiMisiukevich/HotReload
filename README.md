@@ -49,12 +49,20 @@ namespace YourNamespace
 }
 ```
 
+#### Mac
+
 * Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start observer.exe via terminal (for MAC) ```mono observer.exe``` or via command line (Windows) ```observer.exe```
 * **IF observer.exe doesn't work**: build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer 
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
-* Run your app and start developing with **HotReload**!
+
+##### Widnows
+
+* You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms
+
+
+Run your app and start developing with **HotReload**!
 
 * **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd. Application output shows the IP of your device/emulator - observer must send it there. Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
 
