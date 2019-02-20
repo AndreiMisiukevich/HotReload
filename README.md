@@ -27,7 +27,7 @@ namespace YourNamespace
 }
 ```
 
-* ALL XAML partial classes (ContentPage, ViewCell etc.) MUST be set up like:
+* All XAML.CS classes, which you wanto to reload with HotReload (ContentPage, ViewCell etc.) MUST be set up like:
 ```csharp
 using Xamarin.Forms;
 
@@ -57,16 +57,16 @@ namespace YourNamespace
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
 
-##### Widnows
+##### WINDOWS 
 
 * You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms
 
 
-Run your app and start developing with **HotReload**!
+### Run your app and start developing with **HotReload**!
 
 * **IMPORTANT**: make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in terminal/cmd. Application output shows the IP of your device/emulator - observer must send it there. Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
 
-* If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called every loading (INCLUDING FIRST! So you needn't duplicate code in constructor)
+* If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element updates its Xaml (you make changes in xaml file after thaty they go to application). So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded**
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
