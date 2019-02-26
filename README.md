@@ -68,7 +68,7 @@ Or by searching in Visual Studio's extension manager
  * As soon as solution is opened "Enable extension" button will appear on "Tabs panel".
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_tab.png)
  
-##### Other Platforms (Linux etc.) and IDE (Rider etc.)
+##### Other IDE e.g. (like Rider etc.)
 
 * Build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start Xamarin.Forms.HotReload.Observer.exe via terminal (for MAC) ```mono Xamarin.Forms.HotReload.Observer.exe``` or via command line (Windows) ```Xamarin.Forms.HotReload.Observer.exe``` etc.
