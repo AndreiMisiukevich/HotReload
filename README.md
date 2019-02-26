@@ -51,15 +51,23 @@ namespace YourNamespace
 
 #### Mac
 
-* Download fresh version of **observer.exe** https://github.com/AndreiMisiukevich/HotReload/blob/master/files/observer.exe and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
-* Start observer.exe via terminal (for MAC) ```mono observer.exe``` or via command line (Windows) ```observer.exe```
-* **IF observer.exe doesn't work**: build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer 
-* Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
-```mono observer.exe p=/Users/andrei/SpecificFolder/ u=http://192.168.0.3```
+ * Visual Studio for Mac extension is available for downloading here http://addins.monodevelop.com/Project/Index/376 
+Or by searching in Visual Studio's extension manager
+![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/mac_extension_manager.png)
+ * Header of "HotReload for Xamarin.Forms" extension will appear in Visual Studio's "Tools" dropdown menu.
+ "Enable extension" menu item will appear as soon as solution is opened.
+ ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/mac_extension_menu.png)
 
 ##### WINDOWS 
 
-* You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms
+* You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms. Also can be downloaded via extension manager 
+ ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_manager.png)
+ NOTE: Restart Visual Studio after installation.
+* To make "HotReload for Xamarin.Forms" extension's toolbar visible turn it on in "Tools/Customize" window.
+ ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_enable.png)
+ * As soon as solution is opened "Enable extension" button will appear on "Tabs panel".
+ ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_tab.png)
+ 
 
 
 ### Run your app and start developing with **HotReload**!
