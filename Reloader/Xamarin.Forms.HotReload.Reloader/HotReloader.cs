@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ISimpleHttpListener.Rx.Enum;
-using ISimpleHttpListener.Rx.Model;
-using SimpleHttpListener.Rx.Extension;
-using SimpleHttpListener.Rx.Model;
-using SimpleHttpListener.Rx.Service;
 using System.Text;
 using System.Net.Http;
 using System.Collections.Concurrent;
@@ -21,6 +15,7 @@ using System.Text.RegularExpressions;
 using System.Net.NetworkInformation;
 using System.CodeDom.Compiler;
 using System.Reflection;
+using System.IO;
 
 namespace Xamarin.Forms
 {
@@ -32,7 +27,7 @@ namespace Xamarin.Forms
 
         public static HotReloader Current => _lazyHotReloader.Value;
 
-        private IDisposable _subscription;
+        private Thread _daemonThread;
         private CancellationTokenSource _reloaderCancellationTokenSource;
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
 
@@ -97,13 +92,53 @@ namespace Xamarin.Forms
         {
             IsRunning = false;
             _reloaderCancellationTokenSource?.Cancel();
-            _subscription?.Dispose();
-            _subscription = null;
+            _daemonThread?.Abort();
+            _daemonThread = null;
             _fileMapping = null;
         }
 
-        public void Start(int port = 8000)
+        [Obsolete("WILL BE REMOVED")]
+        public void Start(string ip, int port) 
+            => Start(port);
+
+        [Obsolete("WILL BE REMOVED")]
+        public void Start(string url)
         {
+            var uri = new Uri(url);
+            Start(uri.Port, uri.Scheme);
+        }
+
+        public void Start(int port = 8000)
+            => Start(port, "http");
+
+        public void Start(int port, string scheme)
+        {
+            Stop();
+            IsRunning = true;
+
+            _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
+            _reloaderCancellationTokenSource = new CancellationTokenSource();
+
+            var listener = new HttpListener
+            {
+                Prefixes =
+                {
+                    $"{scheme}://*:{port}/"
+                }
+            };
+            listener.Start();
+
+            _daemonThread = new Thread(() =>
+            {
+                while (true)
+                {
+                    var context = listener.GetContext();
+                    ThreadPool.QueueUserWorkItem((_) => HandleRequest(context));
+                }
+
+            });
+            _daemonThread.Start();
+
             var addresses = NetworkInterface.GetAllNetworkInterfaces()
                           .SelectMany(x => x.GetIPProperties().UnicastAddresses)
                           .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
@@ -113,69 +148,54 @@ namespace Xamarin.Forms
 
             foreach (var address in addresses)
             {
-                Console.WriteLine($"HOTRELOAD AVAILABLE IP: {address}");
+                Console.WriteLine($"AVAILABLE DEVICE's IP: {address}");
             }
 
-            var ip = addresses.FirstOrDefault()?.ToString() ?? "127.0.0.1";
-            Start(ip, port);
+            Console.WriteLine($"HOTRELOAD STARTED");
         }
 
-        public void Start(string ip, int port) => Start($"http://{ip}:{port}");
 
-        public void Start(string url)
+        private void HandleRequest(HttpListenerContext context)
         {
-            Stop();
-            IsRunning = true;
-
-            _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
-            _reloaderCancellationTokenSource = new CancellationTokenSource();
-
-            var uri = new Uri(url);
-            var tcpListener = new TcpListener(uri.Host.GetIPv4Address(), uri.Port)
+            try
             {
-                ExclusiveAddressUse = false
-            };
+                var request = context.Request;
+                if (request.HttpMethod == HttpMethod.Post.Method &&
+                    request.HasEntityBody &&
+                    request.RawUrl.StartsWith("/reload", StringComparison.InvariantCulture))
+                {
+                    using (var bodyStream = request.InputStream)
+                    {
+                        using (var bodyStreamReader = new StreamReader(bodyStream, request.ContentEncoding))
+                        {
+                            var xaml = bodyStreamReader.ReadToEnd();
+                            var className = RetriveClassName(xaml);
 
-            var httpSender = new HttpSender();
-            _subscription = tcpListener.ToHttpListenerObservable(_reloaderCancellationTokenSource.Token)
-                        .Select(r => Observable.FromAsync(() => HandleRequestAsync(r, httpSender)))
-                        .Concat()
-                        .Subscribe();
+                            if (string.IsNullOrWhiteSpace(className))
+                            {
+                                Debug.WriteLine("HOTRELOAD ERROR: 'x:Class' NOT FOUND.");
+                                return;
+                            }
 
-            Console.WriteLine($"HOTRELOAD STARTED AT {url}");
-        }
+                            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
+                            {
+                                item = new ReloadItem();
+                                _fileMapping[className] = item;
+                            }
+                            var oldXaml = item.Xaml;
+                            item.Xaml = xaml;
 
-        private async Task HandleRequestAsync(IHttpRequestResponse request, HttpSender httpSender)
-        {
-            if (request.RequestType == RequestType.TCP &&
-                    request.Method == HttpMethod.Post.Method &&
-                    request.Path.StartsWith("/reload", StringComparison.InvariantCulture))
+                            ReloadElements(className, item, oldXaml);
+                        }
+                    }
+                }
+            }
+            catch
             {
-                var xaml = Encoding.UTF8.GetString(request.Body.ToArray());
-                var className = RetriveClassName(xaml);
-
-                if (string.IsNullOrWhiteSpace(className))
-                {
-                    Debug.WriteLine("HOTRELOAD ERROR: 'x:Class' NOT FOUND.");
-                    return;
-                }
-
-                if (!_fileMapping.TryGetValue(className, out ReloadItem item))
-                {
-                    item = new ReloadItem();
-                    _fileMapping[className] = item;
-                }
-                var oldXaml = item.Xaml;
-                item.Xaml = xaml;
-
-                ReloadElements(className, item, oldXaml);
+                context.Response.StatusCode = (int)HttpStatusCode.NotFound;
             }
 
-            var response = new HttpResponse
-            {
-                StatusCode = (int)HttpStatusCode.OK
-            };
-            await httpSender.SendTcpResponseAsync(request, response).ConfigureAwait(false);
+            context.Response.Close();
         }
 
         private string RetriveClassName(string xaml)
