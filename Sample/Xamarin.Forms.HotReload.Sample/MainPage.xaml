@@ -2,9 +2,17 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
              xmlns:local="clr-namespace:Xamarin.Forms.HotReload.Sample"
-             xmlns:test="clr-namespace:Xamarin.Forms.HotReload.Sample"
              x:Class="Xamarin.Forms.HotReload.Sample.MainPage"
-             BackgroundColor="Silver">
+             BackgroundColor="{StaticResource BackgroundColor}">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <local:ResDict />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+    
     <StackLayout>
         <StackLayout VerticalOptions="CenterAndExpand">
             <Label Text="Welcome to HotReload!" 
@@ -14,14 +22,14 @@
                     Text="CLICK TO SEE THE SECOND PAGE"
                     TextColor="Red"
                     FontAttributes="Bold"
-                    FontSize="15"/>
+                    FontSize="{StaticResource ButtonFontSize}"/>
             <Button 
                     x:Name="Btn"
                     Text="0"
                     TextColor="Blue"
                     FontAttributes="Bold"
-                    FontSize="20"/> 
-            <test:TestContentView />
+                    FontSize="20"/>
+            <local:TestContentView />
         </StackLayout>
     </StackLayout>
 </ContentPage>

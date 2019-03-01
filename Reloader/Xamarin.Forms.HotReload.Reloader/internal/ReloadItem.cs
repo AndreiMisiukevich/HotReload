@@ -6,11 +6,11 @@ namespace Xamarin.Forms.HotReload.Reloader
     {
         public ReloadItem()
         {
-            Elements = new HashSet<Element>();
+            Objects = new HashSet<object>();
             Xaml = string.Empty;
         }
 
         public string Xaml { get; set; }
-        public HashSet<Element> Elements { get; }
+        public HashSet<object> Objects { get; }
     }
 }

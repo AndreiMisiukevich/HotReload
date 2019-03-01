@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="Xamarin.Forms.HotReload.Sample.TestContentView"
              BackgroundColor="Red">
-    <Label Text="I'm test view"
+    <Label Text="I'm test view :)"
            TextColor="White" 
            FontSize="30" 
            FontAttributes="Bold"
