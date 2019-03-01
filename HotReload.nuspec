@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Xamarin.HotReload</id>
-    <version>1.1.1</version>
+    <version>2.0.0</version>
     <title>Xamarin.HotReload</title>
     <authors>Andrei Misiukevich</authors>
     <owners>Andrei Misiukevich</owners>
@@ -16,7 +16,6 @@
     <dependencies>
       <group>
           <dependency id="Xamarin.Forms" version="3.0" />
-          <dependency id="SimpleHttpListener.Rx" version="6.1.0" />
       </group>
     </dependencies>
   </metadata>
