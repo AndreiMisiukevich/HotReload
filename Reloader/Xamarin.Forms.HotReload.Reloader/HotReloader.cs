@@ -146,7 +146,7 @@ namespace Xamarin.Forms
 
                             if (string.IsNullOrWhiteSpace(className))
                             {
-                                Debug.WriteLine("HOTRELOAD ERROR: 'x:Class' NOT FOUND.");
+                                Console.WriteLine("### HOTRELOAD ERROR: 'x:Class' NOT FOUND ###");
                                 return;
                             }
 
@@ -250,7 +250,7 @@ namespace Xamarin.Forms
                 }
                 catch
                 {
-                    Debug.WriteLine("HOTRELOAD ERROR: CANNOT PARSE XAML.");
+                    Console.WriteLine("### HOTRELOAD ERROR: CANNOT PARSE XAML ###");
                     item.Xaml = oldXaml;
                 }
             });
