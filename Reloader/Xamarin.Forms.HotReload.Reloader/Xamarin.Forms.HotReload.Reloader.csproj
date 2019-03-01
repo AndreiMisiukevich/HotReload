@@ -13,4 +13,7 @@
   <ItemGroup>
     <Folder Include="Internal\" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove=".DS_Store" />
+  </ItemGroup>
 </Project>
