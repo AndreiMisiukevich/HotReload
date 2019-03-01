@@ -79,6 +79,7 @@ public partial class MainPage : ContentPage, IReloadable
 ## Android Emulator
 In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your `127.0.0.1`:
 
+- Set **http://127.0.0.1:8000** in VS extension
 - You also need to forward the port to your pc/mac using `adb`
 ```
 adb forward tcp:8000 tcp:8000
