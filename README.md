@@ -6,7 +6,7 @@ Xamarin.Forms XAML hot reload, live reload, live xaml
 
 ## Setup
 * Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
-* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to platform-specific projects **iOS**, **Android** etc.
+* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project.
 * Setup Reloader
 ```csharp
 using Xamarin.Forms;
@@ -17,33 +17,11 @@ namespace YourNamespace
     {
         public App()
         {
+            InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Start();     
+            HotReloader.Current.Start(this);     
 #endif
-            this.InitComponent(InitializeComponent);
             MainPage = new NavigationPage(new MainPage());
-        }
-    }
-}
-```
-
-* All XAML.CS classes, which you wanto to reload with HotReload (ContentPage, ViewCell etc.) MUST be set up like:
-```csharp
-using Xamarin.Forms;
-
-namespace YourNamespace
-{
-    public partial class MainPage : ContentPage
-    {
-        public MainPage()
-        {
-            this.InitComponent(InitializeComponent);
-            //OR
-//#if DEBUG
-//            this.InitComponent();
-//#else
-//            InitializeComponent();
-//#endif
         }
     }
 }
@@ -78,11 +56,10 @@ Or by searching in Visual Studio's extension manager
 ### Run your app and start developing with **HotReload**!
 
 * **IMPORTANT**: 
-- Make sure, that *reloader* and *observer* run on the same url. Check application output "HOTRELOADER STARTED AT {IP}" and compare it with url in HotReload VS extension. 
-- Application output shows the IP of your device/emulator. So observer (Extension) must send it there. 
+- Make sure you use proper device IP in Extension. Check application output for more info about device IP.
 - Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
 
-* If you want to initialize your element after reloading (update named childs or something else), you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element updates its Xaml (you make changes in xaml file after thaty they go to application). So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded**
+* If you want to initialize your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded**.
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
@@ -92,14 +69,9 @@ public partial class MainPage : ContentPage, IReloadable
         this.InitComponent(InitializeComponent);
     }
 
-    public void OnLoaded() // Add event handlers in this method
+    public void OnLoaded() // Add logic here
     {
-        Btn.Clicked += Handle_Clicked;
-    }
-
-    void Handle_Clicked(object sender, System.EventArgs e)
-    {
-        //Do work
+        //
     }
 }
 ```
@@ -107,34 +79,10 @@ public partial class MainPage : ContentPage, IReloadable
 ## Android Emulator
 In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your `127.0.0.1`:
 
-- Update your Application code to listen to the emulator `127.0.0.1`
-```csharp
-using Xamarin.Forms;
-
-namespace YourNamespace
-{
-    public partial class App : Application
-    {
-        public App()
-        {
-#if DEBUG
-            HotReloader.Current.Start("127.0.0.1",8000);
-            // to listen to all possible ip addresses use
-            //HotReloader.Current.Start("0.0.0.0",8000); 
-#endif
-            this.InitComponent(InitializeComponent);
-            MainPage = new NavigationPage(new MainPage());
-        }
-    }
-}
-```
 - You also need to forward the port to your pc/mac using `adb`
-
 ```
 adb forward tcp:8000 tcp:8000
 ```
-
-- Now you can run `VS Extension` with `http://127.0.0.1:8000` and all updates will be forwarded to the emultor 
 
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich)
