@@ -66,7 +66,7 @@ public partial class MainPage : ContentPage, IReloadable
 {
     public MainPage()
     {
-        this.InitComponent(InitializeComponent);
+        InitializeComponent();
     }
 
     public void OnLoaded() // Add logic here
