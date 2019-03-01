@@ -8,7 +8,6 @@ using Xamarin.Forms.HotReload.Reloader;
 using System.Linq;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
-using System.Diagnostics;
 using System.Text.RegularExpressions;
 using System.Net.NetworkInformation;
 using System.CodeDom.Compiler;
