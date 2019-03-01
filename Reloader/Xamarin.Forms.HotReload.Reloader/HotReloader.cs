@@ -75,13 +75,13 @@ namespace Xamarin.Forms
             {
                 _originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                if(!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
+                if (!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
                 {
                     return;
                 }
 
                 var element = bindable as Element;
-                if(newValue != null)
+                if (newValue != null)
                 {
                     InitializeElement(element);
                     return;
@@ -179,7 +179,7 @@ namespace Xamarin.Forms
 
         private void InitializeElement(Element element)
         {
-            if(element == null)
+            if (element == null)
             {
                 return;
             }
