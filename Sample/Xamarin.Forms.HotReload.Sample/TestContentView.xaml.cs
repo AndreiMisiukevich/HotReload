@@ -4,7 +4,7 @@
     {
         public TestContentView()
         {
-            this.InitComponent(InitializeComponent);
+            InitializeComponent();
         }
     }
 }

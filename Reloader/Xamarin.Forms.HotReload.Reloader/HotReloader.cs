@@ -2,15 +2,13 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Text;
 using System.Net.Http;
 using System.Collections.Concurrent;
 using Xamarin.Forms.HotReload.Reloader;
 using System.Linq;
+using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 using System.Diagnostics;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Net.NetworkInformation;
 using System.CodeDom.Compiler;
@@ -30,63 +28,31 @@ namespace Xamarin.Forms
         private Thread _daemonThread;
         private CancellationTokenSource _reloaderCancellationTokenSource;
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
+        private readonly Type _xamlFilePathAttributeType;
+        private readonly BindableProperty _rendererProperty;
+        private readonly PropertyInfo _rendererPropertyChangedInfo;
+        private readonly BindableProperty.BindingPropertyChangedDelegate _originalRendererPropertyChanged;
 
         private HotReloader()
         {
+            _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
+
+            var platformAssembly = DependencyService.Get<ISystemResourcesProvider>()
+                .GetType()
+                .Assembly;
+
+            var platformType = platformAssembly
+                .GetTypes()
+                .FirstOrDefault(t => t.Name == "Platform");
+
+            var rendererPropInfo = platformType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
+            _rendererProperty = rendererPropInfo.GetValue(null) as BindableProperty;
+
+            _rendererPropertyChangedInfo = _rendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            _originalRendererPropertyChanged = _rendererPropertyChangedInfo.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
         }
 
         public bool IsRunning { get; private set; }
-
-        public void InitComponent(Element element, Action defaultInitializer = null)
-        {
-            if (!IsRunning)
-            {
-                defaultInitializer?.Invoke();
-                OnLoaded(element);
-                return;
-            }
-
-            element.PropertyChanged += OnElementPropertyChanged;
-
-            var elementType = element.GetType();
-            var className = RetriveClassName(elementType);
-            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
-            {
-                item = new ReloadItem();
-            }
-            item.Elements.Add(new ElementEntry
-            {
-                Element = element
-            });
-
-            if (string.IsNullOrWhiteSpace(item.Xaml))
-            {
-                _fileMapping[className] = item;
-
-                if (defaultInitializer != null)
-                {
-                    defaultInitializer.Invoke();
-                    OnLoaded(element);
-                    return;
-                }
-
-                try
-                {
-                    element.LoadFromXaml(elementType);
-                }
-                catch (XamlParseException)
-                {
-                    elementType.GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
-                        .FirstOrDefault(m => m.IsDefined(typeof(GeneratedCodeAttribute), true))
-                        .Invoke(element, null);
-                }
-                SetupNamedChildren(element);
-                OnLoaded(element);
-                return;
-            }
-
-            ReloadElement(element, item.Xaml);
-        }
 
         public void Stop()
         {
@@ -97,45 +63,53 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        [Obsolete("WILL BE REMOVED")]
-        public void Start(string ip, int port) 
-            => Start(port);
+        public void Start(Application app, int port = 8000)
+            => Start(app, port, ReloaderScheme.Http);
 
-        [Obsolete("WILL BE REMOVED")]
-        public void Start(string url)
-        {
-            var uri = new Uri(url);
-            Start(uri.Port, uri.Scheme);
-        }
-
-        public void Start(int port = 8000)
-            => Start(port, "http");
-
-        public void Start(int port, string scheme)
+        public void Start(Application app, int port, ReloaderScheme scheme)
         {
             Stop();
             IsRunning = true;
 
+            var rendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
+            {
+                _originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
+
+                if(!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
+                {
+                    return;
+                }
+
+                var element = bindable as Element;
+                if(newValue != null)
+                {
+                    InitializeElement(element);
+                    return;
+                }
+                DestroyElement(element);
+            });
+            _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
+
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
             _reloaderCancellationTokenSource = new CancellationTokenSource();
+            InitializeElement(app);
 
             var listener = new HttpListener
             {
                 Prefixes =
                 {
-                    $"{scheme}://*:{port}/"
+                    $"{scheme.ToString().ToLower()}://*:{port}/"
                 }
             };
             listener.Start();
 
             _daemonThread = new Thread(() =>
             {
-                while (true)
+                do
                 {
                     var context = listener.GetContext();
                     ThreadPool.QueueUserWorkItem((_) => HandleRequest(context));
-                }
-
+                } while (true);
             });
             _daemonThread.Start();
 
@@ -153,7 +127,6 @@ namespace Xamarin.Forms
 
             Console.WriteLine($"HOTRELOAD STARTED");
         }
-
 
         private void HandleRequest(HttpListenerContext context)
         {
@@ -204,6 +177,46 @@ namespace Xamarin.Forms
         private string RetriveClassName(Type type)
         => type.FullName;
 
+        private void InitializeElement(Element element)
+        {
+            if(element == null)
+            {
+                return;
+            }
+
+            var elementType = element.GetType();
+            var className = RetriveClassName(elementType);
+            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
+            {
+                item = new ReloadItem();
+                _fileMapping[className] = item;
+            }
+            item.Elements.Add(element);
+
+            if (string.IsNullOrWhiteSpace(item.Xaml))
+            {
+                OnLoaded(element);
+                return;
+            }
+
+            ReloadElement(element, item.Xaml);
+        }
+
+        private void DestroyElement(Element element)
+        {
+            var className = RetriveClassName(element.GetType());
+            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
+            {
+                return;
+            }
+            var entry = item.Elements.FirstOrDefault(x => x == element);
+            if (entry == null)
+            {
+                return;
+            }
+            item.Elements.Remove(entry);
+        }
+
         private void ReloadElements(string classFullName, ReloadItem item, string oldXaml)
         {
             if (!item.Elements.Any())
@@ -215,8 +228,6 @@ namespace Xamarin.Forms
             var nameSpace = string.Join(".", nameParts.Take(nameParts.Length - 1));
             var className = nameParts[nameParts.Length - 1];
 
-            var updatedElements = item.Elements.Where(e => e.HasRenderer).Select(e => e.Element).ToArray();
-
             var affectedItems = _fileMapping.Values.Where(e => Regex.IsMatch(e.Xaml, $"\"clr-namespace:{nameSpace}")
                                               && Regex.IsMatch(e.Xaml, $":{className}")).ToArray();
 
@@ -224,14 +235,14 @@ namespace Xamarin.Forms
             {
                 try
                 {
-                    foreach (var element in updatedElements)
+                    foreach (var element in item.Elements)
                     {
                         ReloadElement(element, item.Xaml);
                     }
 
                     foreach (var affectedItem in affectedItems)
                     {
-                        foreach (var element in affectedItem.Elements.Where(e => e.HasRenderer).Select(e => e.Element).ToArray())
+                        foreach (var element in affectedItem.Elements)
                         {
                             ReloadElement(element, affectedItem.Xaml);
                         }
@@ -284,35 +295,5 @@ namespace Xamarin.Forms
         }
 
         private void OnLoaded(Element element) => (element as IReloadable)?.OnLoaded();
-
-        private void OnElementPropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName != "Renderer")
-            {
-                return;
-            }
-
-            var element = sender as Element;
-            var className = RetriveClassName(element.GetType());
-            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
-            {
-                return;
-            }
-
-            var entry = item.Elements.FirstOrDefault(x => x.Element == element);
-            if (entry == null)
-            {
-                return;
-            }
-            if (entry.HasRenderer)
-            {
-                entry.Element.PropertyChanged -= OnElementPropertyChanged;
-                entry.HasRenderer = false;
-                item.Elements.Remove(entry);
-                return;
-            }
-
-            entry.HasRenderer = true;
-        }
     }
 }

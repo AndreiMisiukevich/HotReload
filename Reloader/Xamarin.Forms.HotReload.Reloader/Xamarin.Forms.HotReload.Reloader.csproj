@@ -10,4 +10,7 @@
   <ItemGroup>
     <Compile Remove="MainPage.xaml.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Internal\" />
+  </ItemGroup>
 </Project>

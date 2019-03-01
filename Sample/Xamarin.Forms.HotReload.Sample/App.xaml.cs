@@ -4,10 +4,10 @@
     {
         public App()
         {
+            InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Start();
+            HotReloader.Current.Start(this);
 #endif
-            this.InitComponent(InitializeComponent);
             MainPage = new NavigationPage(new MainPage());
         }
     }

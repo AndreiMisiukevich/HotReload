@@ -6,7 +6,7 @@ namespace Xamarin.Forms.HotReload.Sample
     {
         public MainPage()
         {
-            this.InitComponent(InitializeComponent);
+            InitializeComponent();
             BindingContext = new MainViewModel();
             PushCommand = new Command(() => Navigation.PushAsync(new SecondPage()));
         }
