@@ -6,7 +6,7 @@ Xamarin.Forms XAML hot reload, live reload, live xaml
 
 ## Setup
 * Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
-* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project.
+* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc.
 * Setup Reloader
 ```csharp
 using Xamarin.Forms;
