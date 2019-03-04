@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Xml;
 
 namespace Xamarin.Forms.HotReload.Reloader
 {
@@ -7,10 +8,10 @@ namespace Xamarin.Forms.HotReload.Reloader
         public ReloadItem()
         {
             Objects = new HashSet<object>();
-            Xaml = string.Empty;
+            Xaml = new XmlDocument();
         }
 
-        public string Xaml { get; set; }
+        public XmlDocument Xaml { get; set; }
         public HashSet<object> Objects { get; }
     }
 }

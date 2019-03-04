@@ -5,7 +5,6 @@
         public ResDict()
         {
             InitializeComponent();
-            HotReloader.Current.RegisterReloadableNonElementComponent(this);
         }
     }
 }

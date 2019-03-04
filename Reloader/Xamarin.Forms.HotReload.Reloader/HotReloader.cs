@@ -14,6 +14,8 @@ using System.CodeDom.Compiler;
 using System.Reflection;
 using System.IO;
 using static System.Math;
+using System.Xml;
+using System.Collections.Generic;
 
 namespace Xamarin.Forms
 {
@@ -92,6 +94,7 @@ namespace Xamarin.Forms
             _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
 
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
+
             InitializeElement(app);
 
             var listener = new HttpListener
@@ -109,7 +112,7 @@ namespace Xamarin.Forms
                 do
                 {
                     var context = listener.GetContext();
-                    ThreadPool.QueueUserWorkItem((_) => HandleRequest(context));
+                    ThreadPool.QueueUserWorkItem((_) => HandleReloadRequest(context));
                 } while (true);
             });
             _daemonThread.Start();
@@ -129,16 +132,7 @@ namespace Xamarin.Forms
             Console.WriteLine($"### HOTRELOAD STARTED ###");
         }
 
-        public void RegisterReloadableNonElementComponent(object obj)
-        {
-            if (obj is Element || !obj.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
-            {
-                return;
-            }
-            InitializeElement(obj);
-        }
-
-        private void HandleRequest(HttpListenerContext context)
+        private void HandleReloadRequest(HttpListenerContext context)
         {
             lock (_requestLocker)
             {
@@ -159,22 +153,8 @@ namespace Xamarin.Forms
                                     return;
                                 }
                                 _prevXaml = xaml;
-                                var className = RetriveClassName(xaml);
 
-                                if (string.IsNullOrWhiteSpace(className))
-                                {
-                                    Console.WriteLine("### HOTRELOAD ERROR: 'x:Class' NOT FOUND ###");
-                                    return;
-                                }
-
-                                if (!_fileMapping.TryGetValue(className, out ReloadItem item))
-                                {
-                                    item = new ReloadItem();
-                                    _fileMapping[className] = item;
-                                }
-
-                                item.Xaml = xaml;
-                                ReloadElements(className, item);
+                                ReloadElements(xaml);
                             }
                         }
                     }
@@ -188,12 +168,6 @@ namespace Xamarin.Forms
             }
         }
 
-        private string RetriveClassName(string xaml)
-        => Regex.Match(xaml, "x:Class=\"(.+)\"").Groups[1].Value;
-
-        private string RetriveClassName(Type type)
-        => type.FullName;
-
         private void InitializeElement(object obj)
         {
             if (obj == null)
@@ -202,7 +176,7 @@ namespace Xamarin.Forms
             }
 
             var elementType = obj.GetType();
-            var className = RetriveClassName(elementType);
+            var className = RetrieveClassName(elementType);
             if (!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
                 item = new ReloadItem();
@@ -210,7 +184,7 @@ namespace Xamarin.Forms
             }
             item.Objects.Add(obj);
 
-            if (string.IsNullOrWhiteSpace(item.Xaml))
+            if (string.IsNullOrWhiteSpace(item.Xaml.InnerXml))
             {
                 OnLoaded(obj);
                 return;
@@ -221,7 +195,7 @@ namespace Xamarin.Forms
 
         private void DestroyElement(object obj)
         {
-            var className = RetriveClassName(obj.GetType());
+            var className = RetrieveClassName(obj.GetType());
             if (!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
                 return;
@@ -234,16 +208,31 @@ namespace Xamarin.Forms
             item.Objects.Remove(entry);
         }
 
-        private void ReloadElements(string classFullName, ReloadItem item)
+        private void ReloadElements(string xaml)
         {
-            if (!item.Objects.Any())
+            var className = RetrieveClassName(xaml);
+
+            if (string.IsNullOrWhiteSpace(className))
             {
+                Console.WriteLine("### HOTRELOAD ERROR: 'x:Class' NOT FOUND ###");
                 return;
             }
 
-            //var nameParts = classFullName.Split('.');
-            //var nameSpace = string.Join(".", nameParts.Take(nameParts.Length - 1));
-            //var className = nameParts[nameParts.Length - 1];
+            ReloadItem item = null;
+            try
+            {
+                if (!_fileMapping.TryGetValue(className, out item))
+                {
+                    item = new ReloadItem();
+                    _fileMapping[className] = item;
+                }
+                item.Xaml.LoadXml(xaml);
+            }
+            catch
+            {
+                Console.WriteLine("### HOTRELOAD ERROR: CANNOT PARSE XAML ###");
+                return;
+            }
 
             Device.BeginInvokeOnMainThread(() =>
             {
@@ -254,22 +243,15 @@ namespace Xamarin.Forms
                         ReloadElement(element, item.Xaml);
                     }
 
-                    var checkElement = item.Objects.First();
-
                     ReloadItem[] affectedItems;
-                    switch(item.Objects.First())
+                    switch(item.Xaml.DocumentElement.Name)
                     {
-                        case Application app:
+                        case "Application":
                             affectedItems = _fileMapping.Values.ToArray();
                             break;
-                        case ResourceDictionary resDict:
-                            var dictType = resDict.GetType();
+                        case "ResourceDictionary":
                             affectedItems = _fileMapping.Values.Where(
-                                e => (e.Objects.FirstOrDefault() as VisualElement)
-                                    ?.Resources
-                                    ?.MergedDictionaries
-                                    ?.Any(d => d.GetType() == dictType)
-                                    ?? false)
+                                e => ContainsResourceDictionary((e.Objects.FirstOrDefault() as VisualElement)?.Resources, className))
                                     .ToArray();
                             break;
                         default:
@@ -291,7 +273,7 @@ namespace Xamarin.Forms
             });
         }
 
-        private void ReloadElement(object obj, string xaml)
+        private void ReloadElement(object obj, XmlDocument xamlDoc)
         {
             switch (obj)
             {
@@ -310,9 +292,6 @@ namespace Xamarin.Forms
                 case Layout<View> layout:
                     layout.Children.Clear();
                     break;
-                case ResourceDictionary resDict:
-                    resDict.Clear();
-                    break;
                 case Application app:
                     app.Resources.Clear();
                     break;
@@ -320,17 +299,30 @@ namespace Xamarin.Forms
             if(obj is VisualElement visual)
             {
                 visual.Resources?.Clear();
+                visual.Resources = null;
             }
 
-            if (string.IsNullOrWhiteSpace(xaml))
+            if (string.IsNullOrWhiteSpace(xamlDoc.InnerXml))
             {
                 obj.LoadFromXaml(obj.GetType());
             }
             else
             {
-                obj.LoadFromXaml(xaml);
+                obj.LoadFromXaml(xamlDoc.InnerXml);
             }
+
             SetupNamedChildren(obj);
+
+            foreach(var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
+            {
+                var name = dict.GetType().FullName;
+                if(_fileMapping.TryGetValue(name, out ReloadItem item))
+                {
+                    dict.Clear();
+                    dict.LoadFromXaml(item.Xaml.InnerXml);
+                }
+            }
+
             OnLoaded(obj);
         }
 
@@ -352,6 +344,42 @@ namespace Xamarin.Forms
             }
         }
 
+        private bool ContainsResourceDictionary(ResourceDictionary dict, string dictName)
+        {
+            var allDicts = GetResourceDictionaries(dict);
+            return allDicts.Any(x => x.GetType().FullName == dictName);
+        }
+
+
+        private IEnumerable<ResourceDictionary> GetResourceDictionaries(ResourceDictionary rootDict)
+        {
+            if(rootDict == null)
+            {
+                yield break;
+            }
+
+            yield return rootDict;
+
+            if (rootDict.MergedDictionaries == null)
+            {
+                yield break;
+            }
+
+            foreach (var md in rootDict.MergedDictionaries)
+            {
+                foreach (var x in GetResourceDictionaries(md))
+                {
+                    yield return x;
+                }
+            }
+        }
+
+        private string RetrieveClassName(string xaml)
+            => Regex.Match(xaml ?? string.Empty, "x:Class=\"(.+)\"").Groups[1].Value;
+
+        private string RetrieveClassName(Type type)
+            => type.FullName;
+            
         private void OnLoaded(object element) => (element as IReloadable)?.OnLoaded();
     }
 }
