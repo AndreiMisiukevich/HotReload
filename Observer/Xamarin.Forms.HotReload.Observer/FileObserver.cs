@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -6,8 +7,8 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Security.Permissions;
 using System.Text;
+using System.Threading.Tasks;
 using static System.Math;
-using System.Diagnostics;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -18,17 +19,19 @@ namespace Xamarin.Forms.HotReload.Observer
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
 
+        private static readonly List<string> _addresses = new List<string>();
+
         public static void Main() => Run();
 
         [PermissionSet(SecurityAction.Demand, Name = "FullTrust")]
         private static void Run()
         {
             var addresses = NetworkInterface.GetAllNetworkInterfaces()
-                          .SelectMany(x => x.GetIPProperties().UnicastAddresses)
-                          .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
-                          .Select(x => x.Address.MapToIPv4())
-                          .Where(x => x.ToString() != "127.0.0.1")
-                          .ToArray();
+                .SelectMany(x => x.GetIPProperties().UnicastAddresses)
+                .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
+                .Select(x => x.Address.MapToIPv4())
+                .Where(x => x.ToString() != "127.0.0.1")
+                .ToArray();
 
             var ip = addresses.FirstOrDefault()?.ToString() ?? "127.0.0.1";
 
@@ -47,24 +50,29 @@ namespace Xamarin.Forms.HotReload.Observer
                 return;
             }
 
-            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            foreach (var addr in url.Split(','))
             {
-                Console.WriteLine("MAKE SURE YOU PASSED RIGHT DEVICE URL AS 'U={DEVICE_URL}' ARGUMENT.");
-                Console.ReadKey();
-                return;
+                if (!Uri.IsWellFormedUriString(addr, UriKind.Absolute))
+                {
+                    Console.WriteLine("MAKE SURE YOU PASSED RIGHT DEVICE URL AS 'U={DEVICE_URL}' OR AS 'U={DEVICE_URL,DEVICE_URL2,...}' ARGUMENT.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                _addresses.Add(addr);
             }
 
             Console.WriteLine($"\n\n> HOTRELOADER STARTED AT {DateTime.Now}");
             Console.WriteLine($"\n> PATH: {path}");
-            Console.WriteLine($"\n> URL: {url}\n");
 
-
-            _client = new HttpClient
+            foreach (var addr in _addresses)
             {
-                BaseAddress = new Uri(url)
-            };
+                Console.WriteLine($"\n> URL: {addr}\n");
+            }
 
-            foreach(var fileExtension in _supportedFileExtensions)
+            _client = new HttpClient();
+
+            foreach (var fileExtension in _supportedFileExtensions)
             {
                 var observer = new FileSystemWatcher
                 {
@@ -121,10 +129,12 @@ namespace Xamarin.Forms.HotReload.Observer
                 var data = Encoding.UTF8.GetBytes(xaml);
                 using (var content = new ByteArrayContent(data))
                 {
-                    await _client.PostAsync("reload", content).ConfigureAwait(false);
+                    var sendTasks = _addresses.Select(addr => _client.PostAsync($"{addr}/reload", content)).ToArray();
+
+                    await Task.WhenAll(sendTasks).ConfigureAwait(false);
                 }
             }
-            catch(HttpRequestException)
+            catch (HttpRequestException)
             {
                 Console.WriteLine("ERROR: NO CONNECTION.");
             }
