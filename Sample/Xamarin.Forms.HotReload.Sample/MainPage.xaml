@@ -15,7 +15,8 @@
     
     <StackLayout>
         <StackLayout VerticalOptions="CenterAndExpand">
-            <Label Text="Welcome to HotReload!" 
+            <Label Text="Welcome to HotReload!"
+                   TextColor="{StaticResource WelcomeTextColor}"
                    HorizontalOptions="Center" 
                    FontSize="20"/>
             <Button Command="{Binding PushCommand}" 

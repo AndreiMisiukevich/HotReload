@@ -5,6 +5,10 @@
         public ResDict()
         {
             InitializeComponent();
+            //TODO: ResDict autodetection (remove)
+#if DEBUG
+            this.RegisterHotReload();
+#endif
         }
     }
 }

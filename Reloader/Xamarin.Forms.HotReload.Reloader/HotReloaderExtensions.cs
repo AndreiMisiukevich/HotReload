@@ -8,7 +8,7 @@ namespace Xamarin.Forms
     {
         [Obsolete("This method is obsolete and will be removed soon.")]
         public static void InitComponent(this Element element, Action defaultInitializer = null)
-        => HotReloader.Current.InitComponent(element, defaultInitializer);
+            => HotReloader.Current.InitComponent(element, defaultInitializer);
 
 
         [Obsolete("This method is obsolete and will be removed soon.")]
@@ -29,5 +29,9 @@ namespace Xamarin.Forms
                 : ReloaderScheme.Http;
             HotReloader.Current.Start(null, uri.Port, scheme);
         }
+
+        //TODO: ResDict autodetection (remove)
+        public static void RegisterHotReload(this ResourceDictionary resDict)
+            => HotReloader.Current.InitializeElement(resDict);
     }
 }

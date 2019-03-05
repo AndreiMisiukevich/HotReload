@@ -13,7 +13,6 @@ using System.Net.NetworkInformation;
 using System.CodeDom.Compiler;
 using System.Reflection;
 using System.IO;
-using static System.Math;
 using System.Xml;
 using System.Collections.Generic;
 
@@ -168,7 +167,8 @@ namespace Xamarin.Forms
             }
         }
 
-        private void InitializeElement(object obj)
+        //TODO: ResDict autodetection (make private)
+        internal void InitializeElement(object obj)
         {
             if (obj == null)
             {
@@ -182,7 +182,12 @@ namespace Xamarin.Forms
                 item = new ReloadItem();
                 _fileMapping[className] = item;
             }
-            item.Objects.Add(obj);
+
+            //TODO: ResDict autodetection (remove check)
+            if (!(obj is ResourceDictionary))
+            {
+                item.Objects.Add(obj);
+            }
 
             if (string.IsNullOrWhiteSpace(item.Xaml.InnerXml))
             {
@@ -295,11 +300,13 @@ namespace Xamarin.Forms
                 case Application app:
                     app.Resources.Clear();
                     break;
+                case ResourceDictionary resDict:  //TODO: ResDict autodetection (remove)
+                    resDict.Clear();
+                    break;
             }
             if(obj is VisualElement visual)
             {
                 visual.Resources?.Clear();
-                visual.Resources = null;
             }
 
             if (string.IsNullOrWhiteSpace(xamlDoc.InnerXml))
@@ -313,15 +320,16 @@ namespace Xamarin.Forms
 
             SetupNamedChildren(obj);
 
-            foreach(var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
-            {
-                var name = dict.GetType().FullName;
-                if(_fileMapping.TryGetValue(name, out ReloadItem item))
-                {
-                    dict.Clear();
-                    dict.LoadFromXaml(item.Xaml.InnerXml);
-                }
-            }
+            //TODO: ResDict autodetection (uncomment)
+            //foreach(var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
+            //{
+            //    var name = dict.GetType().FullName;
+            //    if(_fileMapping.TryGetValue(name, out ReloadItem item))
+            //    {
+            //        dict.Clear();
+            //        dict.LoadFromXaml(item.Xaml.InnerXml);
+            //    }
+            //}
 
             OnLoaded(obj);
         }
