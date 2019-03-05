@@ -7,7 +7,7 @@
             InitializeComponent();
             //TODO: ResDict autodetection (remove)
 #if DEBUG
-            this.RegisterHotReload();
+            //this.RegisterHotReload();
 #endif
         }
     }

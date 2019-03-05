@@ -10,6 +10,7 @@
             <ResourceDictionary.MergedDictionaries>
                 <local:ResDict />
             </ResourceDictionary.MergedDictionaries>
+            <Color x:Key="ButtonTextColor">Black</Color>
         </ResourceDictionary>
     </ContentPage.Resources>
     
@@ -21,7 +22,7 @@
                    FontSize="20"/>
             <Button Command="{Binding PushCommand}" 
                     Text="CLICK TO SEE THE SECOND PAGE"
-                    TextColor="Red"
+                    TextColor="{StaticResource ButtonTextColor}"
                     FontAttributes="Bold"
                     FontSize="{StaticResource ButtonFontSize}"/>
             <Button 

@@ -29,9 +29,5 @@ namespace Xamarin.Forms
                 : ReloaderScheme.Http;
             HotReloader.Current.Start(null, uri.Port, scheme);
         }
-
-        //TODO: ResDict autodetection (remove)
-        public static void RegisterHotReload(this ResourceDictionary resDict)
-            => HotReloader.Current.InitializeElement(resDict);
     }
 }

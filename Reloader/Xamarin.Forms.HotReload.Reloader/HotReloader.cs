@@ -167,8 +167,7 @@ namespace Xamarin.Forms
             }
         }
 
-        //TODO: ResDict autodetection (make private)
-        internal void InitializeElement(object obj)
+        private void InitializeElement(object obj)
         {
             if (obj == null)
             {
@@ -183,7 +182,6 @@ namespace Xamarin.Forms
                 _fileMapping[className] = item;
             }
 
-            //TODO: ResDict autodetection (remove check)
             if (!(obj is ResourceDictionary))
             {
                 item.Objects.Add(obj);
@@ -300,37 +298,53 @@ namespace Xamarin.Forms
                 case Application app:
                     app.Resources.Clear();
                     break;
-                case ResourceDictionary resDict:  //TODO: ResDict autodetection (remove)
-                    resDict.Clear();
-                    break;
             }
-            if(obj is VisualElement visual)
+
+            //Load original xaml
+            obj.LoadFromXaml(xamlDoc.InnerXml);
+
+            foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
             {
-                visual.Resources?.Clear();
+                var name = dict.GetType().FullName;
+                if (_fileMapping.TryGetValue(name, out ReloadItem item))
+                {
+                    dict.Clear();
+                    dict.LoadFromXaml(item.Xaml.InnerXml);
+                }
             }
 
             if (string.IsNullOrWhiteSpace(xamlDoc.InnerXml))
             {
-                obj.LoadFromXaml(obj.GetType());
+                var type = obj.GetType();
+                using (var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml"))
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        var xaml = reader.ReadToEnd();
+                        xamlDoc.LoadXml(xaml);
+                    }
+                }
             }
-            else
+
+            var modifiedXml = new XmlDocument();
+            modifiedXml.LoadXml(xamlDoc.InnerXml);
+            var removed = false;
+            foreach(XmlNode node in modifiedXml.LastChild)
             {
-                obj.LoadFromXaml(xamlDoc.InnerXml);
+                if(node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
+                {
+                    node.ParentNode.RemoveChild(node);
+                    removed = true;
+                    break;
+                }
+            }
+
+            if (removed)
+            {
+                obj.LoadFromXaml(modifiedXml.InnerXml);
             }
 
             SetupNamedChildren(obj);
-
-            //TODO: ResDict autodetection (uncomment)
-            //foreach(var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
-            //{
-            //    var name = dict.GetType().FullName;
-            //    if(_fileMapping.TryGetValue(name, out ReloadItem item))
-            //    {
-            //        dict.Clear();
-            //        dict.LoadFromXaml(item.Xaml.InnerXml);
-            //    }
-            //}
-
             OnLoaded(obj);
         }
 

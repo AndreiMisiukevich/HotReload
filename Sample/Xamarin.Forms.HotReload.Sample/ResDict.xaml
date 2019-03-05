@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ResourceDictionary xmlns="http://xamarin.com/schemas/2014/forms" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="Xamarin.Forms.HotReload.Sample.ResDict">
-    <x:Double x:Key="ButtonFontSize">18</x:Double>
-    <Color x:Key="WelcomeTextColor">Black</Color>
+    <x:Double x:Key="ButtonFontSize">16</x:Double>
+    <Color x:Key="WelcomeTextColor">White</Color>
 </ResourceDictionary>
