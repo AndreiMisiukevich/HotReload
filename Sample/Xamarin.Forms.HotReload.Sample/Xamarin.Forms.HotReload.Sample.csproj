@@ -15,4 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Reloader\Xamarin.Forms.HotReload.Reloader\Xamarin.Forms.HotReload.Reloader.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Assets\" />
+  </ItemGroup>
 </Project>

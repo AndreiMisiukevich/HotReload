@@ -12,6 +12,7 @@
             </ResourceDictionary.MergedDictionaries>
             <Color x:Key="ButtonTextColor">Black</Color>
         </ResourceDictionary>
+        <StyleSheet Source="Assets/styles.css" />
     </ContentPage.Resources>
     
     <StackLayout>
