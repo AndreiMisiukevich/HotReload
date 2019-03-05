@@ -13,5 +13,6 @@ namespace Xamarin.Forms.HotReload.Reloader
 
         public XmlDocument Xaml { get; set; }
         public HashSet<object> Objects { get; }
+        public bool IsReloaded { get; set; }
     }
 }
