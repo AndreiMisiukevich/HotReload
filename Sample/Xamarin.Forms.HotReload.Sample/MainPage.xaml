@@ -15,6 +15,10 @@
         <StyleSheet Source="Assets/styles.css" />
     </ContentPage.Resources>
     
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Name="MenuItem1" Order="Primary" Text="Item 3" />
+    </ContentPage.ToolbarItems>
+    
     <StackLayout>
         <StackLayout VerticalOptions="CenterAndExpand">
             <Label Text="Welcome to HotReload!"

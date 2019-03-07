@@ -197,7 +197,7 @@ namespace Xamarin.Forms
                 item.Objects.Add(obj);
             }
 
-            if (item.IsReloaded)
+            if (!item.IsReloaded)
             {
                 OnLoaded(obj);
                 return;
@@ -290,6 +290,47 @@ namespace Xamarin.Forms
         private void ReloadElement(object obj, ReloadItem reloadItem)
         {
             var xamlDoc = reloadItem.Xaml;
+
+            RebuildElement(obj, xamlDoc);
+
+            //Update resources
+            foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
+            {
+                var name = dict.GetType().FullName;
+                if (_fileMapping.TryGetValue(name, out ReloadItem item))
+                {
+                    dict.Clear();
+                    dict.LoadFromXaml(item.Xaml.InnerXml);
+                }
+            }
+
+            var modifiedXml = new XmlDocument();
+            modifiedXml.LoadXml(xamlDoc.InnerXml);
+
+            var isResourceFound = false;
+            foreach (XmlNode node in modifiedXml.LastChild)
+            {
+                if (node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
+                {
+                    node.ParentNode.RemoveChild(node);
+                    isResourceFound = true;
+                    break;
+                }
+            }
+
+            //Update object without resources
+            if (isResourceFound)
+            {
+                RebuildElement(obj, modifiedXml);
+            }
+
+            SetupNamedChildren(obj);
+            OnLoaded(obj);
+            reloadItem.IsReloaded = true;
+        }
+
+        private void RebuildElement(object obj, XmlDocument xmlDoc)
+        {
             switch (obj)
             {
                 case MultiPage<Page> multiPage:
@@ -314,6 +355,7 @@ namespace Xamarin.Forms
                     app.Resources.Clear();
                     break;
             }
+
             if (obj is View view)
             {
                 view.Behaviors.Clear();
@@ -327,43 +369,7 @@ namespace Xamarin.Forms
                 page.ToolbarItems.Clear();
             }
 
-            //Load original xaml
-            obj.LoadFromXaml(xamlDoc.InnerXml);
-
-            //Update resources
-            foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
-            {
-                var name = dict.GetType().FullName;
-                if (_fileMapping.TryGetValue(name, out ReloadItem item))
-                {
-                    dict.Clear();
-                    dict.LoadFromXaml(item.Xaml.InnerXml);
-                }
-            }
-
-            var modifiedXml = new XmlDocument();
-            modifiedXml.LoadXml(xamlDoc.InnerXml);
-
-            var isResourcesRemoved = false;
-            foreach (XmlNode node in modifiedXml.LastChild)
-            {
-                if (node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
-                {
-                    node.ParentNode.RemoveChild(node);
-                    isResourcesRemoved = true;
-                    break;
-                }
-            }
-
-            //Force update object
-            if (isResourcesRemoved)
-            {
-                obj.LoadFromXaml(modifiedXml.InnerXml);
-            }
-
-            SetupNamedChildren(obj);
-            OnLoaded(obj);
-            reloadItem.IsReloaded = true;
+            obj.LoadFromXaml(xmlDoc.InnerXml);
         }
 
         private void SetupNamedChildren(object obj)
@@ -384,11 +390,8 @@ namespace Xamarin.Forms
             }
         }
 
-        private bool ContainsResourceDictionary(ResourceDictionary dict, string dictName)
-        {
-            var allDicts = GetResourceDictionaries(dict);
-            return allDicts.Any(x => x.GetType().FullName == dictName);
-        }
+        private bool ContainsResourceDictionary(ResourceDictionary rootDict, string dictName)
+            => GetResourceDictionaries(rootDict).Any(x => x.GetType().FullName == dictName);
 
         private IEnumerable<ResourceDictionary> GetResourceDictionaries(ResourceDictionary rootDict)
         {
