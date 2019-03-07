@@ -16,7 +16,7 @@
     </ContentPage.Resources>
     
     <ContentPage.ToolbarItems>
-        <ToolbarItem Name="MenuItem1" Order="Primary" Text="Item 3" />
+        <ToolbarItem Name="MenuItem1" Order="Primary" Text="ITEM" />
     </ContentPage.ToolbarItems>
     
     <StackLayout>
