@@ -20,11 +20,11 @@ namespace Xamarin.Forms
 {
     public sealed class HotReloader
     {
-        private static readonly Lazy<HotReloader> _lazyHotReloader;
+        private static readonly Lazy<HotReloader> LazyHotReloader;
 
-        static HotReloader() => _lazyHotReloader = new Lazy<HotReloader>(() => new HotReloader());
+        static HotReloader() => LazyHotReloader = new Lazy<HotReloader>(() => new HotReloader());
 
-        public static HotReloader Current => _lazyHotReloader.Value;
+        public static HotReloader Current => LazyHotReloader.Value;
 
         private string _prevXaml;
         private Thread _daemonThread;
@@ -34,6 +34,8 @@ namespace Xamarin.Forms
         private readonly PropertyInfo _rendererPropertyChangedInfo;
         private readonly BindableProperty.BindingPropertyChangedDelegate _originalRendererPropertyChanged;
         private readonly object _requestLocker;
+
+        private const string Reload = "/reload";
 
         private HotReloader()
         {
@@ -47,11 +49,11 @@ namespace Xamarin.Forms
                 .GetTypes()
                 .FirstOrDefault(t => t.Name == "Platform");
 
-            var rendererPropInfo = platformType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
-            _rendererProperty = rendererPropInfo.GetValue(null) as BindableProperty;
+            var rendererPropInfo = platformType?.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
+            _rendererProperty = rendererPropInfo?.GetValue(null) as BindableProperty;
 
-            _rendererPropertyChangedInfo = _rendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            _originalRendererPropertyChanged = _rendererPropertyChangedInfo.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
+            _rendererPropertyChangedInfo = _rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            _originalRendererPropertyChanged = _rendererPropertyChangedInfo?.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
 
             _requestLocker = new object();
         }
@@ -78,7 +80,7 @@ namespace Xamarin.Forms
             {
                 _originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                if (!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
+                if (bindable.GetType().CustomAttributes.All(x => x.AttributeType != _xamlFilePathAttributeType))
                 {
                     return;
                 }
@@ -100,7 +102,7 @@ namespace Xamarin.Forms
             {
                 Prefixes =
                 {
-                    $"{scheme.ToString().ToLower()}://*:{port}/"
+                    $"{scheme.ToString().ToLowerInvariant()}://*:{port}/"
                 }
             };
             listener.Start();
@@ -109,8 +111,19 @@ namespace Xamarin.Forms
             {
                 do
                 {
-                    var context = listener.GetContext();
-                    ThreadPool.QueueUserWorkItem((_) => HandleReloadRequest(context));
+                    try
+                    {
+                        var context = listener.BeginGetContext(new AsyncCallback(ListenerCallback), listener);
+                       var success = context.AsyncWaitHandle.WaitOne(5000, true);
+
+                        if (!success)
+                            throw new TimeoutException("Server not response");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
+                    
                 } while (true);
             });
             _daemonThread.Start();
@@ -130,6 +143,13 @@ namespace Xamarin.Forms
             Console.WriteLine($"### HOTRELOAD STARTED ###");
         }
 
+        public void ListenerCallback(IAsyncResult result)
+        {
+            HttpListener listener = (HttpListener)result.AsyncState;
+            HttpListenerContext context = listener.EndGetContext(result);
+            ThreadPool.QueueUserWorkItem((_) => HandleReloadRequest(context));
+        }
+
         private void HandleReloadRequest(HttpListenerContext context)
         {
             lock (_requestLocker)
@@ -139,7 +159,7 @@ namespace Xamarin.Forms
                     var request = context.Request;
                     if (request.HttpMethod == HttpMethod.Post.Method &&
                         request.HasEntityBody &&
-                        request.RawUrl.StartsWith("/reload", StringComparison.InvariantCulture))
+                        request.RawUrl.StartsWith(Reload, StringComparison.InvariantCulture))
                     {
                         using (var bodyStream = request.InputStream)
                         {
@@ -176,7 +196,7 @@ namespace Xamarin.Forms
 
             var elementType = obj.GetType();
             var className = RetrieveClassName(elementType);
-            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
+            if (!_fileMapping.TryGetValue(className, out var item))
             {
                 item = new ReloadItem();
                 _fileMapping[className] = item;
@@ -184,6 +204,7 @@ namespace Xamarin.Forms
                 var type = obj.GetType();
                 using (var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml"))
                 {
+                    if(stream != null)
                     using (var reader = new StreamReader(stream))
                     {
                         var xaml = reader.ReadToEnd();
@@ -209,7 +230,7 @@ namespace Xamarin.Forms
         private void DestroyElement(object obj)
         {
             var className = RetrieveClassName(obj.GetType());
-            if (!_fileMapping.TryGetValue(className, out ReloadItem item))
+            if (!_fileMapping.TryGetValue(className, out var item))
             {
                 return;
             }
@@ -258,7 +279,7 @@ namespace Xamarin.Forms
                     }
 
                     IEnumerable<ReloadItem> affectedItems;
-                    switch (item.Xaml.DocumentElement.Name)
+                    switch (item.Xaml.DocumentElement?.Name)
                     {
                         case "Application":
                             affectedItems = _fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource"));
@@ -297,11 +318,11 @@ namespace Xamarin.Forms
             foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
             {
                 var name = dict.GetType().FullName;
-                if (_fileMapping.TryGetValue(name, out ReloadItem item))
-                {
-                    dict.Clear();
-                    dict.LoadFromXaml(item.Xaml.InnerXml);
-                }
+                
+                if(name == null) return;
+                if (!_fileMapping.TryGetValue(name, out var item)) continue;
+                dict.Clear();
+                dict.LoadFromXaml(item.Xaml.InnerXml);
             }
 
             var modifiedXml = new XmlDocument();
@@ -310,12 +331,10 @@ namespace Xamarin.Forms
             var isResourceFound = false;
             foreach (XmlNode node in modifiedXml.LastChild)
             {
-                if (node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
-                {
-                    node.ParentNode.RemoveChild(node);
-                    isResourceFound = true;
-                    break;
-                }
+                if (!node.Name.EndsWith(".Resources", StringComparison.CurrentCulture)) continue;
+                node.ParentNode?.RemoveChild(node);
+                isResourceFound = true;
+                break;
             }
 
             //Update object without resources
@@ -329,7 +348,7 @@ namespace Xamarin.Forms
             reloadItem.IsReloaded = true;
         }
 
-        private void RebuildElement(object obj, XmlDocument xmlDoc)
+        private static void RebuildElement(object obj, XmlNode xmlDoc)
         {
             switch (obj)
             {
@@ -356,26 +375,26 @@ namespace Xamarin.Forms
                     break;
             }
 
-            if (obj is View view)
+            switch (obj)
             {
-                view.Behaviors.Clear();
-                view.GestureRecognizers.Clear();
-                view.Effects.Clear();
-                view.Triggers.Clear();
-                view.Style = null;
-            }
-            if (obj is Page page)
-            {
-                page.ToolbarItems.Clear();
+                case View view:
+                    view.Behaviors.Clear();
+                    view.GestureRecognizers.Clear();
+                    view.Effects.Clear();
+                    view.Triggers.Clear();
+                    view.Style = null;
+                    break;
+                case Page page:
+                    page.ToolbarItems.Clear();
+                    break;
             }
 
             obj.LoadFromXaml(xmlDoc.InnerXml);
         }
 
-        private void SetupNamedChildren(object obj)
+        private static void SetupNamedChildren(object obj)
         {
-            var element = obj as Element;
-            if (element == null)
+            if (!(obj is Element element))
             {
                 return;
             }
@@ -390,10 +409,10 @@ namespace Xamarin.Forms
             }
         }
 
-        private bool ContainsResourceDictionary(ResourceDictionary rootDict, string dictName)
+        private static bool ContainsResourceDictionary(ResourceDictionary rootDict, string dictName)
             => GetResourceDictionaries(rootDict).Any(x => x.GetType().FullName == dictName);
 
-        private IEnumerable<ResourceDictionary> GetResourceDictionaries(ResourceDictionary rootDict)
+        private static IEnumerable<ResourceDictionary> GetResourceDictionaries(ResourceDictionary rootDict)
         {
             if (rootDict == null)
             {
@@ -416,13 +435,13 @@ namespace Xamarin.Forms
             }
         }
 
-        private string RetrieveClassName(string xaml)
+        private static string RetrieveClassName(string xaml)
             => Regex.Match(xaml ?? string.Empty, "x:Class=\"(.+)\"").Groups[1].Value;
 
-        private string RetrieveClassName(Type type)
+        private static string RetrieveClassName(Type type)
             => type.FullName;
 
-        private void OnLoaded(object element)
+        private static void OnLoaded(object element)
             => (element as IReloadable)?.OnLoaded();
     }
 }
