@@ -17,5 +17,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Assets\" />
+    <Folder Include="Pages\" />
+    <Folder Include="ViewModels\" />
+    <Folder Include="Pages\Cells\" />
   </ItemGroup>
 </Project>

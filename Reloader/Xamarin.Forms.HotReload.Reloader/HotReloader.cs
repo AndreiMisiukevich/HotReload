@@ -30,9 +30,15 @@ namespace Xamarin.Forms
         private Thread _daemonThread;
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
         private readonly Type _xamlFilePathAttributeType;
+
         private readonly BindableProperty _rendererProperty;
         private readonly PropertyInfo _rendererPropertyChangedInfo;
         private readonly BindableProperty.BindingPropertyChangedDelegate _originalRendererPropertyChanged;
+
+        //private readonly BindableProperty _cellRendererProperty;
+        //private readonly PropertyInfo _cellRendererPropertyChangedInfo;
+        //private readonly BindableProperty.BindingPropertyChangedDelegate _cellOriginalRendererPropertyChanged;
+
         private readonly object _requestLocker;
 
         private HotReloader()
@@ -43,6 +49,8 @@ namespace Xamarin.Forms
                 .GetType()
                 .Assembly;
 
+
+            #region VisualElements
             var platformType = platformAssembly
                 .GetTypes()
                 .FirstOrDefault(t => t.Name == "Platform");
@@ -52,6 +60,23 @@ namespace Xamarin.Forms
 
             _rendererPropertyChangedInfo = _rendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
             _originalRendererPropertyChanged = _rendererPropertyChangedInfo.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
+            #endregion
+
+            #region Cells
+            var cellRendererType = platformAssembly
+                .GetTypes()
+                .FirstOrDefault(t => t.Name == "CellRenderer");
+
+            var cellRendererPropInfo =
+                cellRendererType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static) ??
+                cellRendererType.GetField("RealCellProperty", BindingFlags.NonPublic | BindingFlags.Static);
+
+            //_cellRendererProperty = cellRendererPropInfo.GetValue(null) as BindableProperty;
+
+            //_cellRendererPropertyChangedInfo = _cellRendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+
+            //_cellOriginalRendererPropertyChanged = _cellRendererPropertyChangedInfo.GetValue(_cellRendererProperty, null) as BindableProperty.BindingPropertyChangedDelegate;
+            #endregion
 
             _requestLocker = new object();
         }
@@ -91,6 +116,24 @@ namespace Xamarin.Forms
                 DestroyElement(bindable);
             });
             _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
+
+            //var cellRendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
+            //{
+            //    _cellOriginalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
+
+            //    if (!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
+            //    {
+            //        return;
+            //    }
+
+            //    if (newValue != null)
+            //    {
+            //        InitializeElement(bindable);
+            //        return;
+            //    }
+            //    DestroyElement(bindable);
+            //});
+            //_cellRendererPropertyChangedInfo.SetValue(_cellRendererProperty, cellRendererPopertyChangedWrapper);
 
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
 
@@ -291,7 +334,7 @@ namespace Xamarin.Forms
         {
             var xamlDoc = reloadItem.Xaml;
 
-            RebuildElement(obj, xamlDoc);
+            var rebuildEx = RebuildElement(obj, xamlDoc);
 
             //Update resources
             foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
@@ -321,7 +364,12 @@ namespace Xamarin.Forms
             //Update object without resources
             if (isResourceFound)
             {
-                RebuildElement(obj, modifiedXml);
+                rebuildEx = RebuildElement(obj, modifiedXml);
+            }
+
+            if(rebuildEx != null)
+            {
+                throw rebuildEx;
             }
 
             SetupNamedChildren(obj);
@@ -329,47 +377,55 @@ namespace Xamarin.Forms
             reloadItem.IsReloaded = true;
         }
 
-        private void RebuildElement(object obj, XmlDocument xmlDoc)
+        private Exception RebuildElement(object obj, XmlDocument xmlDoc)
         {
-            switch (obj)
+            try
             {
-                case MultiPage<Page> multiPage:
-                    multiPage.Children.Clear();
-                    break;
-                case ContentPage contentPage:
-                    contentPage.Content = null;
-                    break;
-                case ContentView contentView:
-                    contentView.Content = null;
-                    break;
-                case ScrollView scrollView:
-                    scrollView.Content = null;
-                    break;
-                case ViewCell viewCell:
-                    viewCell.View = null;
-                    break;
-                case Layout<View> layout:
-                    layout.Children.Clear();
-                    break;
-                case Application app:
-                    app.Resources.Clear();
-                    break;
-            }
+                switch (obj)
+                {
+                    case MultiPage<Page> multiPage:
+                        multiPage.Children.Clear();
+                        break;
+                    case ContentPage contentPage:
+                        contentPage.Content = null;
+                        break;
+                    case ContentView contentView:
+                        contentView.Content = null;
+                        break;
+                    case ScrollView scrollView:
+                        scrollView.Content = null;
+                        break;
+                    case ViewCell viewCell:
+                        viewCell.View = null;
+                        break;
+                    case Layout<View> layout:
+                        layout.Children.Clear();
+                        break;
+                    case Application app:
+                        app.Resources.Clear();
+                        break;
+                }
 
-            if (obj is View view)
-            {
-                view.Behaviors.Clear();
-                view.GestureRecognizers.Clear();
-                view.Effects.Clear();
-                view.Triggers.Clear();
-                view.Style = null;
-            }
-            if (obj is Page page)
-            {
-                page.ToolbarItems.Clear();
-            }
+                if (obj is View view)
+                {
+                    view.Behaviors.Clear();
+                    view.GestureRecognizers.Clear();
+                    view.Effects.Clear();
+                    view.Triggers.Clear();
+                    view.Style = null;
+                }
+                if (obj is Page page)
+                {
+                    page.ToolbarItems.Clear();
+                }
 
-            obj.LoadFromXaml(xmlDoc.InnerXml);
+                obj.LoadFromXaml(xmlDoc.InnerXml);
+                return null;
+            }
+            catch(Exception ex)
+            {
+                return ex;
+            }
         }
 
         private void SetupNamedChildren(object obj)

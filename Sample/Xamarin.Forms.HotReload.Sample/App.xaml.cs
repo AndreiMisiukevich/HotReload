@@ -1,4 +1,7 @@
-﻿namespace Xamarin.Forms.HotReload.Sample
+﻿using Xamarin.Forms.HotReload.Sample.Pages;
+using Xamarin.Forms.HotReload.Sample.ViewModels;
+
+namespace Xamarin.Forms.HotReload.Sample
 {
     public partial class App : Application
     {
@@ -8,7 +11,11 @@
 #if DEBUG
             HotReloader.Current.Start(this);
 #endif
-            MainPage = new NavigationPage(new MainPage());
+            MainPage = new NavigationPage(new ItemsPage { BindingContext = new ItemsViewModel() })
+            {
+                BarBackgroundColor = Color.Purple,
+                BarTextColor = Color.White
+            };
         }
     }
 }
