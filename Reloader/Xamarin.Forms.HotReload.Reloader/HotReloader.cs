@@ -55,21 +55,21 @@ namespace Xamarin.Forms
                 .GetTypes()
                 .FirstOrDefault(t => t.Name == "Platform");
 
-            var rendererPropInfo = platformType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
-            _rendererProperty = rendererPropInfo.GetValue(null) as BindableProperty;
+            var rendererPropInfo = platformType?.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
+            _rendererProperty = rendererPropInfo?.GetValue(null) as BindableProperty;
 
-            _rendererPropertyChangedInfo = _rendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            _originalRendererPropertyChanged = _rendererPropertyChangedInfo.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
+            _rendererPropertyChangedInfo = _rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+            _originalRendererPropertyChanged = _rendererPropertyChangedInfo?.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
             #endregion
 
             #region Cells
-            var cellRendererType = platformAssembly
-                .GetTypes()
-                .FirstOrDefault(t => t.Name == "CellRenderer");
+            //var cellRendererType = platformAssembly
+            //    .GetTypes()
+            //    .FirstOrDefault(t => t.Name == "CellRenderer");
 
-            var cellRendererPropInfo =
-                cellRendererType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static) ??
-                cellRendererType.GetField("RealCellProperty", BindingFlags.NonPublic | BindingFlags.Static);
+            //var cellRendererPropInfo =
+                //cellRendererType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static) ??
+                //cellRendererType.GetField("RealCellProperty", BindingFlags.NonPublic | BindingFlags.Static);
 
             //_cellRendererProperty = cellRendererPropInfo.GetValue(null) as BindableProperty;
 
@@ -103,7 +103,7 @@ namespace Xamarin.Forms
             {
                 _originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                if (!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
+                if (!HasCodegenAttribute(bindable))
                 {
                     return;
                 }
@@ -113,10 +113,20 @@ namespace Xamarin.Forms
                     InitializeElement(bindable);
                     return;
                 }
+
                 DestroyElement(bindable);
             });
-            _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
 
+            if(_rendererPropertyChangedInfo != null)
+            {
+                _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
+            }
+            else
+            {
+                Console.WriteLine($"#### HOTRELOAD HAS ISSUES WITH {Device.RuntimePlatform}. WAIT NEXT RELEASES.");
+            }
+
+            //CELLS RELOADING
             //var cellRendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
             //{
             //    _cellOriginalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
@@ -137,7 +147,10 @@ namespace Xamarin.Forms
 
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
 
-            InitializeElement(app);
+            if (HasCodegenAttribute(app))
+            {
+                InitializeElement(app);
+            }
 
             var listener = new HttpListener
             {
@@ -227,10 +240,13 @@ namespace Xamarin.Forms
                 var type = obj.GetType();
                 using (var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml"))
                 {
-                    using (var reader = new StreamReader(stream))
+                    if (stream != null && stream != Stream.Null)
                     {
-                        var xaml = reader.ReadToEnd();
-                        item.Xaml.LoadXml(xaml);
+                        using (var reader = new StreamReader(stream))
+                        {
+                            var xaml = reader.ReadToEnd();
+                            item.Xaml.LoadXml(xaml);
+                        }
                     }
                 }
             }
@@ -477,6 +493,9 @@ namespace Xamarin.Forms
 
         private string RetrieveClassName(Type type)
             => type.FullName;
+
+        private bool HasCodegenAttribute(BindableObject bindable)
+            => bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType);
 
         private void OnLoaded(object element)
             => (element as IReloadable)?.OnLoaded();
