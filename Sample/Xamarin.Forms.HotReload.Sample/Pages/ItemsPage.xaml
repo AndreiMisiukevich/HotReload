@@ -16,6 +16,7 @@
     
     
     <ListView
+        ItemTapped="OnItemTapped"
         RowHeight="180"
         BackgroundColor="{StaticResource ListBgColor}"
         ItemsSource="{Binding Items}">

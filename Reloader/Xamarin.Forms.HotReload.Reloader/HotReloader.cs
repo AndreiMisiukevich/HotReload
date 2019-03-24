@@ -422,6 +422,12 @@ namespace Xamarin.Forms
                         break;
                 }
 
+                if(obj is Grid grid)
+                {
+                    grid.RowDefinitions.Clear();
+                    grid.ColumnDefinitions.Clear();
+                }
+
                 if (obj is View view)
                 {
                     view.Behaviors.Clear();
@@ -479,9 +485,9 @@ namespace Xamarin.Forms
                 yield break;
             }
 
-            foreach (var md in rootDict.MergedDictionaries)
+            foreach (var dict in rootDict.MergedDictionaries)
             {
-                foreach (var x in GetResourceDictionaries(md))
+                foreach (var x in GetResourceDictionaries(dict))
                 {
                     yield return x;
                 }
