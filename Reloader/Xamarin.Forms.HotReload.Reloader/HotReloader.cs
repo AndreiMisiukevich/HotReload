@@ -123,7 +123,7 @@ namespace Xamarin.Forms
             }
             else
             {
-                Console.WriteLine($"#### HOTRELOAD HAS ISSUES WITH {Device.RuntimePlatform}. WAIT NEXT RELEASES.");
+                Console.WriteLine($"#### HOTRELOAD HAS ISSUES WITH {Device.RuntimePlatform}. REPORT IT PLEASE.");
             }
 
             //CELLS RELOADING
