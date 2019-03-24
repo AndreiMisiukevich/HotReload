@@ -29,56 +29,11 @@ namespace Xamarin.Forms
         private string _prevXaml;
         private Thread _daemonThread;
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
-        private readonly Type _xamlFilePathAttributeType;
-
-        private readonly BindableProperty _rendererProperty;
-        private readonly PropertyInfo _rendererPropertyChangedInfo;
-        private readonly BindableProperty.BindingPropertyChangedDelegate _originalRendererPropertyChanged;
-
-        //private readonly BindableProperty _cellRendererProperty;
-        //private readonly PropertyInfo _cellRendererPropertyChangedInfo;
-        //private readonly BindableProperty.BindingPropertyChangedDelegate _cellOriginalRendererPropertyChanged;
-
-        private readonly object _requestLocker;
+        private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
+        private readonly object _requestLocker = new object();
 
         private HotReloader()
         {
-            _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
-
-            var platformAssembly = DependencyService.Get<ISystemResourcesProvider>()
-                .GetType()
-                .Assembly;
-
-
-            #region VisualElements
-            var platformType = platformAssembly
-                .GetTypes()
-                .FirstOrDefault(t => t.Name == "Platform");
-
-            var rendererPropInfo = platformType?.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static);
-            _rendererProperty = rendererPropInfo?.GetValue(null) as BindableProperty;
-
-            _rendererPropertyChangedInfo = _rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            _originalRendererPropertyChanged = _rendererPropertyChangedInfo?.GetValue(_rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
-            #endregion
-
-            #region Cells
-            //var cellRendererType = platformAssembly
-            //    .GetTypes()
-            //    .FirstOrDefault(t => t.Name == "CellRenderer");
-
-            //var cellRendererPropInfo =
-                //cellRendererType.GetField("RendererProperty", BindingFlags.NonPublic | BindingFlags.Static) ??
-                //cellRendererType.GetField("RealCellProperty", BindingFlags.NonPublic | BindingFlags.Static);
-
-            //_cellRendererProperty = cellRendererPropInfo.GetValue(null) as BindableProperty;
-
-            //_cellRendererPropertyChangedInfo = _cellRendererProperty.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-
-            //_cellOriginalRendererPropertyChanged = _cellRendererPropertyChangedInfo.GetValue(_cellRendererProperty, null) as BindableProperty.BindingPropertyChangedDelegate;
-            #endregion
-
-            _requestLocker = new object();
         }
 
         public bool IsRunning { get; private set; }
@@ -99,51 +54,7 @@ namespace Xamarin.Forms
             Stop();
             IsRunning = true;
 
-            var rendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
-            {
-                _originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
-
-                if (!HasCodegenAttribute(bindable))
-                {
-                    return;
-                }
-
-                if (newValue != null)
-                {
-                    InitializeElement(bindable);
-                    return;
-                }
-
-                DestroyElement(bindable);
-            });
-
-            if(_rendererPropertyChangedInfo != null)
-            {
-                _rendererPropertyChangedInfo.SetValue(_rendererProperty, rendererPopertyChangedWrapper);
-            }
-            else
-            {
-                Console.WriteLine($"#### HOTRELOAD HAS ISSUES WITH {Device.RuntimePlatform}. REPORT IT PLEASE.");
-            }
-
-            //CELLS RELOADING
-            //var cellRendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
-            //{
-            //    _cellOriginalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
-
-            //    if (!bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType))
-            //    {
-            //        return;
-            //    }
-
-            //    if (newValue != null)
-            //    {
-            //        InitializeElement(bindable);
-            //        return;
-            //    }
-            //    DestroyElement(bindable);
-            //});
-            //_cellRendererPropertyChangedInfo.SetValue(_cellRendererProperty, cellRendererPopertyChangedWrapper);
+            TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty");
 
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
 
@@ -184,6 +95,55 @@ namespace Xamarin.Forms
             }
 
             Console.WriteLine($"### HOTRELOAD STARTED ###");
+        }
+
+        private void TrySubscribeRendererPropertyChanged(params string[] paths)
+        {
+            var platformAssembly = DependencyService.Get<ISystemResourcesProvider>()
+                .GetType()
+                .Assembly;
+
+            foreach(var path in paths)
+            {
+                var parts = path.Split('.');
+                var typeName = string.Join(".", parts.Take(parts.Length - 1));
+                var propName = parts.Last();
+
+                var type = platformAssembly
+                    .GetTypes()
+                    .FirstOrDefault(t => t.Name == typeName);
+
+                var rendererPropInfo = type?.GetField(propName, BindingFlags.NonPublic | BindingFlags.Static);
+                var rendererProperty = rendererPropInfo?.GetValue(null) as BindableProperty;
+
+                var rendererPropertyChangedInfo = rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+                if(rendererPropertyChangedInfo == null)
+                {
+                    Console.WriteLine($"#### HOTRELOAD COULD NOT FIND {path}");
+                    continue;
+                }
+                var originalRendererPropertyChanged = rendererPropertyChangedInfo?.GetValue(rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
+
+                var rendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
+                {
+                    originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
+
+                    if (!HasCodegenAttribute(bindable))
+                    {
+                        return;
+                    }
+
+                    if (newValue != null)
+                    {
+                        InitializeElement(bindable);
+                        return;
+                    }
+
+                    DestroyElement(bindable);
+                });
+
+                rendererPropertyChangedInfo.SetValue(rendererProperty, rendererPopertyChangedWrapper);
+            }
         }
 
         private void HandleReloadRequest(HttpListenerContext context)
@@ -256,7 +216,7 @@ namespace Xamarin.Forms
                 item.Objects.Add(obj);
             }
 
-            if (!item.IsReloaded)
+            if (!item.HasUpdates)
             {
                 OnLoaded(obj);
                 return;
@@ -311,6 +271,7 @@ namespace Xamarin.Forms
             {
                 try
                 {
+                    item.HasUpdates = true;
                     foreach (var element in item.Objects)
                     {
                         ReloadElement(element, item);
@@ -390,7 +351,6 @@ namespace Xamarin.Forms
 
             SetupNamedChildren(obj);
             OnLoaded(obj);
-            reloadItem.IsReloaded = true;
         }
 
         private Exception RebuildElement(object obj, XmlDocument xmlDoc)
