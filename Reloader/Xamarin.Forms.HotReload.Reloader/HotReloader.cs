@@ -314,6 +314,15 @@ namespace Xamarin.Forms
             var xamlDoc = reloadItem.Xaml;
 
             var rebuildEx = RebuildElement(obj, xamlDoc);
+            if(!(obj is VisualElement))
+            {
+                if(rebuildEx != null)
+                {
+                    throw rebuildEx;
+                }
+                OnLoaded(obj);
+                return;
+            }
 
             //Update resources
             foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))

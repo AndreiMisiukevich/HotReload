@@ -6,21 +6,13 @@
     <StackLayout Orientation="Horizontal"
                  Spacing="30">
         
-        <StackLayout.Resources>
-            <ResourceDictionary>
-                <ResourceDictionary.MergedDictionaries>
-                    <res:ResDict />
-                </ResourceDictionary.MergedDictionaries>
-            </ResourceDictionary>
-        </StackLayout.Resources> 
-        
         <Image WidthRequest="180"
                HeightRequest="180"
                Aspect="AspectFill"
             Source="{Binding ImageUrl}"/>
         
         <StackLayout  VerticalOptions="CenterAndExpand">
-            <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource TitleColor}"/>
+            <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource CellTitleColor}"/>
             <Label Text="Top Player" TextColor="Red"/>
         </StackLayout>
     </StackLayout>
