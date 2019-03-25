@@ -1,8 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ViewCell xmlns="http://xamarin.com/schemas/2014/forms" 
           xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+          xmlns:res="clr-namespace:Xamarin.Forms.HotReload.Sample;assembly=Xamarin.Forms.HotReload.Sample"
           x:Class="Xamarin.Forms.HotReload.Sample.Pages.Cells.ItemCell">
-    
-    <ContentView BackgroundColor="Gray"></ContentView>   
-    
+    <StackLayout Orientation="Horizontal"
+                 Spacing="30">
+        
+        <StackLayout.Resources>
+            <ResourceDictionary>
+                <ResourceDictionary.MergedDictionaries>
+                    <res:ResDict />
+                </ResourceDictionary.MergedDictionaries>
+            </ResourceDictionary>
+        </StackLayout.Resources> 
+        
+        <Image WidthRequest="180"
+               HeightRequest="180"
+               Aspect="AspectFill"
+            Source="{Binding ImageUrl}"/>
+        
+        <StackLayout  VerticalOptions="CenterAndExpand">
+            <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource TitleColor}"/>
+            <Label Text="Top Player" TextColor="Red"/>
+        </StackLayout>
+    </StackLayout>
 </ViewCell>

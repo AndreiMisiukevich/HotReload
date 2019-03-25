@@ -22,20 +22,7 @@
         ItemsSource="{Binding Items}">
         <ListView.ItemTemplate>
             <DataTemplate>
-                <ViewCell>
-                    <StackLayout Orientation="Horizontal"
-                                 Spacing="30">
-                        <Image WidthRequest="180"
-                               HeightRequest="180"
-                               Aspect="AspectFill"
-                            Source="{Binding ImageUrl}"/>
-                        
-                        <StackLayout  VerticalOptions="CenterAndExpand">
-                            <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource TitleColor}"/>
-                            <Label Text="Top Player" TextColor="Red"/>
-                        </StackLayout>
-                    </StackLayout>
-                </ViewCell>
+                <cell:ItemCell />
             </DataTemplate>
         </ListView.ItemTemplate>
     </ListView>

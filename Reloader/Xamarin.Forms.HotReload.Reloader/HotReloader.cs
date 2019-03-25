@@ -32,6 +32,8 @@ namespace Xamarin.Forms
         private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
 
+        private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
+
         private HotReloader()
         {
         }
@@ -127,7 +129,7 @@ namespace Xamarin.Forms
                 var rendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
-
+                    //TODO: check if resource dictionary update needed for all elements
                     if (!HasCodegenAttribute(bindable))
                     {
                         return;
@@ -371,9 +373,6 @@ namespace Xamarin.Forms
                     case ScrollView scrollView:
                         scrollView.Content = null;
                         break;
-                    case ViewCell viewCell:
-                        viewCell.View = null;
-                        break;
                     case Layout<View> layout:
                         layout.Children.Clear();
                         break;
@@ -390,15 +389,16 @@ namespace Xamarin.Forms
 
                 if (obj is View view)
                 {
-                    view.Behaviors.Clear();
-                    view.GestureRecognizers.Clear();
-                    view.Effects.Clear();
-                    view.Triggers.Clear();
-                    view.Style = null;
+                    ClearView(view);
                 }
                 if (obj is Page page)
                 {
                     page.ToolbarItems.Clear();
+                }
+
+                if (obj is ViewCell cell)
+                {
+                    return UpdateViewCell(cell, xmlDoc.InnerXml);
                 }
 
                 obj.LoadFromXaml(xmlDoc.InnerXml);
@@ -408,6 +408,76 @@ namespace Xamarin.Forms
             {
                 return ex;
             }
+        }
+
+        private void ClearView(View view)
+        {
+            view.Behaviors.Clear();
+            view.GestureRecognizers.Clear();
+            view.Effects.Clear();
+            view.Triggers.Clear();
+            view.Style = null;
+        }
+
+        private Exception UpdateViewCell(ViewCell cell, string xaml)
+        {
+            var newCell = new ViewCell().LoadFromXaml(xaml);
+            var newCellView = newCell.View;
+
+            if (newCellView?.GetType() != cell.View?.GetType())
+            {
+                return new XmlException("HOTRELOAD: YOU CANNOT CHANGE ROOT VIEW TYPE");
+            }
+
+            ClearView(cell.View);
+
+            foreach (var i in newCellView.Behaviors)
+            {
+                cell.View.Behaviors.Add(i);
+            }
+            foreach (var i in newCellView.GestureRecognizers)
+            {
+                cell.View.GestureRecognizers.Add(i);
+            }
+            foreach (var i in newCellView.Triggers)
+            {
+                cell.View.Triggers.Add(i);
+            }
+            foreach (var i in newCellView.Effects)
+            {
+                cell.View.Effects.Add(i);
+            }
+ 
+            foreach (var prop in newCellView
+                .GetType()
+                .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                .Where(x => _cellViewReloadProps.Contains(x.Name)))
+            {
+                var newVal = prop.GetValue(newCellView);
+                prop.SetValue(cell.View, newVal);
+            }
+
+            if (cell.View is ContentView cellView)
+            {
+                cellView.Content = (newCellView as ContentView).Content;
+            }
+            if (cell.View is Layout<View> cellLayout)
+            {
+                cellLayout.Children.Clear();
+                var children = (newCellView as Layout<View>).Children;
+                foreach (var child in children.ToArray())
+                {
+                    children.Remove(child);
+                    cellLayout.Children.Add(child);
+                }
+            }
+            if(Math.Abs(cell.Height - newCell.Height) > double.Epsilon)
+            {
+                cell.Height = newCell.Height;
+                cell.ForceUpdateSize();
+            }
+
+            return null;
         }
 
         private void SetupNamedChildren(object obj)
