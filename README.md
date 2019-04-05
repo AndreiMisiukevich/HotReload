@@ -96,6 +96,16 @@ In case `VS Extension` detects `xaml` changes but doesn't update in the emulator
 adb forward tcp:8000 tcp:8000
 ```
 
+## Android device
+
+If you are using a real device you'll have to connect to it through its IP in HotReload extension. 
+To get your device's IP follow this : 
+
+- Open adb command prompt 
+- Run `adb shell` command
+- Run command `ip -f inet addr show wlan0`
+- Copy IP from command result to HotReload extension window
+
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich)
 - [stanbav (Stanislav)](https://github.com/stanbav)
