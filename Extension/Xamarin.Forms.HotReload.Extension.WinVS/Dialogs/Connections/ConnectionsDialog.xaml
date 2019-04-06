@@ -1,0 +1,95 @@
+﻿<platformUi:DialogWindow x:Class="Xamarin.Forms.HotReload.Extension.WinVS.Dialogs.Connections.ConnectionsDialog"
+                         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                         xmlns:platformUi="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
+                         xmlns:controls1="clr-namespace:Xamarin.Forms.HotReload.Extension.WinVS.Controls"
+                         xmlns:extension="clr-namespace:Xamarin.Forms.HotReload.Extension;assembly=Xamarin.Forms.HotReload.Extension"
+                         mc:Ignorable="d" SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+                         WindowStartupLocation="CenterOwner">
+    <Grid Margin="15,10,15,10">
+        <Grid.Resources>
+            <ResourceDictionary>
+                <GridLength x:Key="SpacingGridLength">5</GridLength>
+            </ResourceDictionary>
+        </Grid.Resources>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="30" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+            <RowDefinition Height="30" />
+            <RowDefinition Height="{StaticResource SpacingGridLength}" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="{x:Static extension:TextResources.MainDialog_EnterIp}"
+               HorizontalContentAlignment="Center" />
+
+        <Button Grid.Row="2" Grid.Column="0"
+                x:Name="AddConnectionButton"
+                HorizontalAlignment="Left" Content="+"
+                Click="OnAddConnectionClicked"
+                Width="30" />
+
+        <ListView Grid.Row="4" Grid.Column="0"
+                  x:Name="ConnectionItemsListView"
+                  Width="435" MinHeight="70" MaxHeight="205"
+                  HorizontalAlignment="Stretch"
+                  SelectionMode="Single"
+                  SelectionChanged="OnSelectionChanged">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal" Height="28">
+                        <ComboBox x:Name="ProtocolDropdown" HorizontalAlignment="Stretch"
+                                  VerticalContentAlignment="Center"
+                                  ItemsSource="{Binding AvailableProtocols}" SelectedItem="{Binding Protocol}"
+                                  Width="70" />
+                        <Label Content="://" HorizontalAlignment="Left" VerticalContentAlignment="Center" />
+                        <controls1:IpTextBox x:Name="IpAddressTextBox"
+                                             Address="{Binding IpAddress}" Width="200" />
+                        <Label Content=":" HorizontalAlignment="Left" VerticalAlignment="Top"
+                               VerticalContentAlignment="Center" />
+                        <TextBox x:Name="PortTextBox" HorizontalAlignment="Stretch" VerticalContentAlignment="Center"
+                                 MaxLength="5" MaxLines="1" PreviewTextInput="OnPortTextChanged"
+                                 Text="{Binding Port}" Width="60" />
+
+                        <Button x:Name="RemoveConnectionButton"
+                                Content="-" Width="28" Margin="5,0,0,0"
+                                Click="OnRemoveConnectionClicked"
+                                HorizontalAlignment="Left" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <CheckBox x:Name="SaveConfigurationCheckBox" Grid.Row="6" Grid.Column="0"
+                  Content="{x:Static extension:TextResources.MainDialog_SaveConfiguration}"
+                  HorizontalAlignment="Center" VerticalAlignment="Center" />
+
+        <TextBlock Grid.Row="8" Grid.Column="0" HorizontalAlignment="Center" Margin="0,20">
+            For more info and issue reporting
+            <Hyperlink NavigateUri="https://github.com/AndreiMisiukevich/HotReload"
+                       RequestNavigate="OnHyperlinkClicked">
+                click here
+            </Hyperlink>
+            .
+        </TextBlock>
+
+        <Button Grid.Row="10" Grid.Column="0"
+                x:Name="ConnectButton"
+                Content="{x:Static extension:TextResources.MainDialog_Connect}"
+                HorizontalAlignment="Center"
+                Click="OnConnectButtonClicked"
+                Width="140" IsEnabled="{Binding ConnectionsExist}" />
+    </Grid>
+</platformUi:DialogWindow>

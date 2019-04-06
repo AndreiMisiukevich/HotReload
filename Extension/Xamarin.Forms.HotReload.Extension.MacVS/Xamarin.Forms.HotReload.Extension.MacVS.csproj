@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <Version>1.2.0</Version>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType></DebugType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MonoDevelop.Addins" Version="0.4.7" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xamarin.Forms.HotReload.Extension\Xamarin.Forms.HotReload.Extension.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementations\" />
+    <Folder Include="Commands\" />
+    <Folder Include="Controls\" />
+    <Folder Include="Dialogs\" />
+    <Folder Include="Extensions\" />
+    <Folder Include="Dialogs\Connections\" />
+  </ItemGroup>
+</Project>

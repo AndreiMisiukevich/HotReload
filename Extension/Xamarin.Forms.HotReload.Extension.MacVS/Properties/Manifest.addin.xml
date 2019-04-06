@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<ExtensionModel>
+  <Runtime>
+  </Runtime>
+  <Extension path="/MonoDevelop/Ide/StartupHandlers">
+    <Class class="HotReloadStartupHandler" />
+  </Extension>
+
+  <Extension path="/MonoDevelop/Ide/Commands">
+    <Command id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Title"
+             _label="Xamarin.Forms HotReload"
+             defaultHandler="Xamarin.Forms.HotReload.Extension.MacVS.Commands.TitleExtensionCommand" />
+  </Extension>
+  <Extension path="/MonoDevelop/Ide/MainMenu/Tools">
+    <CommandItem id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Title"
+                 _label="Xamarin.Forms HotReload" />
+  </Extension>
+
+  <Extension path="/MonoDevelop/Ide/Commands">
+    <Command id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Enable"
+             _label="Enable extension"
+             defaultHandler="Xamarin.Forms.HotReload.Extension.MacVS.Commands.EnableExtensionCommand" />
+  </Extension>
+  <Extension path="/MonoDevelop/Ide/MainMenu/Tools">
+    <CommandItem id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Enable"
+                 _label="Enable extension" />
+  </Extension>
+
+  <Extension path="/MonoDevelop/Ide/Commands">
+    <Command id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Disable"
+             _label="Disable extension"
+             defaultHandler="Xamarin.Forms.HotReload.Extension.MacVS.Commands.DisableExtensionCommand" />
+  </Extension>
+  <Extension path="/MonoDevelop/Ide/MainMenu/Tools">
+    <CommandItem id="Xamarin.Forms.HotReload.Extension.Enums.HotReloadCommands.Disable"
+                 _label="Disable extension" />
+  </Extension>
+</ExtensionModel>

@@ -333,3 +333,6 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+#keyfiles
+keys/
