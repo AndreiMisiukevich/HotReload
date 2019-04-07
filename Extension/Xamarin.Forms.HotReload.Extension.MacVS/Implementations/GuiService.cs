@@ -31,13 +31,23 @@ namespace Xamarin.Forms.HotReload.Extension.MacVS.Implementations
 
         public Task<InfoBarActionType> ShowInfoBarAsync(string message, params InfoBarAction[] infoBarActions)
         {
-            // No implementation on mac
+            // No implementation on mac.
             return Task.FromResult(InfoBarActionType.NoAction);
         }
 
         public void HideInfoBar()
         {
-            // No implementation on mac
+            // No implementation on mac.
+        }
+
+        public void ShowExtensionToolbar()
+        {
+            // No implementation on mac.
+        }
+
+        public void HideExtensionToolbar()
+        {
+            // No implementation on mac.
         }
     }
 }

@@ -1,8 +1,11 @@
 ﻿using System.ComponentModel.Design;
 using System.Threading.Tasks;
 using System.Windows;
+using EnvDTE;
+using EnvDTE80;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.CommandBars;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Xamarin.Forms.HotReload.Extension.Abstractions;
@@ -11,6 +14,7 @@ using Xamarin.Forms.HotReload.Extension.Abstractions.Services;
 using Xamarin.Forms.HotReload.Extension.Enums;
 using Xamarin.Forms.HotReload.Extension.Models;
 using Xamarin.Forms.HotReload.Extension.WinVS.InfoBar;
+using Window = System.Windows.Window;
 
 namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
 {
@@ -47,6 +51,22 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
         {
             var dialog = _dialogRersolver.Resolve<T>(model);
             return ShowDialog(dialog);
+        }
+
+        public void ShowExtensionToolbar()
+        {
+            var dte = _serviceContainer.GetService(typeof(DTE)) as DTE2;
+            var cbs = ((CommandBars)dte.CommandBars);
+            CommandBar cb = cbs[SharedGlobals.ToolBarName];
+            cb.Visible = true;
+        }
+
+        public void HideExtensionToolbar()
+        {
+            var dte = _serviceContainer.GetService(typeof(DTE)) as DTE2;
+            var cbs = ((CommandBars)dte.CommandBars);
+            CommandBar cb = cbs[SharedGlobals.ToolBarName];
+            cb.Visible = false;
         }
 
         public void ShowMessageBox(string title, string message)

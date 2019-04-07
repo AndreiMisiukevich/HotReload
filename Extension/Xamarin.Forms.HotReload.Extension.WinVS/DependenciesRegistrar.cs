@@ -1,5 +1,4 @@
-﻿using System;
-using Xamarin.Forms.HotReload.Extension.Abstractions;
+﻿using Xamarin.Forms.HotReload.Extension.Abstractions;
 using Xamarin.Forms.HotReload.Extension.Abstractions.Dialogs;
 using Xamarin.Forms.HotReload.Extension.WinVS.Dialogs.Connections;
 

@@ -14,5 +14,9 @@ namespace Xamarin.Forms.HotReload.Extension.Abstractions.Services
         void HideInfoBar();
 
         bool ShowDialog<T>(object model) where T : IDialog;
+
+        void ShowExtensionToolbar();
+
+        void HideExtensionToolbar();
     }
 }

@@ -46,19 +46,9 @@ namespace Xamarin.Forms.HotReload.Extension
             environmentService.SolutionOpened += OnEnviromentSolutionOpened;
             environmentService.SolutionClosed += OnEnviromentSolutionClosed;
             _environmentService = environmentService;
-
-            _disableExtensionCommand.IsVisible = false;
-            if (_environmentService.IsSolutionOpened)
-            {
-                var isXamarinSolution = _environmentService.SolutionHasXamarinProject();
-                ShowInfoBarIfNeeded(isXamarinSolution, _settingsService.ShowEnableHotReloadTooltip);
-                _enableExtensionCommand.IsVisible = isXamarinSolution;
-            }
-            else
-            {
-                _enableExtensionCommand.IsVisible = false;
-            }
-
+            
+            UpdateUiElementsVisibility();
+     
             _disableExtensionCommand.IsEnabled = true;
             _enableExtensionCommand.IsEnabled = true;
         }
@@ -138,30 +128,36 @@ namespace Xamarin.Forms.HotReload.Extension
         private void OnEnviromentSolutionClosed(object sender, EventArgs e)
         {
             _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
-            _guiService.HideInfoBar();
-            _disableExtensionCommand.IsVisible = false;
-            _enableExtensionCommand.IsVisible = false;
+            UpdateUiElementsVisibility();
         }
 
         private void OnEnviromentSolutionOpened(object sender, EventArgs e)
         {
-            var solutionHasXamarinProject = _environmentService.SolutionHasXamarinProject();
-
-            _disableExtensionCommand.IsVisible = false;
-            _enableExtensionCommand.IsVisible = solutionHasXamarinProject;
-
-            ShowInfoBarIfNeeded(solutionHasXamarinProject, _settingsService.ShowEnableHotReloadTooltip);
+            UpdateUiElementsVisibility();
         }
 
-        private void ShowInfoBarIfNeeded(bool solutionHasXamarinProject, bool showEnableHotReloadTooltip)
+        private void UpdateUiElementsVisibility()
         {
-            if (solutionHasXamarinProject && showEnableHotReloadTooltip)
+            if (_environmentService.IsSolutionOpened && _environmentService.SolutionHasXamarinProject())
             {
-                var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
-                _guiService.ShowInfoBarAsync(TextResources.InfoBar_ExtensionNotEnabled,
-                        new InfoBarAction(InfoBarActionType.DontShowAgain, TextResources.InfoBar_DontShowAgain),
-                        new InfoBarAction(InfoBarActionType.Enable, TextResources.InfoBar_EnableExtension))
-                    .ContinueWith(OnInfoBarResult, taskScheduler);
+                _guiService.ShowExtensionToolbar();
+                _enableExtensionCommand.IsVisible = true;
+                _disableExtensionCommand.IsVisible = false;
+                if (_settingsService.ShowEnableHotReloadTooltip)
+                {
+                    var taskScheduler = TaskScheduler.FromCurrentSynchronizationContext();
+                    _guiService.ShowInfoBarAsync(TextResources.InfoBar_ExtensionNotEnabled,
+                            new InfoBarAction(InfoBarActionType.DontShowAgain, TextResources.InfoBar_DontShowAgain),
+                            new InfoBarAction(InfoBarActionType.Enable, TextResources.InfoBar_EnableExtension))
+                        .ContinueWith(OnInfoBarResult, taskScheduler);
+                }
+            }
+            else
+            {
+                _guiService.HideInfoBar();
+                _enableExtensionCommand.IsVisible = false;
+                _disableExtensionCommand.IsVisible = false;
+                _guiService.HideExtensionToolbar();
             }
         }
 
