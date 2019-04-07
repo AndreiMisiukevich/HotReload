@@ -59,7 +59,7 @@ Or by searching in Visual Studio's extension manager
 - Make sure you use proper device IP in Extension. Check application output for more info about device IP.
 - Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
 
-2) If you want to initialize your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded**.
+2) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
@@ -76,7 +76,7 @@ public partial class MainPage : ContentPage, IReloadable
 }
 ```
 
-3) **ViewCell** reloading: before starting app you MUST determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
+3) **ViewCell** reloading: before starting app you MUST determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
 
 ```xaml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -105,6 +105,11 @@ To get your device's IP follow this :
 - Run `adb shell` command
 - Run command `ip -f inet addr show wlan0`
 - Copy IP from command result to HotReload extension window
+
+## What is Device IP ?
+
+You can easily find it in **Application Output** if run application with installed HotReaload. 
+Use **AVAILABLE DEVICE's IP** as search text
 
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich)
