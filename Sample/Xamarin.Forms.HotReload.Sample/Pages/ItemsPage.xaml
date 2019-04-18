@@ -6,7 +6,17 @@
              Title="NBA LEGENDS"
              x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemsPage">
     
-    <ContentPage.Resources>
+    <ContentPage.Resources> 
+        
+        <StyleSheet>
+            <![CDATA[
+                .TestStyle {
+                    color: red;
+                    font-size: 20;
+                }
+            ]]>
+        </StyleSheet>
+        
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <res:ResDict />
@@ -15,16 +25,20 @@
     </ContentPage.Resources> 
     
     
-    <ListView
-        ItemTapped="OnItemTapped"
-        RowHeight="180"
-        BackgroundColor="{StaticResource ListBgColor}"
-        ItemsSource="{Binding Items}">
-        <ListView.ItemTemplate>
-            <DataTemplate>
-                <cell:ItemCell />
-            </DataTemplate>
-        </ListView.ItemTemplate>
-    </ListView>
+    <StackLayout>
+        <Button Text="I am test" StyleClass="TestStyle" />
+        <ListView
+            VerticalOptions="FillAndExpand"
+            ItemTapped="OnItemTapped"
+            RowHeight="180"
+            BackgroundColor="{StaticResource ListBgColor}"
+            ItemsSource="{Binding Items}">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <cell:ItemCell />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </StackLayout>
     
 </ContentPage>

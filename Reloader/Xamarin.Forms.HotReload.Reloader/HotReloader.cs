@@ -313,6 +313,13 @@ namespace Xamarin.Forms
         {
             var xamlDoc = reloadItem.Xaml;
 
+            //TODO: make sure it doesn't break anything
+            if (obj is VisualElement ve)
+            {
+                ve.Resources = null;
+            }
+
+            //[0] Parse new xaml with resources
             var rebuildEx = RebuildElement(obj, xamlDoc);
             if(!(obj is VisualElement))
             {
@@ -324,7 +331,7 @@ namespace Xamarin.Forms
                 return;
             }
 
-            //Update resources
+            //[1] Check if any dictionary was updated before
             foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
             {
                 var name = dict.GetType().FullName;
@@ -349,7 +356,7 @@ namespace Xamarin.Forms
                 }
             }
 
-            //Update object without resources
+            //[2] Update object without resources (Force to re-apply all styles)
             if (isResourceFound)
             {
                 rebuildEx = RebuildElement(obj, modifiedXml);
