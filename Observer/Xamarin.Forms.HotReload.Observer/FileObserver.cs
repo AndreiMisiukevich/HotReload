@@ -14,7 +14,7 @@ namespace Xamarin.Forms.HotReload.Observer
 {
     public static class FileObserver
     {
-        private static readonly string[] _supportedFileExtensions = { ".xaml" };
+        private static readonly string[] _supportedFileExtensions = { ".xaml", ".css" };
         private static readonly object _locker = new object();
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
@@ -125,11 +125,12 @@ namespace Xamarin.Forms.HotReload.Observer
         {
             try
             {
+                var escapedFilePath = Uri.EscapeDataString(filePath);
                 var xaml = File.ReadAllText(filePath);
                 var data = Encoding.UTF8.GetBytes(xaml);
                 using (var content = new ByteArrayContent(data))
                 {
-                    var sendTasks = _addresses.Select(addr => _client.PostAsync($"{addr}/reload", content)).ToArray();
+                    var sendTasks = _addresses.Select(addr => _client.PostAsync($"{addr}/reload?path={escapedFilePath}", content)).ToArray();
 
                     await Task.WhenAll(sendTasks).ConfigureAwait(false);
                 }
