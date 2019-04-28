@@ -5,6 +5,11 @@
              xmlns:views="clr-namespace:Xamarin.Forms.HotReload.Sample.Pages.Views;assembly=Xamarin.Forms.HotReload.Sample"
              x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemPage">
     
+    <ContentPage.Resources>
+        <StyleSheet Source="../Assets/styles.css" />
+    </ContentPage.Resources>
+    
+    
     <Grid BackgroundColor="Red">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -15,7 +20,7 @@
         </Grid.ColumnDefinitions>
         
         <views:TestContentView BackgroundColor="Lime" Grid.Row="0" Grid.Column="0" />
-        <Label BackgroundColor="Maroon" Text="Right" Grid.Row="0" Grid.Column="1" />
+        <Label Text="Right" Grid.Row="0" Grid.Column="1" />
     </Grid>
 
 </ContentPage>

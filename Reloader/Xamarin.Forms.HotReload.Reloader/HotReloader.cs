@@ -129,7 +129,7 @@ namespace Xamarin.Forms
                 var rendererPopertyChangedWrapper = new BindableProperty.BindingPropertyChangedDelegate((bindable, oldValue, newValue) =>
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
-                    //TODO: check if resource dictionary update needed for all elements
+
                     if (!HasCodegenAttribute(bindable))
                     {
                         return;
