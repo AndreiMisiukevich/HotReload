@@ -24,17 +24,12 @@ namespace Xamarin.Forms.HotReload.Extension
             }
         }
 
-        internal async Task PostXamlUpdateAsync(string xmlString)
+        internal async Task PostResourceUpdateAsync(string pathString, string contentString)
         {
-            var data = Encoding.UTF8.GetBytes(xmlString);
+            var escapedFilePath = Uri.EscapeDataString(pathString);
+            var data = Encoding.UTF8.GetBytes(contentString);
             var content = new ByteArrayContent(data);
-            await _httpClient.PostAsync("reload", content);
-        }
-
-        internal async Task PostCssUpdateAsync(string pathToCssFile)
-        {
-            var escapedCssFilePath = Uri.EscapeUriString(pathToCssFile);
-            await _httpClient.PostAsync($"/reload/css?path={escapedCssFilePath}", null);
+            await _httpClient.PostAsync($"/reload?path={escapedFilePath}", content);
         }
     }
 }

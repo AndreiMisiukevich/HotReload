@@ -21,27 +21,14 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
             }
         }
 
-        internal Task UpdateXamlAsync(string contentString)
+        internal Task UpdateResourceAsync(string pathString, string contentString)
         {
             var establishConnectionTasks = new Task[_hotReloadClients.Count];
 
             for (int i = 0; i < _hotReloadClients.Count; i++)
             {
                 var connectionItem = _hotReloadClients.ElementAt(i);
-                establishConnectionTasks[i] = connectionItem.Value.PostXamlUpdateAsync(contentString);
-            }
-
-            return Task.Run(() => Task.WaitAll(establishConnectionTasks));
-        }
-
-        internal Task UpdateCssAsync(string pathToCssFile)
-        {
-            var establishConnectionTasks = new Task[_hotReloadClients.Count];
-
-            for (int i = 0; i < _hotReloadClients.Count; i++)
-            {
-                var connectionItem = _hotReloadClients.ElementAt(i);
-                establishConnectionTasks[i] = connectionItem.Value.PostCssUpdateAsync(pathToCssFile);
+                establishConnectionTasks[i] = connectionItem.Value.PostResourceUpdateAsync(pathString, contentString);
             }
 
             return Task.Run(() => Task.WaitAll(establishConnectionTasks));

@@ -14,11 +14,15 @@ namespace Xamarin.Forms.HotReload.Extension
 {
     internal class ExtensionCore
     {
+        private const string XamlResourceExtension = ".xaml";
+        private const string CssResourceExtension = ".css";
+
         private readonly IGuiService _guiService;
         private readonly ISettingsService _settingsService;
         private readonly ILogger _logger;
         private readonly JsonSerializer _serializer;
         private readonly HotReloadClientsHolder _clientsHolder;
+        private readonly HashSet<string> _supportedResourceExtensions;
 
         private IEnvironmentCommand _enableExtensionCommand;
         private IEnvironmentCommand _disableExtensionCommand;
@@ -31,6 +35,11 @@ namespace Xamarin.Forms.HotReload.Extension
             _settingsService = settingsStore;
             _logger = logger;
             _clientsHolder = new HotReloadClientsHolder();
+            _supportedResourceExtensions = new HashSet<string>
+            {
+                XamlResourceExtension,
+                CssResourceExtension
+            };
         }
 
         internal void Init(EnvironmentService environmentService,
@@ -167,21 +176,9 @@ namespace Xamarin.Forms.HotReload.Extension
 
             try
             {
-                if (documentExtension != null)
+                if (_supportedResourceExtensions.Contains(documentExtension.ToLowerInvariant()))
                 {
-                    switch (documentExtension.ToLowerInvariant())
-                    {
-                        case ".xaml":
-                        {
-                            await _clientsHolder.UpdateXamlAsync(e.Content);
-                            break;
-                        }
-                        case ".css":
-                        {
-                            await _clientsHolder.UpdateCssAsync(e.Path);
-                            break;
-                        }
-                    }
+                    await _clientsHolder.UpdateResourceAsync(e.Path, e.Content);
                 }
             }
             catch (AggregateException)
