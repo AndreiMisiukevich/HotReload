@@ -541,7 +541,7 @@ namespace Xamarin.Forms
         }
 
         private string RetrieveClassName(string xaml)
-            => Regex.Match(xaml ?? string.Empty, "x:Class=\"(.+)\"").Groups[1].Value;
+            => Regex.Match(xaml ?? string.Empty, "x:Class=\"([^\"]+)\"").Groups[1].Value;
 
         private string RetrieveClassName(Type type)
             => type.FullName;
