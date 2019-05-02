@@ -7,7 +7,6 @@
              x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemsPage">
     
     <ContentPage.Resources> 
-        
         <StyleSheet>
             <![CDATA[
                 .TestStyle {
@@ -17,16 +16,19 @@
             ]]>
         </StyleSheet>
         
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <res:ResDict />
-            </ResourceDictionary.MergedDictionaries>
+        <StyleSheet Source="../Assets/styles.css" />
+        
+        <ResourceDictionary Source="../ResDict.xaml">
+            <Color x:Key="TestButtonBackColor">Black</Color>
         </ResourceDictionary>
+
     </ContentPage.Resources> 
     
     
     <StackLayout>
-        <Button Text="I am test" StyleClass="TestStyle" />
+        <Button Text="I am test :)" 
+                BackgroundColor="{StaticResource TestButtonBackColor}"
+                StyleClass="TestStyle2" />
         <ListView
             VerticalOptions="FillAndExpand"
             ItemTapped="OnItemTapped"

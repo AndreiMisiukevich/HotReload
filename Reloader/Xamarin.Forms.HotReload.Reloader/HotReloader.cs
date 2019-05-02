@@ -31,6 +31,7 @@ namespace Xamarin.Forms
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
         private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
+        private Application _app;
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
 
@@ -54,6 +55,7 @@ namespace Xamarin.Forms
         public void Start(Application app, int port, ReloaderScheme scheme)
         {
             Stop();
+            _app = app;
             IsRunning = true;
 
             TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty");
@@ -170,7 +172,12 @@ namespace Xamarin.Forms
                                 }
                                 _prevXaml = xaml;
 
-                                ReloadElements(xaml);
+                                var path = request.QueryString["path"];
+                                var unescapedPath = string.IsNullOrWhiteSpace(path)
+                                    ? null
+                                    : Uri.UnescapeDataString(path);
+
+                                ReloadElements(xaml, unescapedPath);
                             }
                         }
                     }
@@ -242,9 +249,9 @@ namespace Xamarin.Forms
             item.Objects.Remove(entry);
         }
 
-        private void ReloadElements(string xaml)
+        private void ReloadElements(string content, string path)
         {
-            var className = RetrieveClassName(xaml);
+            var className = RetrieveClassName(content);
 
             if (string.IsNullOrWhiteSpace(className))
             {
@@ -260,7 +267,7 @@ namespace Xamarin.Forms
                     item = new ReloadItem();
                     _fileMapping[className] = item;
                 }
-                item.Xaml.LoadXml(xaml);
+                item.Xaml.LoadXml(content);
             }
             catch(Exception ex)
             {
@@ -287,7 +294,7 @@ namespace Xamarin.Forms
                             break;
                         case "ResourceDictionary":
                             affectedItems = _fileMapping.Values.Where(
-                                e => ContainsResourceDictionary((e.Objects.FirstOrDefault() as VisualElement)?.Resources, className));
+                                e => ContainsResourceDictionary(e, className));
                             break;
                         default:
                             return;
@@ -332,13 +339,29 @@ namespace Xamarin.Forms
             }
 
             //[1] Check if any dictionary was updated before
-            foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources))
+            foreach (var dict in GetResourceDictionaries((obj as VisualElement)?.Resources ?? (obj as Application)?.Resources).ToArray())
             {
                 var name = dict.GetType().FullName;
+
+                //[1.0] update own res
                 if (_fileMapping.TryGetValue(name, out ReloadItem item))
                 {
                     dict.Clear();
                     dict.LoadFromXaml(item.Xaml.InnerXml);
+                }
+
+                //[1.1] Update Source resources
+                var sourceItem = GetItemForReloadingSourceRes(dict.Source, obj);
+                if (sourceItem != null)
+                {
+                    //(?): Seems no need in this stuff
+                    //dict.GetType().GetField("_source", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(dict, null);
+                    //var resType = obj.GetType().Assembly.GetType(RetrieveClassName(sourceItem.Xaml.InnerXml));
+                    //var rd = Activator.CreateInstance(resType) as ResourceDictionary;
+                    //rd.Clear();
+                    //rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                    //dict.Add(rd);
+                    dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
                 }
             }
 
@@ -369,6 +392,36 @@ namespace Xamarin.Forms
 
             SetupNamedChildren(obj);
             OnLoaded(obj);
+        }
+
+        private ReloadItem GetItemForReloadingSourceRes(Uri source, object belongObj)
+        {
+            if (source?.IsWellFormedOriginalString() ?? false)
+            {
+                var rootTargetPath = typeof(XamlResourceIdAttribute).GetMethod("GetPathForType", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { belongObj.GetType() });
+                var resourcePath = typeof(ResourceDictionary.RDSourceTypeConverter).GetMethod("GetResourcePath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { source, rootTargetPath })
+                    .ToString()
+                    .Replace("\\", ".")
+                    .Replace("/", ".");
+
+                var resourceId = $"{belongObj.GetType().Assembly.FullName.Split(',')[0]}.{resourcePath}";
+                using (var resStream = belongObj.GetType().Assembly.GetManifestResourceStream(resourceId))
+                {
+                    if (resStream != null && resStream != Stream.Null)
+                    {
+                        using (var resReader = new StreamReader(resStream))
+                        {
+                            var resClassName = RetrieveClassName(resReader.ReadToEnd());
+
+                            if (_fileMapping.TryGetValue(resClassName, out ReloadItem resItem))
+                            {
+                                return resItem;
+                            }
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
         private Exception RebuildElement(object obj, XmlDocument xmlDoc)
@@ -514,8 +567,25 @@ namespace Xamarin.Forms
             }
         }
 
-        private bool ContainsResourceDictionary(ResourceDictionary rootDict, string dictName)
-            => GetResourceDictionaries(rootDict).Any(x => x.GetType().FullName == dictName);
+        private bool ContainsResourceDictionary(ReloadItem item, string dictName)
+        {
+            var element = item.Objects.FirstOrDefault() as VisualElement;
+            var matches = Regex.Matches(item.Xaml.InnerXml, @"Source[\n\r[:space:]]*=[\n\r[:space:]]*\""([^\""]+)\""");
+            foreach (Match match in matches)
+            {
+                var value = match.Groups[1].Value;
+                if(!value.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) && !value.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+                var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_app);
+                if(checkItem != null)
+                {
+                    return true;
+                }
+            }
+            return GetResourceDictionaries(element?.Resources).Any(x => x.GetType().FullName == dictName);
+        }
 
         private IEnumerable<ResourceDictionary> GetResourceDictionaries(ResourceDictionary rootDict)
         {
