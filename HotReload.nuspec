@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>Xamarin.HotReload</id>
-    <version>1.2.6</version>
+    <version>1.2.7</version>
     <title>Xamarin.HotReload</title>
     <authors>Andrei Misiukevich</authors>
     <owners>Andrei Misiukevich</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <licenseUrl>https://github.com/AndreiMisiukevich/HotReload/blob/master/LICENSE</licenseUrl>
     <projectUrl>https://github.com/AndreiMisiukevich/HotReload</projectUrl>
-    <iconUrl>https://cdn3.iconfinder.com/data/icons/lexter-flat-colorfull-file-formats/56/xaml-512.png</iconUrl>
+    <iconUrl>https://github.com/AndreiMisiukevich/HotReload/blob/master/logo/hotreload-logodesign-colored-square.png?raw=true</iconUrl>
     <description>Allows reloading XAML views from Visual Studio on your running app</description>
     <summary>Allows reloading XAML views from Visual Studio on your running app</summary>
     <tags>livereload, live reload, hotreload, hot reload, livexaml, live xaml, xamarin froms, reloading</tags>
