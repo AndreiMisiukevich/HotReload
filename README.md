@@ -3,6 +3,7 @@
 # HotReload
 Xamarin.Forms XAML hot reload, live reload, live xaml
 
+[![Watch the video](https://i.imgur.com/vKb2F1B.png)](https://twitter.com/i/status/1124314311151607809)
 ![Sample GIF](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/gf1.gif?raw=true)
 
 
