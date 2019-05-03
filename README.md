@@ -1,6 +1,6 @@
-# HotReload
 ![logo](https://github.com/AndreiMisiukevich/HotReload/blob/master/logo/hotreload-logodesign-colored.png)
 
+# HotReload
 Xamarin.Forms XAML hot reload, live reload, live xaml
 
 ![Sample GIF](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/gf1.gif?raw=true)
