@@ -199,6 +199,11 @@ namespace Xamarin.Forms
                 return;
             }
 
+            if (obj is Cell cell)
+            {
+                cell.PropertyChanged += OnCellPropertyChanged;
+            }
+
             var elementType = obj.GetType();
             var className = RetrieveClassName(elementType);
             if (!_fileMapping.TryGetValue(className, out ReloadItem item))
@@ -236,6 +241,10 @@ namespace Xamarin.Forms
 
         private void DestroyElement(object obj)
         {
+            if(obj is Cell cell)
+            {
+                cell.PropertyChanged -= OnCellPropertyChanged;
+            }
             var className = RetrieveClassName(obj.GetType());
             if (!_fileMapping.TryGetValue(className, out ReloadItem item))
             {
@@ -251,9 +260,12 @@ namespace Xamarin.Forms
 
         private void ReloadElements(string content, string path)
         {
-            var className = RetrieveClassName(content);
+            var isCss = Path.GetExtension(path) == ".css";
+            var resKey = isCss
+                ? path.Replace("\\", ".").Replace("/", ".")
+                : RetrieveClassName(content);
 
-            if (string.IsNullOrWhiteSpace(className))
+            if (string.IsNullOrWhiteSpace(resKey))
             {
                 Console.WriteLine("### HOTRELOAD ERROR: 'x:Class' NOT FOUND ###");
                 return;
@@ -262,12 +274,19 @@ namespace Xamarin.Forms
             ReloadItem item = null;
             try
             {
-                if (!_fileMapping.TryGetValue(className, out item))
+                if (!_fileMapping.TryGetValue(resKey, out item))
                 {
                     item = new ReloadItem();
-                    _fileMapping[className] = item;
+                    _fileMapping[resKey] = item;
                 }
-                item.Xaml.LoadXml(content);
+                if (isCss)
+                {
+                    item.Css = content;
+                }
+                else
+                {
+                    item.Xaml.LoadXml(content);
+                }
             }
             catch(Exception ex)
             {
@@ -287,17 +306,24 @@ namespace Xamarin.Forms
                     }
 
                     IEnumerable<ReloadItem> affectedItems;
-                    switch (item.Xaml.DocumentElement.Name)
+                    if (isCss)
                     {
-                        case "Application":
-                            affectedItems = _fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource"));
-                            break;
-                        case "ResourceDictionary":
-                            affectedItems = _fileMapping.Values.Where(
-                                e => ContainsResourceDictionary(e, className));
-                            break;
-                        default:
-                            return;
+                        affectedItems = _fileMapping.Values.Where(e => ContainsResourceDictionary(e, resKey));
+                    }
+                    else
+                    {
+                        switch (item.Xaml.DocumentElement.Name)
+                        {
+                            case "Application":
+                                affectedItems = _fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource"));
+                                break;
+                            case "ResourceDictionary":
+                                affectedItems = _fileMapping.Values.Where(
+                                    e => ContainsResourceDictionary(e, resKey));
+                                break;
+                            default:
+                                return;
+                        }
                     }
 
                     foreach (var affectedItem in affectedItems)
@@ -354,7 +380,7 @@ namespace Xamarin.Forms
                 var sourceItem = GetItemForReloadingSourceRes(dict.Source, obj);
                 if (sourceItem != null)
                 {
-                    //(?): Seems no need in this stuff
+                    //TODO: (?): Seems no need in this stuff
                     //dict.GetType().GetField("_source", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(dict, null);
                     //var resType = obj.GetType().Assembly.GetType(RetrieveClassName(sourceItem.Xaml.InnerXml));
                     //var rd = Activator.CreateInstance(resType) as ResourceDictionary;
@@ -362,6 +388,34 @@ namespace Xamarin.Forms
                     //rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
                     //dict.Add(rd);
                     dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                }
+
+                var styleSheets = dict.GetType().GetProperty("StyleSheets", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(dict) as IList<StyleSheets.StyleSheet>;
+                if(styleSheets != null)
+                {
+                    var sheets = xamlDoc.GetElementsByTagName("StyleSheet");
+                    for(var i = 0; i < styleSheets.Count; ++i)
+                    {
+                        var src = sheets[i].Attributes["Source"];
+                        if(src == null)
+                        {
+                            continue;
+                        }
+                        var rId = GetResId(new Uri(src.Value, UriKind.Relative), obj);
+                        if(rId == null)
+                        {
+                            continue;
+                        }
+                        var rItem = _fileMapping.FirstOrDefault(it => it.Key.EndsWith(rId, StringComparison.Ordinal)).Value;
+                        if(rItem == null)
+                        {
+                            continue;
+                        }
+                        styleSheets.RemoveAt(i);
+                        var newSheet = StyleSheets.StyleSheet.FromString(rItem.Css);
+                        styleSheets.Insert(i, newSheet);
+                        break;
+                    }
                 }
             }
 
@@ -398,13 +452,7 @@ namespace Xamarin.Forms
         {
             if (source?.IsWellFormedOriginalString() ?? false)
             {
-                var rootTargetPath = typeof(XamlResourceIdAttribute).GetMethod("GetPathForType", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { belongObj.GetType() });
-                var resourcePath = typeof(ResourceDictionary.RDSourceTypeConverter).GetMethod("GetResourcePath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { source, rootTargetPath })
-                    .ToString()
-                    .Replace("\\", ".")
-                    .Replace("/", ".");
-
-                var resourceId = $"{belongObj.GetType().Assembly.FullName.Split(',')[0]}.{resourcePath}";
+                var resourceId = GetResId(source, belongObj);
                 using (var resStream = belongObj.GetType().Assembly.GetManifestResourceStream(resourceId))
                 {
                     if (resStream != null && resStream != Stream.Null)
@@ -422,6 +470,17 @@ namespace Xamarin.Forms
                 }
             }
             return null;
+        }
+
+        private string GetResId(Uri source, object belongObj)
+        {
+            var rootTargetPath = typeof(XamlResourceIdAttribute).GetMethod("GetPathForType", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { belongObj.GetType() });
+            var resourcePath = typeof(ResourceDictionary.RDSourceTypeConverter).GetMethod("GetResourcePath", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { source, rootTargetPath })
+                .ToString()
+                .Replace("\\", ".")
+                .Replace("/", ".");
+
+            return $"{belongObj.GetType().Assembly.FullName.Split(',')[0]}.{resourcePath}";
         }
 
         private Exception RebuildElement(object obj, XmlDocument xmlDoc)
@@ -490,6 +549,20 @@ namespace Xamarin.Forms
 
         private Exception UpdateViewCell(ViewCell cell, string xaml)
         {
+            var xDoc = new XmlDocument();
+            xDoc.LoadXml(xaml);
+            var node = xDoc.LastChild?.LastChild?.ChildNodes?.Cast<XmlNode>().FirstOrDefault(n => n.Name.Contains(".Resources"));
+            if (node != null)
+            {
+                foreach(XmlNode st in node)
+                {
+                    if(st.Attributes["Source"] != null)
+                    {
+                        node.RemoveChild(st);
+                    }
+                }
+                xaml = xDoc.InnerXml;
+            }
             var newCell = new ViewCell().LoadFromXaml(xaml);
             var newCellView = newCell.View;
 
@@ -569,13 +642,19 @@ namespace Xamarin.Forms
 
         private bool ContainsResourceDictionary(ReloadItem item, string dictName)
         {
+            var isCss = Path.GetExtension(dictName) == ".css";
             var element = item.Objects.FirstOrDefault() as VisualElement;
-            var matches = Regex.Matches(item.Xaml.InnerXml, @"Source[\n\r[:space:]]*=[\n\r[:space:]]*\""([^\""]+)\""");
+            var matches = Regex.Matches(item.Xaml.InnerXml, @"Source[\n\r[:space:]]*=[\n\r[:space:]]*\""([^\""]+\.(xaml|css))\""", RegexOptions.Compiled);
             foreach (Match match in matches)
             {
                 var value = match.Groups[1].Value;
-                if(!value.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase) && !value.EndsWith(".css", StringComparison.OrdinalIgnoreCase))
+                if (isCss)
                 {
+                    var resId = GetResId(new Uri(value, UriKind.Relative), element ?? (object)_app);
+                    if(dictName.EndsWith(resId, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
                     continue;
                 }
                 var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_app);
@@ -610,8 +689,16 @@ namespace Xamarin.Forms
             }
         }
 
+        private void OnCellPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if(e.PropertyName == "Parent" && (sender as Cell).Parent == null)
+            {
+                DestroyElement(sender);
+            }
+        }
+
         private string RetrieveClassName(string xaml)
-            => Regex.Match(xaml ?? string.Empty, "x:Class[\n\r[:space:]]*=[\n\r[:space:]]*\"([^\"]+)\"").Groups[1].Value;
+            => Regex.Match(xaml ?? string.Empty, "x:Class[\n\r[:space:]]*=[\n\r[:space:]]*\"([^\"]+)\"", RegexOptions.Compiled).Groups[1].Value;
 
         private string RetrieveClassName(Type type)
             => type.FullName;

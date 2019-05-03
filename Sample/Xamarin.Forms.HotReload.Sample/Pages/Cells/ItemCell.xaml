@@ -3,15 +3,16 @@
           xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
           xmlns:res="clr-namespace:Xamarin.Forms.HotReload.Sample;assembly=Xamarin.Forms.HotReload.Sample"
           x:Class="Xamarin.Forms.HotReload.Sample.Pages.Cells.ItemCell">
+    
     <StackLayout Orientation="Horizontal"
-                 Spacing="30">
+                 Spacing="30"> 
         
         <Image WidthRequest="180"
                HeightRequest="180"
                Aspect="AspectFill"
             Source="{Binding ImageUrl}"/>
         
-        <StackLayout  VerticalOptions="CenterAndExpand">
+        <StackLayout StyleClass="CellStack" VerticalOptions="CenterAndExpand">
             <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource CellTitleColor}"/>
             <Label Text="Top Player" TextColor="Red"/>
         </StackLayout>

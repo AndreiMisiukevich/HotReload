@@ -1,4 +1,6 @@
-﻿namespace Xamarin.Forms.HotReload.Sample.Pages.Cells
+﻿using System.Runtime.CompilerServices;
+
+namespace Xamarin.Forms.HotReload.Sample.Pages.Cells
 {
     public partial class ItemCell 
     {

@@ -22,13 +22,13 @@
             <Color x:Key="TestButtonBackColor">Black</Color>
         </ResourceDictionary>
 
-    </ContentPage.Resources> 
+    </ContentPage.Resources>
     
     
     <StackLayout>
         <Button Text="I am test :)" 
                 BackgroundColor="{StaticResource TestButtonBackColor}"
-                StyleClass="TestStyle2" />
+                StyleClass="TestButtonStyle" />
         <ListView
             VerticalOptions="FillAndExpand"
             ItemTapped="OnItemTapped"

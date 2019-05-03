@@ -1,4 +1,8 @@
-﻿.TestStyle2 {
-    color: gold;
-    font-size: large;
+﻿.TestButtonStyle {
+    color: gold; 
+    font-size: large; 
+}
+
+.CellStack {
+    background-color: green;
 }
