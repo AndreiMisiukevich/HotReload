@@ -19,17 +19,20 @@
         <StyleSheet Source="../Assets/styles.css" />
         
         <ResourceDictionary Source="../ResDict.xaml">
-            <Color x:Key="TestButtonBackColor">Black</Color>
+            <Color x:Key="TestButtonBackColor">Purple</Color>
         </ResourceDictionary>
 
     </ContentPage.Resources>
     
     
-    <StackLayout>
-        <Button Text="I am test :)" 
+    <StackLayout Spacing="0">
+        <Label Text="MARVEL" 
+               HorizontalTextAlignment="Center"
+               HorizontalOptions="FillAndExpand"
                 BackgroundColor="{StaticResource TestButtonBackColor}"
                 StyleClass="TestButtonStyle" />
         <ListView
+            SelectionMode="None"
             VerticalOptions="FillAndExpand"
             ItemTapped="OnItemTapped"
             RowHeight="180"

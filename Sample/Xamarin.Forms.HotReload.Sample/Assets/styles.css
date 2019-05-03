@@ -1,8 +1,10 @@
 ﻿.TestButtonStyle {
-    color: gold; 
-    font-size: large; 
+    color: red; 
+    font-size: 30; 
 }
 
-.CellStack {
-    background-color: green;
+.TeamLabel
+{
+    color: purple;
+    font-size: 40;
 }

@@ -3,24 +3,24 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:res="clr-namespace:Xamarin.Forms.HotReload.Sample;assembly=Xamarin.Forms.HotReload.Sample"
              xmlns:views="clr-namespace:Xamarin.Forms.HotReload.Sample.Pages.Views;assembly=Xamarin.Forms.HotReload.Sample"
-             x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemPage">
+             x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemPage"
+             Title="{Binding Title}">
     
     <ContentPage.Resources>
         <StyleSheet Source="../Assets/styles.css" />
+        
+        <ResourceDictionary Source="../ResDict.xaml" />
     </ContentPage.Resources>
     
+    <StackLayout>
+        <Image Source="{Binding ImageUrl}" Aspect="AspectFill"/>
+        <ScrollView VerticalOptions="FillAndExpand">
+            <StackLayout>
+                <Label Text="{Binding Team}" StyleClass="TeamLabel"/>
+                <Label Text="{Binding Description}" FontSize="Large"/>
+            </StackLayout>
+        </ScrollView>
+        <Button Text="Respect" FontSize="20" TextColor="{StaticResource BtnColor}" BackgroundColor="Black"/>
+    </StackLayout>
     
-    <Grid BackgroundColor="Red">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="*" />
-        </Grid.ColumnDefinitions>
-        
-        <views:TestContentView BackgroundColor="Lime" Grid.Row="0" Grid.Column="0" />
-        <Label Text="Right" Grid.Row="0" Grid.Column="1" />
-    </Grid>
-
 </ContentPage>

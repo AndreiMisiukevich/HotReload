@@ -5,16 +5,21 @@
           x:Class="Xamarin.Forms.HotReload.Sample.Pages.Cells.ItemCell">
     
     <StackLayout Orientation="Horizontal"
+                 Padding="10"
                  Spacing="30"> 
         
-        <Image WidthRequest="180"
-               HeightRequest="180"
+        <Frame Padding="0" WidthRequest="180" 
+               HeightRequest="180" 
+               CornerRadius="90"
+               IsClippedToBounds="true">
+            <Image
                Aspect="AspectFill"
             Source="{Binding ImageUrl}"/>
+        </Frame>
         
         <StackLayout StyleClass="CellStack" VerticalOptions="CenterAndExpand">
             <Label Text="{Binding Title}" FontSize="Large" TextColor="{StaticResource CellTitleColor}"/>
-            <Label Text="Top Player" TextColor="Red"/>
+            <Label Text="{Binding Team}" TextColor="Red" FontSize="15" FontAttributes="Bold"/>
         </StackLayout>
     </StackLayout>
 </ViewCell>
