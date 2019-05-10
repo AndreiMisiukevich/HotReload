@@ -64,7 +64,7 @@ namespace Xamarin.Forms
 
             if (HasCodegenAttribute(app))
             {
-                InitializeElement(app);
+                InitializeElement(app); ;
             }
 
             var listener = new HttpListener
@@ -212,8 +212,19 @@ namespace Xamarin.Forms
                 _fileMapping[className] = item;
 
                 var type = obj.GetType();
-                using (var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml"))
+                var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml");
+                try
                 {
+                    if (stream == null)
+                    {
+                        var appResName = type.Assembly.GetManifestResourceNames()
+                            .FirstOrDefault(x => (x.Contains("obj.Debug.") || x.Contains("obj.Release")) && x.Contains(type.Name));
+
+                        if (!string.IsNullOrWhiteSpace(appResName))
+                        {
+                            stream = type.Assembly.GetManifestResourceStream(appResName);
+                        }
+                    }
                     if (stream != null && stream != Stream.Null)
                     {
                         using (var reader = new StreamReader(stream))
@@ -222,6 +233,10 @@ namespace Xamarin.Forms
                             item.Xaml.LoadXml(xaml);
                         }
                     }
+                }
+                finally
+                {
+                    stream?.Dispose();
                 }
             }
 
@@ -321,6 +336,12 @@ namespace Xamarin.Forms
                             default:
                                 return;
                         }
+
+                        //reload all data in case of app resources update
+                        if(affectedItems.Any(x => x.Objects.Any(r => r is Application)))
+                        {
+                            affectedItems = affectedItems.Union(_fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource")));
+                        }
                     }
 
                     foreach (var affectedItem in affectedItems)
@@ -351,7 +372,7 @@ namespace Xamarin.Forms
 
             //[0] Parse new xaml with resources
             var rebuildEx = RebuildElement(obj, xamlDoc);
-            if(!(obj is VisualElement))
+            if(!(obj is VisualElement) && !(obj is Application))
             {
                 if(rebuildEx != null)
                 {
@@ -384,6 +405,12 @@ namespace Xamarin.Forms
                     //rd.Clear();
                     //rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
                     //dict.Add(rd);
+                    var rd = new ResourceDictionary();
+                    rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                    foreach(var key in rd.Keys)
+                    {
+                        dict.Remove(key);
+                    }
                     dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
                 }
                 else if (dict.Source != null)
@@ -394,6 +421,12 @@ namespace Xamarin.Forms
                         sourceItem = _fileMapping.FirstOrDefault(it => it.Key.EndsWith(dId, StringComparison.Ordinal)).Value;
                         if (sourceItem != null)
                         {
+                            var rd = new ResourceDictionary();
+                            rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                            foreach (var key in rd.Keys)
+                            {
+                                dict.Remove(key);
+                            }
                             dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
                         }
                     }
