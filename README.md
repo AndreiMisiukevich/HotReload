@@ -10,7 +10,7 @@ Sample Video you can find here: https://twitter.com/i/status/1124314311151607809
 
 ## Setup
 * Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
-* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc.
+* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc. just in case (but adding to portable project should be enough)
 * Setup Reloader
 ```csharp
 using Xamarin.Forms;
@@ -30,6 +30,7 @@ namespace YourNamespace
     }
 }
 ```
+**IMPORTANT:** don't use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
 
 #### Mac
 
