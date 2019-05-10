@@ -261,14 +261,11 @@ namespace Xamarin.Forms
         private void ReloadElements(string content, string path)
         {
             var isCss = Path.GetExtension(path) == ".css";
-            var resKey = isCss
-                ? path.Replace("\\", ".").Replace("/", ".")
-                : RetrieveClassName(content);
+            var resKey = RetrieveClassName(content);
 
             if (string.IsNullOrWhiteSpace(resKey))
             {
-                Console.WriteLine("### HOTRELOAD ERROR: 'x:Class' NOT FOUND ###");
-                return;
+                resKey = path.Replace("\\", ".").Replace("/", ".");
             }
 
             ReloadItem item = null;
@@ -388,6 +385,18 @@ namespace Xamarin.Forms
                     //rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
                     //dict.Add(rd);
                     dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                }
+                else if (dict.Source != null)
+                {
+                    var dId = GetResId(dict.Source, obj);
+                    if(dId != null)
+                    {
+                        sourceItem = _fileMapping.FirstOrDefault(it => it.Key.EndsWith(dId, StringComparison.Ordinal)).Value;
+                        if (sourceItem != null)
+                        {
+                            dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                        }
+                    }
                 }
 
                 var styleSheets = dict.GetType().GetProperty("StyleSheets", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(dict) as IList<StyleSheets.StyleSheet>;
@@ -509,6 +518,15 @@ namespace Xamarin.Forms
                         break;
                 }
 
+                if(IsSubclassOfShell(obj))
+                {
+                    var shellType = obj.GetType();
+                    shellType.GetProperty("FlyoutHeaderTemplate", BindingFlags.Instance | BindingFlags.Public).SetValue(obj, null);
+                    shellType.GetProperty("FlyoutHeader", BindingFlags.Instance | BindingFlags.Public).SetValue(obj, null);
+                    var items = shellType.GetProperty("Items", BindingFlags.Instance | BindingFlags.Public).GetValue(obj, null);
+                    items.GetType().GetMethod("Clear", BindingFlags.Instance | BindingFlags.Public).Invoke(items, null);
+                }
+
                 if(obj is Grid grid)
                 {
                     grid.RowDefinitions.Clear();
@@ -536,6 +554,20 @@ namespace Xamarin.Forms
             {
                 return ex;
             }
+        }
+
+        private bool IsSubclassOfShell(object obj)
+        {
+            var t = obj.GetType();
+            while (t != null)
+            {
+                if(t.FullName == "Xamarin.Forms.Shell")
+                {
+                    return true;
+                }
+                t = t.BaseType;
+            }
+            return false;
         }
 
         private void ClearView(View view)
@@ -648,13 +680,13 @@ namespace Xamarin.Forms
             foreach (Match match in matches)
             {
                 var value = match.Groups[1].Value;
+                var resId = GetResId(new Uri(value, UriKind.Relative), element ?? (object)_app);
+                if (dictName.EndsWith(resId, StringComparison.Ordinal))
+                {
+                    return true;
+                }
                 if (isCss)
                 {
-                    var resId = GetResId(new Uri(value, UriKind.Relative), element ?? (object)_app);
-                    if(dictName.EndsWith(resId, StringComparison.Ordinal))
-                    {
-                        return true;
-                    }
                     continue;
                 }
                 var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_app);

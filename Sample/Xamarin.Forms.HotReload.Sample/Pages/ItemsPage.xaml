@@ -21,6 +21,8 @@
         <ResourceDictionary Source="../ResDict.xaml">
             <Color x:Key="TestButtonBackColor">Purple</Color>
         </ResourceDictionary>
+        
+        <ResourceDictionary Source="../Assets/XamlCompiledDict.xaml" />
 
     </ContentPage.Resources>
     
