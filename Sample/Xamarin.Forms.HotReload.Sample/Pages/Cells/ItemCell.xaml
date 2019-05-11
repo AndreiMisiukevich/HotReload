@@ -5,12 +5,12 @@
           x:Class="Xamarin.Forms.HotReload.Sample.Pages.Cells.ItemCell">
     
     <StackLayout Orientation="Horizontal"
-                 Padding="10"
+                 Padding="15, 10"
                  Spacing="30"> 
         
-        <Frame Padding="0" WidthRequest="180" 
-               HeightRequest="180" 
-               CornerRadius="90"
+        <Frame Padding="0" WidthRequest="160" 
+               HeightRequest="160" 
+               CornerRadius="80"
                IsClippedToBounds="true">
             <Image
                Aspect="AspectFill"

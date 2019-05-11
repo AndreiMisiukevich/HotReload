@@ -13,14 +13,21 @@
     </ContentPage.Resources>
     
     <StackLayout>
-        <Image Source="{Binding ImageUrl}" Aspect="AspectFill"/>
-        <ScrollView VerticalOptions="FillAndExpand">
+        <Image Source="{Binding ImageUrl}" Aspect="AspectFill"
+               HorizontalOptions="FillAndExpand"
+               VerticalOptions="FillAndExpand"/>
+        <ScrollView VerticalOptions="FillAndExpand"
+                    Padding="15, 0">
             <StackLayout>
                 <Label Text="{Binding Team}" StyleClass="TeamLabel"/>
                 <Label Text="{Binding Description}" FontSize="Large"/>
             </StackLayout>
         </ScrollView>
-        <Button Text="Respect" FontSize="20" TextColor="{StaticResource BtnColor}" BackgroundColor="Black"/>
+        <Button Text="Do nothing" FontSize="20" 
+                HeightRequest="60"
+                CornerRadius="0"
+                TextColor="{StaticResource BtnColor}" 
+                BackgroundColor="Black"/>
     </StackLayout>
     
 </ContentPage>
