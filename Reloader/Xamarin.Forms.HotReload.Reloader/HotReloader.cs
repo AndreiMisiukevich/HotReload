@@ -49,10 +49,10 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        public void Start(Application app, int port = 8000)
+        public ReloaderConfig Start(Application app, int port = 8000)
             => Start(app, port, ReloaderScheme.Http);
 
-        public void Start(Application app, int port, ReloaderScheme scheme)
+        public ReloaderConfig Start(Application app, int port, ReloaderScheme scheme)
         {
             Stop();
             _app = app;
@@ -91,6 +91,7 @@ namespace Xamarin.Forms
                           .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
                           .Select(x => x.Address.MapToIPv4())
                           .Where(x => x.ToString() != "127.0.0.1")
+                          .Select(x => $"{scheme}://{x.ToString()}:{port}")
                           .ToArray();
 
             foreach (var address in addresses)
@@ -99,6 +100,8 @@ namespace Xamarin.Forms
             }
 
             Console.WriteLine($"### HOTRELOAD STARTED ###");
+
+            return new ReloaderConfig(addresses);
         }
 
         private void TrySubscribeRendererPropertyChanged(params string[] paths)

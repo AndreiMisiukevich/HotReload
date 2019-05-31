@@ -9,7 +9,7 @@ namespace Xamarin.Forms.HotReload.Sample
         {
             InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Start(this);
+            HotReloader.Current.Start(this).ConfigureAutoDiscovery();
 #endif
             MainPage = new NavigationPage(new ItemsPage { BindingContext = new ItemsViewModel() })
             {

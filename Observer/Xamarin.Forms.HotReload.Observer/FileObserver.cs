@@ -9,6 +9,7 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Math;
+using System.Net;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -19,7 +20,7 @@ namespace Xamarin.Forms.HotReload.Observer
         private static HttpClient _client;
         private static DateTime _lastChangeTime;
 
-        private static readonly List<string> _addresses = new List<string>();
+        private static readonly HashSet<string> _addresses = new HashSet<string>();
 
         public static void Main() => Run();
 
@@ -38,6 +39,7 @@ namespace Xamarin.Forms.HotReload.Observer
             var args = Environment.GetCommandLineArgs();
             var path = RetrieveCommandLineArgument("p=", Environment.CurrentDirectory, args);
             var url = RetrieveCommandLineArgument("u=", $"http://{ip}:8000", args);
+            var autoDiscoveryPort = RetrieveCommandLineArgument("a=", "15000", args);
 
             try
             {
@@ -50,7 +52,7 @@ namespace Xamarin.Forms.HotReload.Observer
                 return;
             }
 
-            foreach (var addr in url.Split(','))
+            foreach (var addr in url.Split(new char[] { ',', ';' }))
             {
                 if (!Uri.IsWellFormedUriString(addr, UriKind.Absolute))
                 {
@@ -62,13 +64,38 @@ namespace Xamarin.Forms.HotReload.Observer
                 _addresses.Add(addr);
             }
 
+            UdpReceiver receiver = null;
+            try
+            {
+                receiver = new UdpReceiver(int.Parse(autoDiscoveryPort));
+                receiver.Received += (addressMsg) =>
+                {
+                    //TODO: pick needed address
+                    var address = addressMsg.Split(';').FirstOrDefault();
+                    if (address != null)
+                    {
+                        Console.WriteLine($"ADDRESS IS DETECTED: {address}");
+                        _addresses.Add(address);
+                    }
+                };
+                receiver.Start();
+            }
+            catch
+            {
+                Console.WriteLine("MAKE SURE YOU PASSED RIGHT AUTO DISCOVERY RECEIVER PORT AS 'A={PORT}' ARGUMENT.");
+                Console.ReadKey();
+                return;
+            }
+
             Console.WriteLine($"\n\n> HOTRELOADER STARTED AT {DateTime.Now}");
             Console.WriteLine($"\n> PATH: {path}");
+            Console.WriteLine($"\n> AUTO DISCOVERY PORT: {autoDiscoveryPort}");
 
             foreach (var addr in _addresses)
             {
                 Console.WriteLine($"\n> URL: {addr}\n");
             }
+
 
             _client = new HttpClient();
 
@@ -96,6 +123,8 @@ namespace Xamarin.Forms.HotReload.Observer
             {
                 Console.WriteLine("\nPRESS \'ESC\' TO STOP.");
             } while (Console.ReadKey().Key != ConsoleKey.Escape);
+
+            receiver.Stop();
         }
 
         private static string RetrieveCommandLineArgument(string key, string defaultValue, string[] args)
@@ -139,6 +168,41 @@ namespace Xamarin.Forms.HotReload.Observer
             {
                 Console.WriteLine("ERROR: NO CONNECTION.");
             }
+        }
+    }
+
+    internal sealed class UdpReceiver
+    {
+        public event Action<string> Received;
+        private readonly int _port;
+        private UdpClient _udpClient;
+
+        public UdpReceiver(int port = 15000)
+            => _port = port;
+
+        public void Start()
+        {
+            _udpClient = new UdpClient(_port);
+            ListenTo();
+        }
+
+        public void Stop()
+        {
+            _udpClient?.Dispose();
+            _udpClient = null;
+            Received = null;
+        }
+
+        private void ListenTo()
+            => _udpClient.BeginReceive(Receive, new object());
+
+        private void Receive(IAsyncResult ar)
+        {
+            var ip = new IPEndPoint(IPAddress.Any, _port);
+            var bytes = _udpClient.EndReceive(ar, ref ip);
+            var message = Encoding.ASCII.GetString(bytes);
+            Received?.Invoke(message);
+            ListenTo();
         }
     }
 }
