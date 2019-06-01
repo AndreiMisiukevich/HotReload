@@ -34,7 +34,6 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
             {
                 _udpClient?.Dispose();
                 _udpClient = null;
-                Received = null;
             }
         }
 
