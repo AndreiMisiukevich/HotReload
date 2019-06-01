@@ -1,37 +1,56 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Forms.HotReload.Extension.Models;
 
 namespace Xamarin.Forms.HotReload.Extension.Helpers
 {
     internal class HotReloadClientsHolder
     {
-        private readonly Dictionary<ConnectionItem, HotReloadClient> _hotReloadClients =
-            new Dictionary<ConnectionItem, HotReloadClient>();
+        private readonly HashSet<string> _addresses = new HashSet<string>();
+        private readonly HttpClient _client;
+        private readonly UdpReceiver _receiver;
 
-        internal void Init(List<ConnectionItem> connectionItems)
+        public HotReloadClientsHolder()
         {
-            _hotReloadClients.Clear();
-            foreach (var connectionItem in connectionItems)
+            _client = new HttpClient();
+            _receiver = new UdpReceiver();
+        }
+        
+        internal void Run()
+        {
+            _receiver.Received += OnMessageReceived;
+            _receiver.Start();
+        }
+
+        internal void Stop()
+        {
+            _receiver.Stop();
+            _receiver.Received -= OnMessageReceived;
+        }
+
+        private void OnMessageReceived(string addressMsg)
+        {
+            var address = addressMsg.Split(';').FirstOrDefault();
+            if (address != null)
             {
-                var hotReloadClient = new HotReloadClient();
-                _hotReloadClients.Add(connectionItem, hotReloadClient);
-                hotReloadClient.SetBaseAddress(connectionItem.FullAddress);
+                _addresses.Add(address);
             }
         }
 
-        internal Task UpdateResourceAsync(string pathString, string contentString)
+        internal async Task UpdateResourceAsync(string pathString, string contentString)
         {
-            var establishConnectionTasks = new Task[_hotReloadClients.Count];
-
-            for (int i = 0; i < _hotReloadClients.Count; i++)
+            var escapedFilePath = Uri.EscapeDataString(pathString);
+            var data = Encoding.UTF8.GetBytes(contentString);
+            using (var content = new ByteArrayContent(data))
             {
-                var connectionItem = _hotReloadClients.ElementAt(i);
-                establishConnectionTasks[i] = connectionItem.Value.PostResourceUpdateAsync(pathString, contentString);
-            }
+                var sendTasks = _addresses
+                    .Select(addr => _client.PostAsync($"{addr}/reload?path={escapedFilePath}", content)).ToArray();
 
-            return Task.Run(() => Task.WaitAll(establishConnectionTasks));
+                await Task.WhenAll(sendTasks).ConfigureAwait(false);
+            }
         }
     }
 }
