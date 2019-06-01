@@ -468,13 +468,17 @@ namespace Xamarin.Forms
             modifiedXml.LoadXml(xamlDoc.InnerXml);
 
             var isResourceFound = false;
-            foreach (XmlNode node in modifiedXml.LastChild)
+
+            if (!(obj is Application))
             {
-                if (node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
+                foreach (XmlNode node in modifiedXml.LastChild)
                 {
-                    node.ParentNode.RemoveChild(node);
-                    isResourceFound = true;
-                    break;
+                    if (node.Name.EndsWith(".Resources", StringComparison.CurrentCulture))
+                    {
+                        node.ParentNode.RemoveChild(node);
+                        isResourceFound = true;
+                        break;
+                    }
                 }
             }
 
