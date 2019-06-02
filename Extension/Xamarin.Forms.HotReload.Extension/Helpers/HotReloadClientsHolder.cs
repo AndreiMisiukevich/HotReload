@@ -22,12 +22,10 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         internal void Run()
         {
             _receiver.Received += OnMessageReceived;
-            _receiver.Start();
         }
 
         internal void Stop()
         {
-            _receiver.Stop();
             _receiver.Received -= OnMessageReceived;
         }
 
