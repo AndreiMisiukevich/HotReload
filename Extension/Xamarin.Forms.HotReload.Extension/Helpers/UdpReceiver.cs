@@ -24,7 +24,7 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
 
         internal async void StartAsync()
         {
-            lock (_udpClient)
+            lock (_lockObject)
             {
                 _udpClient = new UdpClient(_port);
                 _udpTokenSource?.Cancel();
