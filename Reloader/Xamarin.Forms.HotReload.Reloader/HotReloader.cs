@@ -15,10 +15,12 @@ using System.Reflection;
 using System.IO;
 using System.Xml;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Xamarin.Forms
 {
-    public sealed class HotReloader
+    public sealed partial class HotReloader
     {
         private static readonly Lazy<HotReloader> _lazyHotReloader;
 
@@ -49,10 +51,10 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        public ReloaderConfig Start(Application app, int port = 8000)
+        public void Start(Application app, int port = 8000)
             => Start(app, port, ReloaderScheme.Http);
 
-        public ReloaderConfig Start(Application app, int port, ReloaderScheme scheme)
+        public void Start(Application app, int port, ReloaderScheme scheme)
         {
             Stop();
             _app = app;
@@ -64,7 +66,7 @@ namespace Xamarin.Forms
 
             if (HasCodegenAttribute(app))
             {
-                InitializeElement(app); ;
+                InitializeElement(app);
             }
 
             var listener = new HttpListener
@@ -99,9 +101,45 @@ namespace Xamarin.Forms
                 Console.WriteLine($"### AVAILABLE DEVICE's IP: {address} ###");
             }
 
-            Console.WriteLine($"### HOTRELOAD STARTED ###");
+            try
+            {
+                SendAutoDiscoveryMessage(addresses);
+                Console.WriteLine($"### HOTRELOAD STARTED ###");
+                Task.Run(async () =>
+                {
+                    for (var i = 0; i < 3; ++i)
+                    {
+                        await Task.Delay(10000);
+                        if(!IsRunning)
+                        {
+                            return;
+                        }
+                        try
+                        {
+                            SendAutoDiscoveryMessage(addresses);
+                        }
+                        catch
+                        {
+                            //Suppress
+                        }
+                    }
+                });
+            }
+            catch
+            {
+                Console.WriteLine($"### HOTRELOAD AUTODISCOVERY ERROR ###");
+            }
+        }
 
-            return new ReloaderConfig(addresses);
+        private void SendAutoDiscoveryMessage(string[] addresses)
+        {
+            var autoDiscoveryIpMessage = string.Join(";", addresses ?? new string[0]);
+            using (var client = new UdpClient())
+            {
+                var ip = new IPEndPoint(IPAddress.Broadcast, 15000);
+                var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
+                client.Send(bytes, bytes.Length, ip);
+            }
         }
 
         private void TrySubscribeRendererPropertyChanged(params string[] paths)

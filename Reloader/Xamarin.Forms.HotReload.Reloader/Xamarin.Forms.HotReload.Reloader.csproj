@@ -11,7 +11,7 @@
     <Compile Remove="MainPage.xaml.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Internal\" />
+    <Folder Include="ReloaderInternal\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove=".DS_Store" />
