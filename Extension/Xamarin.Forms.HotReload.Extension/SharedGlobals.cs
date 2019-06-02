@@ -18,6 +18,7 @@ namespace Xamarin.Forms.HotReload.Extension
         public const string DefaultIpAddressValue = "127.0.0.1";
         public const string DefaultPortValue = "8000";
         public const int MaxConnectionsCount = 20;
+        public const int DefaultUdpAutoDiscoveryPort = 15000;
 
         //UI globals.
         public const string ToolBarName = "Xamarin.Forms Hot Reload";

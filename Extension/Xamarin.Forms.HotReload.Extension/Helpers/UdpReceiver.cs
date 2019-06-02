@@ -2,6 +2,8 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
+using System.Linq;
 
 namespace Xamarin.Forms.HotReload.Extension.Helpers
 {
@@ -13,18 +15,38 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         private readonly object _lockObject = new object();
 
         private UdpClient _udpClient;
+        private CancellationTokenSource _udpTokenSource;
 
-        internal UdpReceiver(int port = 15000)
+        internal UdpReceiver(int port)
         {
             _port = port;
         }
 
-        internal void Start()
+        internal async void StartAsync()
         {
-            lock (_lockObject)
+            lock (_udpClient)
             {
                 _udpClient = new UdpClient(_port);
-                ListenTo();
+                _udpTokenSource?.Cancel();
+                _udpTokenSource = new CancellationTokenSource();
+            }
+
+            var token = _udpTokenSource.Token;
+            while (!token.IsCancellationRequested)
+            {
+                var receivedResult = _udpClient != null
+                    ? await _udpClient.ReceiveAsync().ConfigureAwait(false)
+                    : default(UdpReceiveResult);
+
+                var bytes = receivedResult.Buffer;
+
+                if (!token.IsCancellationRequested &&
+                    bytes != null &&
+                    bytes.Any())
+                {
+                    var message = Encoding.ASCII.GetString(bytes);
+                    Received?.Invoke(message);
+                }
             }
         }
 
@@ -32,28 +54,9 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         {
             lock (_lockObject)
             {
+                _udpTokenSource?.Cancel();
                 _udpClient?.Dispose();
                 _udpClient = null;
-            }
-        }
-
-        private void ListenTo()
-        {
-            _udpClient.BeginReceive(Receive, new object());
-        }
-
-        private void Receive(IAsyncResult ar)
-        {
-            lock (_lockObject)
-            {
-                var ip = new IPEndPoint(IPAddress.Any, _port);
-                if (_udpClient != null)
-                {
-                    var bytes = _udpClient.EndReceive(ar, ref ip);
-                    var message = Encoding.ASCII.GetString(bytes);
-                    Received?.Invoke(message);
-                    ListenTo();
-                }
             }
         }
     }

@@ -16,19 +16,19 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         public HotReloadClientsHolder()
         {
             _client = new HttpClient();
-            _receiver = new UdpReceiver();
+            _receiver = new UdpReceiver(SharedGlobals.DefaultUdpAutoDiscoveryPort);
         }
         
         internal void Run()
         {
             _receiver.Received += OnMessageReceived;
-            _receiver.Start();
+            _receiver.StartAsync();
         }
 
         internal void Stop()
         {
-            _receiver.Stop();
             _receiver.Received -= OnMessageReceived;
+            _receiver.Stop();
         }
 
         private void OnMessageReceived(string addressMsg)
