@@ -194,10 +194,14 @@ namespace Xamarin.Forms.HotReload.Observer
         }
 
         private void ListenTo()
-            => _udpClient.BeginReceive(Receive, new object());
+            => _udpClient?.BeginReceive(Receive, new object());
 
         private void Receive(IAsyncResult ar)
         {
+            if(_udpClient == null)
+            {
+                return;
+            }
             var ip = new IPEndPoint(IPAddress.Any, _port);
             var bytes = _udpClient.EndReceive(ar, ref ip);
             var message = Encoding.ASCII.GetString(bytes);
