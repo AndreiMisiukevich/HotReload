@@ -60,12 +60,31 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void OnEnableExtensionExecuted(object sender, EventArgs e)
         {
+            _guiService.HideInfoBar();
+            EnableExtension();
+        }
+
+        private void OnDisableExtensionExecuted(object sender, EventArgs e)
+        {
+            DisableExtension();
+        }
+
+        private void EnableExtension()
+        {
             _clientsHolder.Run();
             _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
             _enableExtensionCommand.IsVisible = false;
             _disableExtensionCommand.IsVisible = true;
         }
-        
+
+        private void DisableExtension()
+        {
+            _clientsHolder.Stop();
+            _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
+            _enableExtensionCommand.IsVisible = true;
+            _disableExtensionCommand.IsVisible = false;
+        }
+
         private void OnInfoBarResult(Task<InfoBarActionType> resultTask)
         {
             switch (resultTask.Result)
@@ -74,7 +93,7 @@ namespace Xamarin.Forms.HotReload.Extension
                     _settingsService.ShowEnableHotReloadTooltip = false;
                     break;
                 case InfoBarActionType.Enable:
-                    OnEnableExtensionExecuted(this, EventArgs.Empty);
+                    EnableExtension();
                     break;
                 case InfoBarActionType.NoAction:
                     break;
@@ -83,14 +102,6 @@ namespace Xamarin.Forms.HotReload.Extension
             }
         }
 
-        private void OnDisableExtensionExecuted(object sender, EventArgs e)
-        {
-            _clientsHolder.Stop();
-            _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
-            _enableExtensionCommand.IsVisible = true;
-            _disableExtensionCommand.IsVisible = false;
-        }
-        
         private void OnEnviromentSolutionClosed(object sender, EventArgs e)
         {
             _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;

@@ -11,32 +11,15 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
 
         private readonly int _port;
         private readonly object _lockObject = new object();
-
-        private UdpClient _udpClient;
-
+        private readonly UdpClient _udpClient;
+        
         internal UdpReceiver(int port = 15000)
         {
             _port = port;
+            _udpClient = new UdpClient(_port);
+            ListenTo();
         }
-
-        internal void Start()
-        {
-            lock (_lockObject)
-            {
-                _udpClient = new UdpClient(_port);
-                ListenTo();
-            }
-        }
-
-        internal void Stop()
-        {
-            lock (_lockObject)
-            {
-                _udpClient?.Dispose();
-                _udpClient = null;
-            }
-        }
-
+        
         private void ListenTo()
         {
             _udpClient.BeginReceive(Receive, new object());
@@ -47,13 +30,10 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
             lock (_lockObject)
             {
                 var ip = new IPEndPoint(IPAddress.Any, _port);
-                if (_udpClient != null)
-                {
-                    var bytes = _udpClient.EndReceive(ar, ref ip);
-                    var message = Encoding.ASCII.GetString(bytes);
-                    Received?.Invoke(message);
-                    ListenTo();
-                }
+                var bytes = _udpClient.EndReceive(ar, ref ip);
+                var message = Encoding.ASCII.GetString(bytes);
+                Received?.Invoke(message);
+                ListenTo();
             }
         }
     }
