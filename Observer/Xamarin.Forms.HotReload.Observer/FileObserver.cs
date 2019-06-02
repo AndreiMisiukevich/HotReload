@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using static System.Math;
 using System.Net;
+using System.Threading;
 
 namespace Xamarin.Forms.HotReload.Observer
 {
@@ -78,7 +79,7 @@ namespace Xamarin.Forms.HotReload.Observer
                         _addresses.Add(address);
                     }
                 };
-                receiver.Start();
+                receiver.StartAsync();
             }
             catch
             {
@@ -173,40 +174,55 @@ namespace Xamarin.Forms.HotReload.Observer
 
     internal sealed class UdpReceiver
     {
-        public event Action<string> Received;
+        internal event Action<string> Received;
+
         private readonly int _port;
+        private readonly object _lockObject = new object();
+
         private UdpClient _udpClient;
+        private CancellationTokenSource _udpTokenSource;
 
-        public UdpReceiver(int port = 15000)
-            => _port = port;
-
-        public void Start()
+        internal UdpReceiver(int port)
         {
-            _udpClient = new UdpClient(_port);
-            ListenTo();
+            _port = port;
         }
 
-        public void Stop()
+        internal async void StartAsync()
         {
-            _udpClient?.Dispose();
-            _udpClient = null;
-            Received = null;
-        }
-
-        private void ListenTo()
-            => _udpClient?.BeginReceive(Receive, new object());
-
-        private void Receive(IAsyncResult ar)
-        {
-            if(_udpClient == null)
+            lock (_lockObject)
             {
-                return;
+                _udpClient = new UdpClient(_port);
+                _udpTokenSource?.Cancel();
+                _udpTokenSource = new CancellationTokenSource();
             }
-            var ip = new IPEndPoint(IPAddress.Any, _port);
-            var bytes = _udpClient.EndReceive(ar, ref ip);
-            var message = Encoding.ASCII.GetString(bytes);
-            Received?.Invoke(message);
-            ListenTo();
+
+            var token = _udpTokenSource.Token;
+            while (!token.IsCancellationRequested)
+            {
+                var receivedResult = _udpClient != null
+                    ? await _udpClient.ReceiveAsync().ConfigureAwait(false)
+                    : default(UdpReceiveResult);
+
+                var bytes = receivedResult.Buffer;
+
+                if (!token.IsCancellationRequested &&
+                    bytes != null &&
+                    bytes.Any())
+                {
+                    var message = Encoding.ASCII.GetString(bytes);
+                    Received?.Invoke(message);
+                }
+            }
+        }
+
+        internal void Stop()
+        {
+            lock (_lockObject)
+            {
+                _udpTokenSource?.Cancel();
+                _udpClient?.Dispose();
+                _udpClient = null;
+            }
         }
     }
 }
