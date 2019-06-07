@@ -1,0 +1,199 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
+buildscript {
+    repositories {
+        maven { url 'https://www.myget.org/F/rd-snapshots/maven/' }
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.jetbrains.rd:rd-gen:0.191.59")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.10")
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.0'
+    id 'org.jetbrains.intellij' version '0.4.7'
+}
+
+ext {
+    repoRoot = projectDir
+    isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
+    sdkVersion = "2019.1"
+    rdLibDirectory = new File(repoRoot, "build/riderRD-$sdkVersion-SNAPSHOT/lib/rd")
+    dotNetDir = new File(repoRoot, "src/dotnet")
+    dotNetPluginId = "Xamarin.Forms.HotReload.Extension.Rider"
+    dotnetSolution = new File(repoRoot, "Xamarin.Forms.HotReload.Extension.Rider.sln")
+}
+
+repositories {
+//    maven { url 'https://repo.labs.intellij.net/central-proxy' }
+//    maven { url 'https://repo.labs.intellij.net/rd-snapshots-maven' }
+//  maven { url 'https://repo.labs.intellij.net/jitpack.io' }
+    mavenLocal()
+    mavenCentral()
+    flatDir { dirs rdLibDirectory.absolutePath }
+}
+
+wrapper {
+    gradleVersion = '4.9'
+    distributionType = Wrapper.DistributionType.ALL
+    distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
+}
+
+if (!ext.has("BuildConfiguration"))
+    ext.BuildConfiguration = "Release"
+
+if (ext.has("pluginVersion"))
+    ext.version = ext.pluginVersion
+else
+    ext.version = "1.0.0"
+
+if (ext.has("username"))
+    intellij.publish.username = ext.username
+
+if (ext.has("password"))
+    intellij.publish.password = ext.password
+
+version ext.version
+
+sourceSets {
+    main {
+        java.srcDir 'src/rider/main/kotlin'
+        resources.srcDir 'src/rider/main/resources'
+    }
+}
+
+compileKotlin {
+    kotlinOptions { jvmTarget = "1.8" }
+}
+
+task findMsBuild {
+    doLast {
+        ByteArrayOutputStream stdout = new ByteArrayOutputStream()
+        if (isWindows) {
+            exec {
+                executable "$repoRoot\\tools\\vswhere.exe"
+                args '-latest','-property','installationPath'
+                standardOutput = stdout
+                workingDir project.rootDir
+            }
+            List<String> files = new FileNameFinder().getFileNames("${stdout.toString().trim()}\\MSBuild", "**/MSBuild.exe")
+            ext.executable = files.get(0)
+        } else {
+            exec {
+                executable 'which'
+                args 'msbuild'
+                standardOutput = stdout
+                workingDir project.rootDir
+            }
+            ext.executable = stdout.toString().trim()
+        }
+    }
+}
+
+task compileDotNet {
+    dependsOn findMsBuild
+    doLast {
+        exec {
+            executable findMsBuild.executable
+            args "/t:Restore;Rebuild","$dotnetSolution","/v:minimal","/p:Configuration=$BuildConfiguration"
+        }
+    }
+}
+
+buildPlugin {
+    dependsOn findMsBuild
+    outputs.upToDateWhen { false }
+    doLast {
+        copy {
+            from "$buildDir/distributions/$rootProject.name-${version}.zip"
+            into "$rootDir/output"
+        }
+
+        def changelogText = file("$repoRoot/CHANGELOG.md").text
+        def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
+        def changeNotes = changelogMatches.collect {
+            it[1].replaceAll(/(?s)- /, "\u2022 ").replaceAll(/`/, "").replaceAll(/,/, "%2C")
+        }.take(1).join("")
+
+        exec {
+            executable findMsBuild.executable
+            args "/t:Pack","$dotnetSolution","/v:minimal","/p:Configuration=$BuildConfiguration","/p:PackageOutputPath=$rootDir/output","/p:PackageReleaseNotes=$changeNotes","/p:PackageVersion=$version"
+        }
+    }
+}
+
+intellij {
+    type = 'RD'
+
+//    Only one of the arguments `version` or `localPath` should be passes in a time
+//    version = "$sdkVersion-SNAPSHOT"
+//    localPath = 'HERE SHOULD BE PATH TO YOUR LOCAL RIDER'
+    localPath = 'C:\\Users\\Bavtovich\\AppData\\Local\\JetBrains\\Toolbox\\apps\\Rider\\ch-1\\191.6733.985'
+
+    downloadSources = false
+}
+
+apply plugin: 'com.jetbrains.rdgen'
+
+rdgen {
+    def modelDir = new File(repoRoot, "protocol/src/main/kotlin/model")
+    def csOutput = new File(repoRoot, "src/dotnet/Xamarin.Forms.HotReload.Extension.Rider/Model")
+    def ktOutput = new File(repoRoot, "src/rider/main/kotlin/hotreload.extension.rider/model")
+
+    verbose = true
+    classpath "$rdLibDirectory/rider-model.jar"
+    sources "$modelDir/rider"
+    hashFolder = 'build/rdgen/rider'
+    packages = "model.rider"
+
+    generator {
+        language = "kotlin"
+        transform = "asis"
+        root = "com.jetbrains.rider.model.nova.ide.IdeRoot"
+        namespace = "com.jetbrains.rider.model"
+        directory = "$ktOutput"
+    }
+
+    generator {
+        language = "csharp"
+        transform = "reversed"
+        root = "com.jetbrains.rider.model.nova.ide.IdeRoot"
+        namespace = "JetBrains.Rider.Model"
+        directory = "$csOutput"
+    }
+}
+
+patchPluginXml {
+    def changelogText = file("$repoRoot/CHANGELOG.md").text
+    def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
+
+    changeNotes = changelogMatches.collect {
+        it[1].replaceAll(/(?s)\r?\n/, "<br />\n")
+    }.take(1).join('')
+}
+
+prepareSandbox {
+    dependsOn compileDotNet
+
+    def outputFolder = "$dotNetDir/$dotNetPluginId/bin/${dotNetPluginId}/$BuildConfiguration"
+    def dllFiles = [
+            "$outputFolder/${dotNetPluginId}.dll",
+            "$outputFolder/${dotNetPluginId}.pdb"
+    ]
+
+    dllFiles.forEach({ f ->
+        def file = file(f)
+        from(file, { into "$intellij.pluginName/dotnet" })
+    })
+
+    doLast {
+        dllFiles.forEach({ f ->
+            def file = file(f)
+            if (!file.exists()) throw new RuntimeException("File $file does not exist")
+        })
+    }
+}

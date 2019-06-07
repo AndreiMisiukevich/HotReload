@@ -1,0 +1,16 @@
+<Project>
+  <PropertyGroup>
+    <SdkVersion>2019.1.0-*</SdkVersion>
+    
+    <Title>Xamarin.Forms.HotReload.Extension.Rider</Title>
+    <Description>Rider plugin for HotReload Xamarin project</Description>
+  
+    <Authors>Ignat Bavtovich</Authors>
+    <Copyright>Copyright $([System.DateTime]::Now.Year) Maintainers of HotReload.Extension.Rider</Copyright>
+    <PackageTags>Rider plugin</PackageTags>
+  
+    <PackageProjectUrl></PackageProjectUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
+    <PackageIconUrl></PackageIconUrl>
+  </PropertyGroup>
+</Project>
