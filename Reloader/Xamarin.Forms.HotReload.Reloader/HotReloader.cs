@@ -33,7 +33,7 @@ namespace Xamarin.Forms
         private ConcurrentDictionary<string, ReloadItem> _fileMapping;
         private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
-        private Application _app;
+        private Element _element;
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
 
@@ -51,22 +51,22 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        public void Start(Application app, int port = 8000)
-            => Start(app, port, ReloaderScheme.Http);
+        public void Start(Element element, int port = 8000)
+            => Start(element, port, ReloaderScheme.Http);
 
-        public void Start(Application app, int port, ReloaderScheme scheme)
+        public void Start(Element element, int port, ReloaderScheme scheme)
         {
             Stop();
-            _app = app;
+            _element = element;
             IsRunning = true;
 
             TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty");
 
             _fileMapping = new ConcurrentDictionary<string, ReloadItem>();
 
-            if (HasCodegenAttribute(app))
+            if (HasCodegenAttribute(element))
             {
-                InitializeElement(app);
+                InitializeElement(element);
             }
 
             var listener = new HttpListener
@@ -758,7 +758,7 @@ namespace Xamarin.Forms
             foreach (Match match in matches)
             {
                 var value = match.Groups[1].Value;
-                var resId = GetResId(new Uri(value, UriKind.Relative), element ?? (object)_app);
+                var resId = GetResId(new Uri(value, UriKind.Relative), element ?? (object)_element);
                 if (dictName.EndsWith(resId, StringComparison.Ordinal))
                 {
                     return true;
@@ -767,7 +767,7 @@ namespace Xamarin.Forms
                 {
                     continue;
                 }
-                var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_app);
+                var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_element);
                 if(checkItem != null)
                 {
                     return true;
