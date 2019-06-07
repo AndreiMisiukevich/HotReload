@@ -339,6 +339,11 @@ namespace Xamarin.Forms
                 else
                 {
                     item.Xaml.LoadXml(content);
+                    //Remove ReSharper attributes
+                    foreach (XmlNode node in item.Xaml.ChildNodes)
+                    {
+                        node?.Attributes?.RemoveNamedItem("d:DataContext");
+                    }
                 }
             }
             catch(Exception ex)
