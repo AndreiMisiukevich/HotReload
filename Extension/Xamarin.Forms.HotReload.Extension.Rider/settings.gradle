@@ -1,0 +1,3 @@
+rootProject.name = 'xamarin.forms.hotreload.extension.rider'
+
+include ':protocol'
