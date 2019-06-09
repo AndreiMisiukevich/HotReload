@@ -14,10 +14,10 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
         {
             myModel = solution.GetProtocolSolution().GetHotReloadPluginModel();
         }
-        
+
         public void PerformModelAction(Action<HotReloadPluginModel> action)
         {
-                action(myModel);
+            action(myModel);
         }
     }
 }

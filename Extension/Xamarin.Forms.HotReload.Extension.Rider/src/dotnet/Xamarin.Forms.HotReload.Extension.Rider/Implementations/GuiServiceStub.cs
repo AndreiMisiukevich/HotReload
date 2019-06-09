@@ -8,7 +8,7 @@ using Xamarin.Forms.HotReload.Extension.Models;
 namespace Xamarin.Forms.HotReload.Extension.Rider.Implementations
 {
     [SolutionComponent]
-    public class GuiServiceStub: IGuiService
+    public class GuiServiceStub : IGuiService
     {
         public void ShowMessageBox(string title, string message)
         {

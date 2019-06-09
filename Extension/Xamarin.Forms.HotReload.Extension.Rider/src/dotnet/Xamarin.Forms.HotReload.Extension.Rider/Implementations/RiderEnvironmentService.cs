@@ -6,7 +6,7 @@ using Xamarin.Forms.HotReload.Extension.Models;
 namespace Xamarin.Forms.HotReload.Extension.Rider.Implementations
 {
     [SolutionComponent]
-    public class RiderEnvironmentService: EnvironmentService
+    public class RiderEnvironmentService : EnvironmentService
     {
         public override bool IsSolutionOpened => true;
 

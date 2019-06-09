@@ -13,10 +13,8 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
             if (solution.GetData(ProjectModelExtensions.ProtocolSolutionKey) == null)
                 return;
 
-            host.PerformModelAction(rd => rd.Reload.Advise(lifetime, savedDoc =>
-            {
-                envService.OnDocumentSaved(savedDoc);
-            }));
+            host.PerformModelAction(rd =>
+                rd.Reload.Advise(lifetime, savedDoc => { envService.OnDocumentSaved(savedDoc); }));
         }
     }
 }

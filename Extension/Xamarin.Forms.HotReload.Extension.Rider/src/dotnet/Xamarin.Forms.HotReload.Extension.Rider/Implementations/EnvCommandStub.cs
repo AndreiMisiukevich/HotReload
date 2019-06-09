@@ -3,7 +3,7 @@ using Xamarin.Forms.HotReload.Extension.Abstractions;
 
 namespace Xamarin.Forms.HotReload.Extension.Rider.Implementations
 {
-    public class EnvCommandStud : IEnvironmentCommand
+    public class EnvCommandStub : IEnvironmentCommand
     {
         public event EventHandler Executed;
         public bool IsVisible { get; set; }

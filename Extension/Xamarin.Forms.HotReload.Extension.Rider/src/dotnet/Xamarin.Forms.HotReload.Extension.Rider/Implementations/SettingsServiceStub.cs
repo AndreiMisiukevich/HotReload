@@ -7,6 +7,7 @@ namespace Xamarin.Forms.HotReload.Extension.Rider.Implementations
     public class SettingsServiceStub : ISettingsService
     {
         public bool ShowEnableHotReloadTooltip { get; set; }
+
         public void Initialize()
         {
         }
