@@ -1,0 +1,22 @@
+<idea-plugin>
+  <id>hotreloadplugin-rider</id>
+  <name>HotReloadPlugin</name>
+  <version>_PLACEHOLDER_</version>
+  <vendor url="https://github.com/AndreiMisiukevich/HotReload">Ignat Bavtovich</vendor>
+  <idea-version since-build="_PLACEHOLDER_" until-build="_PLACEHOLDER_" />
+  <depends>com.intellij.modules.rider</depends>
+
+  <description>
+    Plugin helps to integrate Xamarin HotReload project with Rider and easily apply new changes in your code without
+      any configuration
+  </description>
+
+    <project-components>
+        <component>
+            <implementation-class>hotreload.extension.rider.component.StartUpProjectComponent</implementation-class>
+        </component>
+        <component>
+            <implementation-class>hotreload.extension.rider.component.SaveDocumentListener</implementation-class>
+        </component>
+    </project-components>
+</idea-plugin>
