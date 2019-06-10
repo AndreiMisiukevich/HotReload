@@ -1,6 +1,6 @@
 <idea-plugin>
   <id>hotreloadplugin-rider</id>
-  <name>HotReloadPlugin</name>
+  <name>Hot Reload</name>
   <version>_PLACEHOLDER_</version>
   <vendor url="https://github.com/AndreiMisiukevich/HotReload">Ignat Bavtovich</vendor>
   <idea-version since-build="_PLACEHOLDER_" until-build="_PLACEHOLDER_" />
