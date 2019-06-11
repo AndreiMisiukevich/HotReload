@@ -103,17 +103,11 @@ namespace Xamarin.Forms
 
             try
             {
-                SendAutoDiscoveryMessage(addresses);
                 Console.WriteLine($"### HOTRELOAD STARTED ###");
                 Task.Run(async () =>
                 {
-                    for (var i = 0; i < 3; ++i)
+                    while(IsRunning)
                     {
-                        await Task.Delay(10000);
-                        if(!IsRunning)
-                        {
-                            return;
-                        }
                         try
                         {
                             SendAutoDiscoveryMessage(addresses);
@@ -122,6 +116,7 @@ namespace Xamarin.Forms
                         {
                             //Suppress
                         }
+                        await Task.Delay(10000);
                     }
                 });
             }
