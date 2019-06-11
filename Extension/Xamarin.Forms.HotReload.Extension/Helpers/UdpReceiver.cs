@@ -16,21 +16,20 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         
         internal UdpReceiver(int port = 15000)
         {
-            var activeUdpListeners = System.Net.NetworkInformation.IPGlobalProperties.GetIPGlobalProperties().GetActiveUdpListeners();
-            while (activeUdpListeners.Any(p => p.Port == port) && port < 15200)
+            var maxPort = port + 200;
+            while(!_port.HasValue && port < maxPort)
             {
-                port++;
-            }
-
-            if (port == 15200)
-            {
-                _port = null;
-            }
-            else
-            {
-                _port = port;
-                _udpClient = new UdpClient(_port.Value);
-                ListenTo();
+                try
+                {
+                    _udpClient = new UdpClient(port);
+                    ListenTo();
+                    _port = port;
+                }
+                catch
+                {
+                    ++port;
+                    continue;
+                }
             }
         }
 
