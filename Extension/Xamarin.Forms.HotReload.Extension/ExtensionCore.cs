@@ -71,10 +71,18 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void EnableExtension()
         {
-            _clientsHolder.Run();
-            _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
-            _enableExtensionCommand.IsVisible = false;
-            _disableExtensionCommand.IsVisible = true;
+            if (_clientsHolder.PortDefined)
+            {
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Your port is: {_clientsHolder.Port}");
+                _clientsHolder.Run();
+                _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
+                _enableExtensionCommand.IsVisible = false;
+                _disableExtensionCommand.IsVisible = true;
+            }
+            else
+            {
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, "No available ports found. Try to close all the instances of development environment and try again.");
+            }
         }
 
         private void DisableExtension()

@@ -18,6 +18,10 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
             _client = new HttpClient();
             _receiver = new UdpReceiver();
         }
+
+        public int? Port => _receiver.Port;
+
+        public bool PortDefined => Port.HasValue;
         
         internal void Run()
         {
