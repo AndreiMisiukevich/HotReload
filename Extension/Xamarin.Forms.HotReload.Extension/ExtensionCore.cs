@@ -73,7 +73,7 @@ namespace Xamarin.Forms.HotReload.Extension
         {
             if (_clientsHolder.PortDefined)
             {
-                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Your port is: {_clientsHolder.Port}");
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Extension has started to listen {_clientsHolder.Port} port for IP auto discovery.");
                 _clientsHolder.Run();
                 _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
                 _enableExtensionCommand.IsVisible = false;
