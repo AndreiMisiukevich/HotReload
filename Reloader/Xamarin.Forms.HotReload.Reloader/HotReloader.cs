@@ -51,10 +51,10 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        public void Start(Application app, int port = 8000)
-            => Start(app, port, ReloaderScheme.Http);
+        public void Start(Application app, int devicePort = 8000, int extensionPort = 15000)
+            => Start(app, devicePort, ReloaderScheme.Http);
 
-        public void Start(Application app, int port, ReloaderScheme scheme)
+        public void Start(Application app, int devicePort, ReloaderScheme deviceScheme, int extensionPort = 15000)
         {
             Stop();
             _app = app;
@@ -73,7 +73,7 @@ namespace Xamarin.Forms
             {
                 Prefixes =
                 {
-                    $"{scheme.ToString().ToLower()}://*:{port}/"
+                    $"{deviceScheme.ToString().ToLower()}://*:{devicePort}/"
                 }
             };
             listener.Start();
@@ -93,7 +93,7 @@ namespace Xamarin.Forms
                           .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
                           .Select(x => x.Address.MapToIPv4())
                           .Where(x => x.ToString() != "127.0.0.1")
-                          .Select(x => $"{scheme}://{x.ToString()}:{port}")
+                          .Select(x => $"{deviceScheme}://{x.ToString()}:{devicePort}")
                           .ToArray();
 
             foreach (var address in addresses)
@@ -110,7 +110,7 @@ namespace Xamarin.Forms
                     {
                         try
                         {
-                            SendAutoDiscoveryMessage(addresses);
+                            SendAutoDiscoveryMessage(addresses, extensionPort);
                         }
                         catch
                         {
@@ -126,12 +126,12 @@ namespace Xamarin.Forms
             }
         }
 
-        private void SendAutoDiscoveryMessage(string[] addresses)
+        private void SendAutoDiscoveryMessage(string[] addresses, int port)
         {
             var autoDiscoveryIpMessage = string.Join(";", addresses ?? new string[0]);
             using (var client = new UdpClient())
             {
-                var ip = new IPEndPoint(IPAddress.Broadcast, 15000);
+                var ip = new IPEndPoint(IPAddress.Broadcast, port);
                 var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
                 client.Send(bytes, bytes.Length, ip);
             }
@@ -159,7 +159,6 @@ namespace Xamarin.Forms
                 var rendererPropertyChangedInfo = rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
                 if(rendererPropertyChangedInfo == null)
                 {
-                    Console.WriteLine($"#### HOTRELOAD COULD NOT FIND {path}");
                     continue;
                 }
                 var originalRendererPropertyChanged = rendererPropertyChangedInfo?.GetValue(rendererProperty) as BindableProperty.BindingPropertyChangedDelegate;
