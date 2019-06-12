@@ -66,11 +66,13 @@ Or by searching in Visual Studio's extension manager
 1) **IMPORTANT**: 
 Make sure you your PC/Mac and device/emulator are in the same local network.
 
-2) If you run several instances of VS, probably, you will have to specify EXTENSION'S port during HotReload setup. When you enable extension, it shows you a port in message box. If port ISN'T **15000**, you should pass actual value to HotReload.
+2) If you run several instances of VS, probably you will have to specify EXTENSION'S port during HotReload setup. When you enable extension, it always shows you an actual port in message box. If port ISN'T **15000**, you should pass actual value to HotReload.
 
 ```csharp
 HotReloader.Current.Start(this, extensionPort: 15001); // 15001 is actual extenstion port value (from message box).
 ```
+
+if port IS **15000**, you may skip this step, because **15000** is default value.
 
 3) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
 
