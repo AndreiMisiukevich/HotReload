@@ -23,14 +23,15 @@ namespace YourNamespace
         {
             InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Start(this);     
+            HotReloader.Current.Start(this); 
+            //optionally you may set device's port / scheme and extension's port for auto discovery
 #endif
             MainPage = new NavigationPage(new MainPage());
         }
     }
 }
 ```
-**IMPORTANT:** don't use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
+**IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
 
 #### Mac
 
@@ -61,10 +62,15 @@ Or by searching in Visual Studio's extension manager
 ### Run your app and start developing with **HotReload**!
 
 1) **IMPORTANT**: 
-- Make sure you use proper device IP in Extension. Check application output for more info about device IP.
-- Also keep in mind, that your PC/Mac and device/emulator must be in the same local network.
+Make sure you your PC/Mac and device/emulator are in the same local network.
 
-2) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
+2) If you run several instances of VS, probably, you will have to specify EXTENSION'S port during HotReload setup. When you enable extension, it shows you a port in message box. If port isn't 15000, you should pass actual value to hotReload.
+
+```csharp
+HotReloader.Current.Start(this, extensionPort: 15001); // 15001 is port value from extension's message box
+```
+
+3) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
@@ -81,7 +87,7 @@ public partial class MainPage : ContentPage, IReloadable
 }
 ```
 
-3) **ViewCell** reloading: before starting app you MUST determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
+4) **ViewCell** reloading: before starting app you MUST determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
 
 ```xaml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -93,28 +99,10 @@ public partial class MainPage : ContentPage, IReloadable
 ```
 
 ## Android Emulator
-In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your `127.0.0.1`:
-
-- Set **http://127.0.0.1:8000** in VS extension
-- You also need to forward the port to your pc/mac using `adb`
+In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with DEVICE port 8000):
 ```
 adb forward tcp:8000 tcp:8000
 ```
-
-## Android device
-
-If you are using a real device you'll have to connect to it through its IP in HotReload extension. 
-To get your device's IP follow this : 
-
-- Open adb command prompt 
-- Run `adb shell` command
-- Run command `ip -f inet addr show wlan0`
-- Copy IP from command result to HotReload extension window
-
-## What is Device IP ?
-
-You can easily find it in **Application Output** if run application with installed HotReaload. 
-Use **AVAILABLE DEVICE's IP** as search text
 
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich)
