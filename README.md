@@ -1,8 +1,8 @@
 ![logo](https://github.com/AndreiMisiukevich/HotReload/blob/master/logo/hotreload-logodesign-colored.png)
 
 # HotReload
-Xamarin.Forms XAML hot reload, live reload, live xaml
-
+[![Twitter URL](https://img.shields.io/twitter/url/https/github.com/Andrik_Just4Fun/notification-feed.svg?style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2FAndreiMisiukevich%2FHotReload&text=%23XamarinForms%20%23HotReload%0A%0AXamarin.Forms%20XAML%2FCSS%20hot%20reload%20%2F%20live%20reload)
+ Xamarin.Forms XAML/CSS hot reload / live reload [![Build status](https://dev.azure.com/andreimisiukevich/HotReload/_apis/build/status/HotReload-.NET%20Desktop-CI)](https://dev.azure.com/andreimisiukevich/HotReload/_build/latest?definitionId=2)
 Sample Video you can find here: https://twitter.com/i/status/1124314311151607809
 
 ![Sample GIF](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/gf1.gif?raw=true)
@@ -109,8 +109,8 @@ adb forward tcp:8000 tcp:8000
 ```
 
 ## Collaborators
-- [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich)
-- [stanbav (Stanislav)](https://github.com/stanbav)
+- [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/Andrik_Just4Fun.svg?style=social&label=Follow%20%40Andrik_Just4Fun)](https://twitter.com/Andrik_Just4Fun)
+- [stanbav (Stanislav)](https://github.com/stanbav) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/stasbavtovich.svg?style=social&label=Follow%20%40stasbavtovich)](https://twitter.com/stasbavtovich)
 
 Are there any questions? 🇧🇾 ***just ask us =)*** 🇧🇾
 
