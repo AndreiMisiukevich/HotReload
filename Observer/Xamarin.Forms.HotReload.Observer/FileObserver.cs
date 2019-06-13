@@ -9,7 +9,6 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Math;
-using System.Net;
 using System.Threading;
 
 namespace Xamarin.Forms.HotReload.Observer
@@ -75,8 +74,11 @@ namespace Xamarin.Forms.HotReload.Observer
                     var address = addressMsg.Split(';').FirstOrDefault();
                     if (address != null)
                     {
-                        Console.WriteLine($"ADDRESS IS DETECTED: {address}");
-                        _addresses.Add(address);
+                        if (!_addresses.Contains(address))
+                        {
+                            Console.WriteLine($"ADDRESS IS DETECTED: {address}");
+                            _addresses.Add(address);
+                        }
                     }
                 };
                 receiver.StartAsync();
