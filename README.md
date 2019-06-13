@@ -23,8 +23,8 @@ namespace YourNamespace
         {
             InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Start(this); 
-            //optionally you may set device's port / scheme and extension's port for auto discovery
+            HotReloader.Current.Run(this); 
+            //optionally you may specify EXTENSION's port for auto discovery, device's port and url scheme
 #endif
             MainPage = new NavigationPage(new MainPage());
         }
@@ -61,18 +61,18 @@ Or by searching in Visual Studio's extension manager
 
 ### Run your app and start developing with **HotReload**!
 
-0) Your device will be discovered automatically.
+1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
+Make sure you your PC/Mac and device/emulator are in the same local network.)
 
-1) **IMPORTANT**: 
-Make sure you your PC/Mac and device/emulator are in the same local network.
+2) When you enable extension, it always shows you an actual **Extension Port** in message box. If port value *ISN'T* **15000**, you SHOULD pass this value to HotReload! if port IS **15000**, you may skip this step, because **15000** is default EXTENSION'S port value.
 
-2) If you run several instances of VS, probably you will have to specify EXTENSION'S port during HotReload setup. When you enable extension, it always shows you an actual port in message box. If port ISN'T **15000**, you should pass actual value to HotReload.
-
+* For example extension's alert shows you "15002"
 ```csharp
-HotReloader.Current.Start(this, extensionPort: 15001); // 15001 is actual extenstion port value (from message box).
+HotReloader.Current.Run(this, new HotReloader.Configuration
+{
+    ExtensionAutoDiscoveryPort = 15002 // VALUE FROM EXTENSION's ALERT
+});
 ```
-
-if port IS **15000**, you may skip this step, because **15000** is default value.
 
 3) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
 
@@ -86,7 +86,7 @@ public partial class MainPage : ContentPage, IReloadable
 
     public void OnLoaded() // Add logic here
     {
-        //
+        //label.Text = "I'm loaded again";
     }
 }
 ```
@@ -103,7 +103,7 @@ public partial class MainPage : ContentPage, IReloadable
 ```
 
 ## Android Emulator
-In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with **DEVICE** port 8000. DON'T USE EXTENSION'S PORT (usually extension port is 15000)):
+In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
 ```
 adb forward tcp:8000 tcp:8000
 ```
