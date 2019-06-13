@@ -8,16 +8,16 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
     [SolutionComponent]
     public class RunManager
     {
-        private readonly HotReloadPluginModel myModel;
+        private readonly HotReloadPluginModel _myModel;
 
         public RunManager(ISolution solution)
         {
-            myModel = solution.GetProtocolSolution().GetHotReloadPluginModel();
+            _myModel = solution.GetProtocolSolution().GetHotReloadPluginModel();
         }
 
         public void PerformModelAction(Action<HotReloadPluginModel> action)
         {
-            action(myModel);
+            action(_myModel);
         }
     }
 }

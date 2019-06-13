@@ -12,9 +12,17 @@ object HotReloadPluginModel : Ext(SolutionModel.Solution) {
         field("content", array(char))
     }
 
+    val messageInfo = structdef {
+        field("title", string)
+        field("message", string)
+    }
+
     init {
         source("reload", savedDocument)
 
+        source("enable", bool)
         property("isEnabled", bool)
+
+        sink("showMessage", messageInfo)
     }
 }

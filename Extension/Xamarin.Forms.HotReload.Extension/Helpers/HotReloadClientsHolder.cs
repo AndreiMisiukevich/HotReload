@@ -9,7 +9,7 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
 {
     internal class HotReloadClientsHolder
     {
-        private readonly HashSet<string> _addresses = new HashSet<string>() {"Http://127.0.0.1:8000"};
+        private readonly HashSet<string> _addresses = new HashSet<string>();
         private readonly HttpClient _client;
         private readonly UdpReceiver _receiver;
 

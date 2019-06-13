@@ -10,7 +10,7 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
     [SolutionComponent]
     public class PluginInitializer
     {
-        private static readonly Dictionary<HotReloadCommands, IEnvironmentCommand> RegisteredCommandInstances =
+        public static readonly Dictionary<HotReloadCommands, IEnvironmentCommand> RegisteredCommandInstances =
             new Dictionary<HotReloadCommands, IEnvironmentCommand>();
 
         public PluginInitializer(RiderEnvironmentService environmentService, IGuiService service,
@@ -27,9 +27,6 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
             }
 
             Main.Init(environmentService, RegisteredCommandInstances, service, settingsStore);
-
-            var enableCommand = RegisteredCommandInstances[HotReloadCommands.Enable] as EnvCommandStub;
-            enableCommand.OnExecuted();
         }
     }
 }
