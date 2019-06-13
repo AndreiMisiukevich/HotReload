@@ -17,6 +17,7 @@ using System.Xml;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace Xamarin.Forms
 {
@@ -51,11 +52,17 @@ namespace Xamarin.Forms
             _fileMapping = null;
         }
 
-        public void Start(Application app, int devicePort = 8000, int extensionPort = 15000)
-            => Start(app, devicePort, ReloaderScheme.Http);
-
-        public void Start(Application app, int devicePort, ReloaderScheme deviceScheme, int extensionPort = 15000)
+        /// <summary>
+        /// Run HotReload. Use config for specifying settings
+        /// </summary>
+        /// <param name="app">App.</param>
+        /// <param name="config">Config.</param>
+        public void Run(Application app, Configuration config = null)
         {
+            config = config ?? new Configuration();
+            var deviceScheme = config.DeviceUrlScheme;
+            var devicePort = config.DeviceUrlPort;
+
             Stop();
             _app = app;
             IsRunning = true;
@@ -98,7 +105,7 @@ namespace Xamarin.Forms
 
             foreach (var address in addresses)
             {
-                Console.WriteLine($"### AVAILABLE DEVICE's IP: {address} ###");
+                Console.WriteLine($"[OBSOLETE] ### AVAILABLE DEVICE's IP: {address} ###");
             }
 
             try
@@ -106,17 +113,10 @@ namespace Xamarin.Forms
                 Console.WriteLine($"### HOTRELOAD STARTED ###");
                 Task.Run(async () =>
                 {
-                    while(IsRunning)
+                    while (IsRunning)
                     {
-                        try
-                        {
-                            SendAutoDiscoveryMessage(addresses, extensionPort);
-                        }
-                        catch
-                        {
-                            //Suppress
-                        }
-                        await Task.Delay(10000);
+                        SendAutoDiscoveryMessage(addresses, $"{deviceScheme}://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
+                        await Task.Delay(12000);
                     }
                 });
             }
@@ -126,14 +126,52 @@ namespace Xamarin.Forms
             }
         }
 
-        private void SendAutoDiscoveryMessage(string[] addresses, int port)
+        #region Obsolete
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Please use Run method for configuring and runnig HotReload. Visit github for more info.")]
+        public void Start(Application app, int devicePort = 8000, int extensionPort = 15000)
+            => Start(app, devicePort, ReloaderScheme.Http);
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete("Please use Run method for configuring and runnig HotReload. Visit github for more info.")]
+        public void Start(Application app, int devicePort, ReloaderScheme deviceScheme, int extensionPort = 15000)
+            => Run(app, new Configuration
+            {
+                DeviceUrlPort = devicePort,
+                DeviceUrlScheme = Scheme.Http,
+                ExtensionAutoDiscoveryPort = extensionPort
+            });
+        #endregion
+
+        private void SendAutoDiscoveryMessage(string[] addresses, string androidEmulatorSpecialAddress, int port)
         {
             var autoDiscoveryIpMessage = string.Join(";", addresses ?? new string[0]);
             using (var client = new UdpClient())
             {
-                var ip = new IPEndPoint(IPAddress.Broadcast, port);
-                var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
-                client.Send(bytes, bytes.Length, ip);
+                try
+                {
+                    var ip = new IPEndPoint(IPAddress.Broadcast, port);
+                    var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
+                    client.Send(bytes, bytes.Length, ip);
+                }
+                catch
+                {
+                    //suppress
+                }
+
+                if(Device.RuntimePlatform == Device.Android)
+                {
+                    try
+                    {
+                        var ip = new IPEndPoint(IPAddress.Parse("10.0.2.2"), port);
+                        var bytes = Encoding.ASCII.GetBytes(androidEmulatorSpecialAddress);
+                        client.Send(bytes, bytes.Length, ip);
+                    }
+                    catch
+                    {
+                        //suppress
+                    }
+                }
             }
         }
 

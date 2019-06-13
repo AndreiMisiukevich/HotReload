@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="ReloaderInternal\" />
+    <Folder Include="ReloaderPublic\" />
   </ItemGroup>
   <ItemGroup>
     <None Remove=".DS_Store" />
