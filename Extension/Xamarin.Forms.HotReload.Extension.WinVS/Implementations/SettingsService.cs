@@ -1,5 +1,4 @@
 ﻿using Microsoft.VisualStudio.Settings;
-using ISettingsService = Xamarin.Forms.HotReload.Extension.Abstractions.Services.ISettingsService;
 
 namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
 {
@@ -11,21 +10,7 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
         {
             _settings = settings;
         }
-
-        public bool SaveConfiguration
-        {
-            get => _settings.GetBoolean(SharedGlobals.PackageCollectionPath, SharedGlobals.SavePreferencesPath, false);
-            set => _settings.SetBoolean(SharedGlobals.PackageCollectionPath, SharedGlobals.SavePreferencesPath, value);
-        }
-
-        public string SerializedConnectionItems
-        {
-            get => _settings.GetString(SharedGlobals.PackageCollectionPath, SharedGlobals.SerializedConnectionItemsPath,
-                SharedGlobals.DefaultSerializedConnectionItemsValue);
-            set => _settings.SetString(SharedGlobals.PackageCollectionPath,
-                SharedGlobals.SerializedConnectionItemsPath, value);
-        }
-
+        
         public bool ShowEnableHotReloadTooltip
         {
             get => _settings.GetBoolean(SharedGlobals.PackageCollectionPath,

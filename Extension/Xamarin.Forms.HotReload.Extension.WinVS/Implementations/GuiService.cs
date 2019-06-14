@@ -71,7 +71,7 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
 
         public void ShowMessageBox(string title, string message)
         {
-            MessageBox.Show(title, message, MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         public async Task<InfoBarActionType> ShowInfoBarAsync(string message, params InfoBarAction[] infoBarActions)

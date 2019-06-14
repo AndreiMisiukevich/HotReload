@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Forms.HotReload.Extension.Abstractions;
-using Xamarin.Forms.HotReload.Extension.Abstractions.Dialogs;
 using Xamarin.Forms.HotReload.Extension.Abstractions.Services;
 using Xamarin.Forms.HotReload.Extension.Enums;
 using Xamarin.Forms.HotReload.Extension.Helpers;
@@ -20,7 +18,6 @@ namespace Xamarin.Forms.HotReload.Extension
         private readonly IGuiService _guiService;
         private readonly ISettingsService _settingsService;
         private readonly ILogger _logger;
-        private readonly JsonSerializer _serializer;
         private readonly HotReloadClientsHolder _clientsHolder;
         private readonly HashSet<string> _supportedResourceExtensions;
 
@@ -30,7 +27,6 @@ namespace Xamarin.Forms.HotReload.Extension
 
         internal ExtensionCore(IGuiService service, ISettingsService settingsStore, ILogger logger)
         {
-            _serializer = new JsonSerializer();
             _guiService = service;
             _settingsService = settingsStore;
             _logger = logger;
@@ -64,26 +60,37 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void OnEnableExtensionExecuted(object sender, EventArgs e)
         {
-            var configuration = CreateConfigurationModel();
+            _guiService.HideInfoBar();
+            EnableExtension();
+        }
 
-            if (_guiService.ShowDialog<IConnectionsDialog>(configuration))
+        private void OnDisableExtensionExecuted(object sender, EventArgs e)
+        {
+            DisableExtension();
+        }
+
+        private void EnableExtension()
+        {
+            if (_clientsHolder.PortDefined)
             {
-                var updatedConfiguration = configuration;
-                UpdateConfiguration(updatedConfiguration);
-                _clientsHolder.Init(updatedConfiguration.ConnectionItems.ToList());
-
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Extension has started to listen {_clientsHolder.Port} port for IP auto discovery.");
+                _clientsHolder.Run();
                 _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
                 _enableExtensionCommand.IsVisible = false;
                 _disableExtensionCommand.IsVisible = true;
             }
+            else
+            {
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, "No available ports found. Try to close all the instances of development environment and try again.");
+            }
         }
 
-        private ConnectionsConfigurationModel CreateConfigurationModel()
+        private void DisableExtension()
         {
-            var serializedConnectionItems = _settingsService.SerializedConnectionItems;
-            var connectionItems = _serializer.Deserialize<List<ConnectionItem>>(serializedConnectionItems);
-            var configuration = new ConnectionsConfigurationModel(connectionItems, _settingsService.SaveConfiguration);
-            return configuration;
+            _clientsHolder.Stop();
+            _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
+            _enableExtensionCommand.IsVisible = true;
+            _disableExtensionCommand.IsVisible = false;
         }
 
         private void OnInfoBarResult(Task<InfoBarActionType> resultTask)
@@ -94,44 +101,13 @@ namespace Xamarin.Forms.HotReload.Extension
                     _settingsService.ShowEnableHotReloadTooltip = false;
                     break;
                 case InfoBarActionType.Enable:
-                    OnEnableExtensionExecuted(this, EventArgs.Empty);
+                    EnableExtension();
                     break;
                 case InfoBarActionType.NoAction:
                     break;
                 default:
                     throw new NotImplementedException($"Result code {resultTask.Result} is not supported.");
             }
-        }
-
-        private void OnDisableExtensionExecuted(object sender, EventArgs e)
-        {
-            _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
-            _enableExtensionCommand.IsVisible = true;
-            _disableExtensionCommand.IsVisible = false;
-        }
-
-        private void UpdateConfiguration(ConnectionsConfigurationModel configuration)
-        {
-            if (configuration.SaveConfiguration)
-            {
-                SaveConfiguration(configuration);
-            }
-            else
-            {
-                ResetConfigurationDefaults();
-            }
-        }
-
-        private void SaveConfiguration(ConnectionsConfigurationModel configurationModel)
-        {
-            _settingsService.SerializedConnectionItems = _serializer.Serialize(configurationModel.ConnectionItems);
-            _settingsService.SaveConfiguration = true;
-        }
-
-        private void ResetConfigurationDefaults()
-        {
-            _settingsService.SerializedConnectionItems = SharedGlobals.DefaultSerializedConnectionItemsValue;
-            _settingsService.SaveConfiguration = false;
         }
 
         private void OnEnviromentSolutionClosed(object sender, EventArgs e)

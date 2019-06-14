@@ -2,27 +2,27 @@
 
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011"
                  xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
-  <Metadata>
-    <Identity Id="Xamarin.Forms.HotReload.Extension.1c85dca9-c435-4538-a29a-5e08929f4abc" Version="1.2.0"
-              Language="en-US" Publisher="Stanislav Bavtovich" />
-    <DisplayName>HotReload for Xamarin.Forms</DisplayName>
-    <Description xml:space="preserve">Visual Studio extension for Xamarin.Forms.HotReload.</Description>
-    <MoreInfo>https://github.com/AndreiMisiukevich/HotReload</MoreInfo>
-    <GettingStartedGuide>https://github.com/AndreiMisiukevich/HotReload</GettingStartedGuide>
-    <Tags>hot reload xaml xamarin forms refresh ui</Tags>
-  </Metadata>
-  <Installation>
-    <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)" />
-  </Installation>
-  <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
-  </Dependencies>
-  <Prerequisites>
-    <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)"
-                  DisplayName="Visual Studio core editor" />
-  </Prerequisites>
-  <Assets>
-    <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%"
-           Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
-  </Assets>
+    <Metadata>
+        <Identity Id="Xamarin.Forms.HotReload.Extension.1c85dca9-c435-4538-a29a-5e08929f4abc" Version="1.3.2"
+                  Language="en-US" Publisher="Stanislav Bavtovich" />
+        <DisplayName>HotReload for Xamarin.Forms</DisplayName>
+        <Description xml:space="preserve">Visual Studio extension for Xamarin.Forms.HotReload.</Description>
+        <MoreInfo>https://github.com/AndreiMisiukevich/HotReload</MoreInfo>
+        <GettingStartedGuide>https://github.com/AndreiMisiukevich/HotReload</GettingStartedGuide>
+        <Tags>hot reload xaml xamarin forms refresh ui</Tags>
+    </Metadata>
+    <Installation>
+        <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0, 17.0)" />
+    </Installation>
+    <Dependencies>
+        <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+    </Dependencies>
+    <Prerequisites>
+        <Prerequisite Id="Microsoft.VisualStudio.Component.CoreEditor" Version="[15.0,)"
+                      DisplayName="Visual Studio core editor" />
+    </Prerequisites>
+    <Assets>
+        <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%"
+               Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
+    </Assets>
 </PackageManifest>
