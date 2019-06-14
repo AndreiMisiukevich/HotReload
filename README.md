@@ -33,16 +33,16 @@ namespace YourNamespace
 ```
 **IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
 
-#### Mac
+#### Visual Studio for **MAC**
 
- * Visual Studio for Mac extension is available for downloading here http://addins.monodevelop.com/Project/Index/376 
+* Visual Studio for Mac extension is available for downloading here http://addins.monodevelop.com/Project/Index/376 
 Or by searching in Visual Studio's extension manager
 ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/mac_extension_manager.png)
- * Header of "HotReload for Xamarin.Forms" extension will appear in Visual Studio's "Tools" dropdown menu.
+* Header of "HotReload for Xamarin.Forms" extension will appear in Visual Studio's "Tools" dropdown menu.
  "Enable extension" menu item will appear as soon as solution is opened.
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/mac_extension_menu.png)
 
-##### WINDOWS 
+##### Visual Studio for **WINDOWS**
 
 * You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms. Also can be downloaded via extension manager 
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_manager.png)
@@ -52,7 +52,11 @@ Or by searching in Visual Studio's extension manager
  * As soon as solution is opened "Enable extension" button will appear on "Tabs panel".
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_tab.png)
  
-##### Other IDE e.g. (like Rider etc.)
+##### JetBrains **Rider**
+
+* You may use official HotReload's Rider plugin https://plugins.jetbrains.com/plugin/12534-hot-reload
+
+##### Other IDE/TextEditors (eg. NotePad++ | Sublime etc. | VS Code)
 
 * Build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start Xamarin.Forms.HotReload.Observer.exe via terminal (for MAC) ```mono Xamarin.Forms.HotReload.Observer.exe``` or via command line (Windows) ```Xamarin.Forms.HotReload.Observer.exe``` etc.
