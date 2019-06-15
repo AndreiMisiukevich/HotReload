@@ -115,6 +115,7 @@ adb forward tcp:8000 tcp:8000
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/Andrik_Just4Fun.svg?style=social&label=Follow%20%40Andrik_Just4Fun)](https://twitter.com/Andrik_Just4Fun)
 - [stanbav (Stanislav)](https://github.com/stanbav) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/stasbavtovich.svg?style=social&label=Follow%20%40stasbavtovich)](https://twitter.com/stasbavtovich)
+- [iBavtovich (Ignat)](https://github.com/iBavtovich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/iBavtovich.svg?style=social&label=Follow%20%40iBavtovich)](https://twitter.com/iBavtovich)
 
 Are there any questions? 🇧🇾 ***just ask us =)*** 🇧🇾
 
