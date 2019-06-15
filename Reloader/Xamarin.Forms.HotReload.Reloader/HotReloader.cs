@@ -60,7 +60,6 @@ namespace Xamarin.Forms
         public void Run(Application app, Configuration config = null)
         {
             config = config ?? new Configuration();
-            var deviceScheme = config.DeviceUrlScheme;
             var devicePort = config.DeviceUrlPort;
 
             Stop();
@@ -80,7 +79,7 @@ namespace Xamarin.Forms
             {
                 Prefixes =
                 {
-                    $"{deviceScheme.ToString().ToLower()}://*:{devicePort}/"
+                    $"http://*:{devicePort}/"
                 }
             };
             listener.Start();
@@ -100,7 +99,7 @@ namespace Xamarin.Forms
                           .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
                           .Select(x => x.Address.MapToIPv4())
                           .Where(x => x.ToString() != "127.0.0.1")
-                          .Select(x => $"{deviceScheme}://{x.ToString()}:{devicePort}")
+                          .Select(x => $"http://{x.ToString()}:{devicePort}")
                           .ToArray();
 
             foreach (var address in addresses)
@@ -115,7 +114,7 @@ namespace Xamarin.Forms
                 {
                     while (IsRunning)
                     {
-                        SendAutoDiscoveryMessage(addresses, $"{deviceScheme}://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
+                        SendAutoDiscoveryMessage(addresses, $"http://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
                         await Task.Delay(12000);
                     }
                 });
@@ -138,7 +137,6 @@ namespace Xamarin.Forms
             => Run(app, new Configuration
             {
                 DeviceUrlPort = devicePort,
-                DeviceUrlScheme = Scheme.Http,
                 ExtensionAutoDiscoveryPort = extensionPort
             });
         #endregion

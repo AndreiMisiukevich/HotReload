@@ -11,8 +11,7 @@ namespace Xamarin.Forms.HotReload.Sample
 #if DEBUG
             HotReloader.Current.Run(this, new HotReloader.Configuration
             {
-                //These are default values below
-                DeviceUrlScheme = HotReloader.Scheme.Http,
+                //these are default values below
                 DeviceUrlPort = 8000,
                 ExtensionAutoDiscoveryPort = 15000
             });
