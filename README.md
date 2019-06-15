@@ -24,7 +24,7 @@ namespace YourNamespace
             InitializeComponent();
 #if DEBUG
             HotReloader.Current.Run(this); 
-            //optionally you may specify EXTENSION's port for auto discovery, device's port and url scheme
+            //optionaly you may specify EXTENSION's port for auto discovery and device's port
 #endif
             MainPage = new NavigationPage(new MainPage());
         }
