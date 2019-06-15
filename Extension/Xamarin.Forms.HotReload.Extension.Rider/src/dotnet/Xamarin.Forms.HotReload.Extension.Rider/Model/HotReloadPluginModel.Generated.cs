@@ -32,38 +32,52 @@ namespace JetBrains.Rider.Model
     //fields
     //public fields
     [NotNull] public ISource<SavedDocument> Reload => _Reload;
+    [NotNull] public ISource<bool> Enable => _Enable;
     [NotNull] public IViewableProperty<bool> IsEnabled => _IsEnabled;
+    [NotNull] public void ShowMessage(MessageInfo value) => _ShowMessage.Fire(value);
     
     //private fields
     [NotNull] private readonly RdSignal<SavedDocument> _Reload;
+    [NotNull] private readonly RdSignal<bool> _Enable;
     [NotNull] private readonly RdProperty<bool> _IsEnabled;
+    [NotNull] private readonly RdSignal<MessageInfo> _ShowMessage;
     
     //primary constructor
     private HotReloadPluginModel(
       [NotNull] RdSignal<SavedDocument> reload,
-      [NotNull] RdProperty<bool> isEnabled
+      [NotNull] RdSignal<bool> enable,
+      [NotNull] RdProperty<bool> isEnabled,
+      [NotNull] RdSignal<MessageInfo> showMessage
     )
     {
       if (reload == null) throw new ArgumentNullException("reload");
+      if (enable == null) throw new ArgumentNullException("enable");
       if (isEnabled == null) throw new ArgumentNullException("isEnabled");
+      if (showMessage == null) throw new ArgumentNullException("showMessage");
       
       _Reload = reload;
+      _Enable = enable;
       _IsEnabled = isEnabled;
+      _ShowMessage = showMessage;
       _IsEnabled.OptimizeNested = true;
       BindableChildren.Add(new KeyValuePair<string, object>("reload", _Reload));
+      BindableChildren.Add(new KeyValuePair<string, object>("enable", _Enable));
       BindableChildren.Add(new KeyValuePair<string, object>("isEnabled", _IsEnabled));
+      BindableChildren.Add(new KeyValuePair<string, object>("showMessage", _ShowMessage));
     }
     //secondary constructor
     internal HotReloadPluginModel (
     ) : this (
       new RdSignal<SavedDocument>(SavedDocument.Read, SavedDocument.Write),
-      new RdProperty<bool>(JetBrains.Rd.Impl.Serializers.ReadBool, JetBrains.Rd.Impl.Serializers.WriteBool)
+      new RdSignal<bool>(JetBrains.Rd.Impl.Serializers.ReadBool, JetBrains.Rd.Impl.Serializers.WriteBool),
+      new RdProperty<bool>(JetBrains.Rd.Impl.Serializers.ReadBool, JetBrains.Rd.Impl.Serializers.WriteBool),
+      new RdSignal<MessageInfo>(MessageInfo.Read, MessageInfo.Write)
     ) {}
     //statics
     
     
     
-    protected override long SerializationHash => 4156314565325463560L;
+    protected override long SerializationHash => 8012157446499618967L;
     
     protected override Action<ISerializers> Register => RegisterDeclaredTypesSerializers;
     public static void RegisterDeclaredTypesSerializers(ISerializers serializers)
@@ -81,7 +95,9 @@ namespace JetBrains.Rider.Model
       printer.Println("HotReloadPluginModel (");
       using (printer.IndentCookie()) {
         printer.Print("reload = "); _Reload.PrintEx(printer); printer.Println();
+        printer.Print("enable = "); _Enable.PrintEx(printer); printer.Println();
         printer.Print("isEnabled = "); _IsEnabled.PrintEx(printer); printer.Println();
+        printer.Print("showMessage = "); _ShowMessage.PrintEx(printer); printer.Println();
       }
       printer.Print(")");
     }
@@ -98,6 +114,87 @@ namespace JetBrains.Rider.Model
     public static HotReloadPluginModel GetHotReloadPluginModel(this Solution solution)
     {
       return solution.GetOrCreateExtension("hotReloadPluginModel", () => new HotReloadPluginModel());
+    }
+  }
+  
+  
+  public class MessageInfo : IPrintable, IEquatable<MessageInfo>
+  {
+    //fields
+    //public fields
+    [NotNull] public string Title {get; private set;}
+    [NotNull] public string Message {get; private set;}
+    
+    //private fields
+    //primary constructor
+    public MessageInfo(
+      [NotNull] string title,
+      [NotNull] string message
+    )
+    {
+      if (title == null) throw new ArgumentNullException("title");
+      if (message == null) throw new ArgumentNullException("message");
+      
+      Title = title;
+      Message = message;
+    }
+    //secondary constructor
+    //statics
+    
+    public static CtxReadDelegate<MessageInfo> Read = (ctx, reader) => 
+    {
+      var title = reader.ReadString();
+      var message = reader.ReadString();
+      var _result = new MessageInfo(title, message);
+      return _result;
+    };
+    
+    public static CtxWriteDelegate<MessageInfo> Write = (ctx, writer, value) => 
+    {
+      writer.Write(value.Title);
+      writer.Write(value.Message);
+    };
+    //custom body
+    //equals trait
+    public override bool Equals(object obj)
+    {
+      if (ReferenceEquals(null, obj)) return false;
+      if (ReferenceEquals(this, obj)) return true;
+      if (obj.GetType() != GetType()) return false;
+      return Equals((MessageInfo) obj);
+    }
+    public bool Equals(MessageInfo other)
+    {
+      if (ReferenceEquals(null, other)) return false;
+      if (ReferenceEquals(this, other)) return true;
+      return Title == other.Title && Message == other.Message;
+    }
+    //hash code trait
+    public override int GetHashCode()
+    {
+      unchecked {
+        var hash = 0;
+        hash = hash * 31 + Title.GetHashCode();
+        hash = hash * 31 + Message.GetHashCode();
+        return hash;
+      }
+    }
+    //pretty print
+    public void Print(PrettyPrinter printer)
+    {
+      printer.Println("MessageInfo (");
+      using (printer.IndentCookie()) {
+        printer.Print("title = "); Title.PrintEx(printer); printer.Println();
+        printer.Print("message = "); Message.PrintEx(printer); printer.Println();
+      }
+      printer.Print(")");
+    }
+    //toString
+    public override string ToString()
+    {
+      var printer = new SingleLinePrettyPrinter();
+      Print(printer);
+      return printer.ToString();
     }
   }
   

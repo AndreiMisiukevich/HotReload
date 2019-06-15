@@ -3,20 +3,21 @@ package hotreload.extension.rider.action
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.jetbrains.rd.util.reactive.IOptProperty
+import com.jetbrains.rd.util.reactive.valueOrDefault
 import com.jetbrains.rider.model.hotReloadPluginModel
-import hotreload.extension.rider.icons.HotReloadIcons
-
-import javax.swing.*
-
 import com.jetbrains.rider.projectView.solution
+import hotreload.extension.rider.icons.HotReloadIcons
+import javax.swing.Icon
 
 class RunPluginAction(icon: Icon) : AnAction("Enable HotReload", "", icon) {
 
     override fun actionPerformed(e: AnActionEvent) {
-        val project = e.project?: return
+        val project = e.project ?: return
 
-        val isEnabled = project.solution.hotReloadPluginModel.isEnabled
+        val model = project.solution.hotReloadPluginModel
+        val isEnabled = model.isEnabled
         updateIcon(e, isEnabled)
+        model.enable.fire(isEnabled.valueOrDefault(false))
     }
 
     fun updateIcon(e: AnActionEvent, isEnabled: IOptProperty<Boolean>?) {

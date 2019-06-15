@@ -15,7 +15,9 @@ import kotlin.reflect.KClass
 
 class HotReloadPluginModel private constructor(
     private val _reload: RdSignal<SavedDocument>,
-    private val _isEnabled: RdOptionalProperty<Boolean>
+    private val _enable: RdSignal<Boolean>,
+    private val _isEnabled: RdOptionalProperty<Boolean>,
+    private val _showMessage: RdSignal<MessageInfo>
 ) : RdExtBase() {
     //companion
     
@@ -23,19 +25,22 @@ class HotReloadPluginModel private constructor(
         
         override fun registerSerializersCore(serializers: ISerializers) {
             serializers.register(SavedDocument)
+            serializers.register(MessageInfo)
         }
         
         
         
         
-        const val serializationHash = 4156314565325463560L
+        const val serializationHash = 8012157446499618967L
     }
     override val serializersOwner: ISerializersOwner get() = HotReloadPluginModel
     override val serializationHash: Long get() = HotReloadPluginModel.serializationHash
     
     //fields
     val reload: ISignal<SavedDocument> get() = _reload
+    val enable: ISignal<Boolean> get() = _enable
     val isEnabled: IOptProperty<Boolean> get() = _isEnabled
+    val showMessage: ISource<MessageInfo> get() = _showMessage
     //initializer
     init {
         _isEnabled.optimizeNested = true
@@ -43,14 +48,18 @@ class HotReloadPluginModel private constructor(
     
     init {
         bindableChildren.add("reload" to _reload)
+        bindableChildren.add("enable" to _enable)
         bindableChildren.add("isEnabled" to _isEnabled)
+        bindableChildren.add("showMessage" to _showMessage)
     }
     
     //secondary constructor
     internal constructor(
     ) : this(
         RdSignal<SavedDocument>(SavedDocument),
-        RdOptionalProperty<Boolean>(FrameworkMarshallers.Bool)
+        RdSignal<Boolean>(FrameworkMarshallers.Bool),
+        RdOptionalProperty<Boolean>(FrameworkMarshallers.Bool),
+        RdSignal<MessageInfo>(MessageInfo)
     )
     
     //equals trait
@@ -60,13 +69,71 @@ class HotReloadPluginModel private constructor(
         printer.println("HotReloadPluginModel (")
         printer.indent {
             print("reload = "); _reload.print(printer); println()
+            print("enable = "); _enable.print(printer); println()
             print("isEnabled = "); _isEnabled.print(printer); println()
+            print("showMessage = "); _showMessage.print(printer); println()
         }
         printer.print(")")
     }
 }
 val Solution.hotReloadPluginModel get() = getOrCreateExtension("hotReloadPluginModel", ::HotReloadPluginModel)
 
+
+
+data class MessageInfo (
+    val title: String,
+    val message: String
+) : IPrintable {
+    //companion
+    
+    companion object : IMarshaller<MessageInfo> {
+        override val _type: KClass<MessageInfo> = MessageInfo::class
+        
+        @Suppress("UNCHECKED_CAST")
+        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): MessageInfo {
+            val title = buffer.readString()
+            val message = buffer.readString()
+            return MessageInfo(title, message)
+        }
+        
+        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: MessageInfo) {
+            buffer.writeString(value.title)
+            buffer.writeString(value.message)
+        }
+        
+    }
+    //fields
+    //initializer
+    //secondary constructor
+    //equals trait
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || other::class != this::class) return false
+        
+        other as MessageInfo
+        
+        if (title != other.title) return false
+        if (message != other.message) return false
+        
+        return true
+    }
+    //hash code trait
+    override fun hashCode(): Int {
+        var __r = 0
+        __r = __r*31 + title.hashCode()
+        __r = __r*31 + message.hashCode()
+        return __r
+    }
+    //pretty print
+    override fun print(printer: PrettyPrinter) {
+        printer.println("MessageInfo (")
+        printer.indent {
+            print("title = "); title.print(printer); println()
+            print("message = "); message.print(printer); println()
+        }
+        printer.print(")")
+    }
+}
 
 
 data class SavedDocument (

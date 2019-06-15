@@ -18,5 +18,8 @@
         <component>
             <implementation-class>hotreload.extension.rider.component.SaveDocumentListener</implementation-class>
         </component>
+        <component>
+            <implementation-class>hotreload.extension.rider.component.ShowNotificationComponent</implementation-class>
+        </component>
     </project-components>
 </idea-plugin>

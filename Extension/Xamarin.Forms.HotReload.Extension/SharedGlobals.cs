@@ -4,7 +4,7 @@ namespace Xamarin.Forms.HotReload.Extension
     {
         //Package defining constants.
         public const string PackageCollectionPath = "HotReloadExtension";
-        public const string AppVersion = "1.3.2";
+        public const string AppVersion = "1.3.3";
 
         //Settings store keys.
         public const string SavePreferencesPath = "SavePreferences";
