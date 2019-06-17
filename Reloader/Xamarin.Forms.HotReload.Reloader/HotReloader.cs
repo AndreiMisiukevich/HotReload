@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Net.Http;
 using System.Collections.Concurrent;
-using Xamarin.Forms.HotReload.Reloader;
 using System.Linq;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
@@ -115,14 +114,10 @@ namespace Xamarin.Forms
                           .Select(x => $"http://{x.ToString()}:{devicePort}")
                           .ToArray();
 
-            foreach (var address in addresses)
-            {
-                Console.WriteLine($"[OBSOLETE] ### AVAILABLE DEVICE's IP: {address} ###");
-            }
-
             try
             {
                 Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
+                Console.WriteLine($"### HOTRELOAD EXTENSION'S AUTO DISCOVERY PORT: {config.ExtensionAutoDiscoveryPort} ###");
 
                 Task.Run(async () =>
                 {
@@ -141,13 +136,8 @@ namespace Xamarin.Forms
 
         #region Obsolete
         [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Please use Run method for configuring and runnig HotReload. Visit github for more info.")]
+        [Obsolete("Please use Run method for configuring and runnig HotReload. Visit github for more info.", true)]
         public void Start(Application app, int devicePort = 8000, int extensionPort = 15000)
-            => Start(app, devicePort, ReloaderScheme.Http);
-
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        [Obsolete("Please use Run method for configuring and runnig HotReload. Visit github for more info.")]
-        public void Start(Application app, int devicePort, ReloaderScheme deviceScheme, int extensionPort = 15000)
             => Run(app, new Configuration
             {
                 DeviceUrlPort = devicePort,

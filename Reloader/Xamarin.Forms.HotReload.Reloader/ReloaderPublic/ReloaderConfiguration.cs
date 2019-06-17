@@ -12,9 +12,6 @@ namespace Xamarin.Forms
             /// </summary>
             public int DeviceUrlPort { internal get; set; } = 8000;
 
-            [Obsolete("USELESS SETTING. WILL BE REMOVED SOON")]
-            public Scheme DeviceUrlScheme { internal get; set; }
-
             /// <summary>
             /// [SHOULD BE THE SAME WITH EXTENSION'S ALERT VALUE] Setup EXTENSION's autodiscovery port. Extension shows it in alert after enabling. Default value is 15000
             /// </summary>
