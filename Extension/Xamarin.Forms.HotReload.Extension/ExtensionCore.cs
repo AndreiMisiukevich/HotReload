@@ -64,10 +64,9 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void OnNewClientAddressAdded(object sender, string address)
         {
-            var addressParts = address.Split(':');
-            var url = addressParts[0] + addressParts[1];
+            var addressParts = address.Split(new[] {":", "//"}, StringSplitOptions.RemoveEmptyEntries);
 
-            if (url == "https://127.0.0.1")
+            if (addressParts[1] == "127.0.0.1")
             {
                 var port = addressParts[2];
                 Process.Start("adb", $"forward tcp:{port} tcp:{port}");
