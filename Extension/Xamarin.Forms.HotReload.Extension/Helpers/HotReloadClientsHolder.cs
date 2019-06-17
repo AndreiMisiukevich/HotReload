@@ -17,20 +17,17 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         {
             _client = new HttpClient();
             _receiver = new UdpReceiver();
-        }
-
-        public int? Port => _receiver.Port;
-
-        public bool PortDefined => Port.HasValue;
-        
-        internal void Run()
-        {
             _receiver.Received += OnMessageReceived;
+        }
+        
+        internal bool TryRun(out int port)
+        {
+            return _receiver.TryRun(out port);
         }
 
         internal void Stop()
         {
-            _receiver.Received -= OnMessageReceived;
+            _receiver.Stop();
         }
 
         private void OnMessageReceived(string addressMsg)

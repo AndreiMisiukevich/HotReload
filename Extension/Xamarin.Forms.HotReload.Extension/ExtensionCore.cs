@@ -50,6 +50,7 @@ namespace Xamarin.Forms.HotReload.Extension
 
             environmentService.SolutionOpened += OnEnviromentSolutionOpened;
             environmentService.SolutionClosed += OnEnviromentSolutionClosed;
+            environmentService.IdeClosing += OnEnvironmentIdeClosing;
             _environmentService = environmentService;
             
             UpdateUiElementsVisibility();
@@ -71,10 +72,9 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void EnableExtension()
         {
-            if (_clientsHolder.PortDefined)
+            if (_clientsHolder.TryRun(out int port))
             {
-                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Extension has started to listen {_clientsHolder.Port} port for IP auto discovery.");
-                _clientsHolder.Run();
+                _guiService.ShowMessageBox(SharedGlobals.ToolBarName, $"Extension has started to listen {port} port for IP auto discovery.");
                 _environmentService.DocumentSaved += OnEnviromentDocumentSaved;
                 _enableExtensionCommand.IsVisible = false;
                 _disableExtensionCommand.IsVisible = true;
@@ -119,6 +119,12 @@ namespace Xamarin.Forms.HotReload.Extension
         private void OnEnviromentSolutionOpened(object sender, EventArgs e)
         {
             UpdateUiElementsVisibility();
+        }
+
+        //TODO: HANDLE THIS CASE FOR WINDOWS AND RIDER
+        private void OnEnvironmentIdeClosing(object sender, EventArgs e)
+        {
+            DisableExtension();
         }
 
         private void UpdateUiElementsVisibility()

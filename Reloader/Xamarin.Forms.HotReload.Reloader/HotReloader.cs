@@ -75,14 +75,27 @@ namespace Xamarin.Forms
                 InitializeElement(app);
             }
 
-            var listener = new HttpListener
+            HttpListener listener = null;
+            var maxPort = devicePort + 1000;
+            while (devicePort < maxPort)
             {
-                Prefixes =
+                listener = new HttpListener
                 {
-                    $"http://*:{devicePort}/"
+                    Prefixes =
+                    {
+                        $"http://*:{devicePort}/"
+                    }
+                };
+                try
+                {
+                    listener.Start();
+                    break;
                 }
-            };
-            listener.Start();
+                catch
+                {
+                    ++devicePort;
+                }
+            }
 
             _daemonThread = new Thread(() =>
             {
@@ -114,7 +127,7 @@ namespace Xamarin.Forms
                 {
                     while (IsRunning)
                     {
-                        SendAutoDiscoveryMessage(addresses, $"http://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
+                        SendAutoDiscoveryMessage(config.ExtensionIpAddress, addresses, $"http://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
                         await Task.Delay(12000);
                     }
                 });
@@ -141,14 +154,14 @@ namespace Xamarin.Forms
             });
         #endregion
 
-        private void SendAutoDiscoveryMessage(string[] addresses, string androidEmulatorSpecialAddress, int port)
+        private void SendAutoDiscoveryMessage(IPAddress extensionIp, string[] addresses, string androidEmulatorSpecialAddress, int port)
         {
             var autoDiscoveryIpMessage = string.Join(";", addresses ?? new string[0]);
             using (var client = new UdpClient())
             {
                 try
                 {
-                    var ip = new IPEndPoint(IPAddress.Broadcast, port);
+                    var ip = new IPEndPoint(extensionIp, port);
                     var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
                     client.Send(bytes, bytes.Length, ip);
                 }

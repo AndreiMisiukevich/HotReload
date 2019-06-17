@@ -11,6 +11,8 @@ namespace Xamarin.Forms.HotReload.Extension.Abstractions.Services
 
         public event EventHandler SolutionClosed;
 
+        public event EventHandler IdeClosing;
+
         public abstract bool IsSolutionOpened { get; }
 
         public abstract bool SolutionHasXamarinProject();
@@ -29,6 +31,11 @@ namespace Xamarin.Forms.HotReload.Extension.Abstractions.Services
         protected virtual void OnSolutionClosed()
         {
             SolutionClosed?.Invoke(this, EventArgs.Empty);
+        }
+
+        protected virtual void OnIdeClosing()
+        {
+            IdeClosing?.Invoke(this, EventArgs.Empty);
         }
     }
 }

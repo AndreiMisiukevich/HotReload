@@ -17,9 +17,15 @@ namespace Xamarin.Forms.HotReload.Extension.MacVS.Implementations
             IdeApp.Workbench.ActiveDocumentChanged += OnActiveDocumentChanged;
             IdeApp.Workspace.SolutionLoaded += OnSolutionLoaded;
             IdeApp.Workspace.SolutionUnloaded += OnSolutionUnloaded;
+            IdeApp.Exiting += OnExiting;
         }
 
         public override bool IsSolutionOpened => IdeApp.Workspace.GetAllSolutions().Any();
+
+        private void OnExiting(object sender, ExitEventArgs args)
+        {
+            OnIdeClosing();
+        }
 
         private void OnSolutionUnloaded(object sender, SolutionEventArgs e)
         {
