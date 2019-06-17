@@ -13,17 +13,20 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
         private readonly DocumentEvents _documentEvents;
         private readonly SolutionEvents _solutionEvents;
         private readonly Solution _solution;
+        private readonly DTEEvents _devEnvEvents;
 
         public WindowsEnvironmentService(IServiceProvider serviceContainer, DocumentEvents documentEvents,
-            SolutionEvents solutionEvents, Solution solution)
+            SolutionEvents solutionEvents, Solution solution, DTEEvents devEnvEvents)
         {
             _serviceContainer = serviceContainer;
             _documentEvents = documentEvents;
             _solutionEvents = solutionEvents;
+            _devEnvEvents = devEnvEvents;
             _solution = solution;
             _documentEvents.DocumentSaved += OnEnviromentDocumentSaved;
             _solutionEvents.Opened += OnEnviromentSolutionOpened;
             _solutionEvents.AfterClosing += AfterEnviromentSolutionClosing;
+            _devEnvEvents.OnBeginShutdown += OnBeginShutdown;
         }
 
         public override bool IsSolutionOpened => _solution?.IsOpen ?? false;
@@ -72,6 +75,11 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS.Implementations
         private void AfterEnviromentSolutionClosing()
         {
             OnSolutionClosed();
+        }
+
+        private void OnBeginShutdown()
+        {
+            OnIdeClosing();
         }
     }
 }

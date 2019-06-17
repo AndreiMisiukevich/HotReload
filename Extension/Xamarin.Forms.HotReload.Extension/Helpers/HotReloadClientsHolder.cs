@@ -13,6 +13,8 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         private readonly HttpClient _client;
         private readonly UdpReceiver _receiver;
 
+        public event EventHandler<string> NewAddressAdded; 
+
         public HotReloadClientsHolder()
         {
             _client = new HttpClient();
@@ -33,9 +35,11 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
         private void OnMessageReceived(string addressMsg)
         {
             var address = addressMsg.Split(';').FirstOrDefault();
-            if (address != null)
+
+            if (address != null && !_addresses.Contains(address))
             {
                 _addresses.Add(address);
+                OnNewAddressAdded(address);
             }
         }
 
@@ -50,6 +54,11 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
 
                 await Task.WhenAll(sendTasks).ConfigureAwait(false);
             }
+        }
+
+        protected virtual void OnNewAddressAdded(string e)
+        {
+            NewAddressAdded?.Invoke(this, e);
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Xamarin.Forms.HotReload.Extension.Abstractions;
@@ -52,11 +53,25 @@ namespace Xamarin.Forms.HotReload.Extension
             environmentService.SolutionClosed += OnEnviromentSolutionClosed;
             environmentService.IdeClosing += OnEnvironmentIdeClosing;
             _environmentService = environmentService;
+
+            _clientsHolder.NewAddressAdded += OnNewClientAddressAdded;
             
             UpdateUiElementsVisibility();
      
             _disableExtensionCommand.IsEnabled = true;
             _enableExtensionCommand.IsEnabled = true;
+        }
+
+        private void OnNewClientAddressAdded(object sender, string address)
+        {
+            var addressParts = address.Split(':');
+            var url = addressParts[0] + addressParts[1];
+
+            if (url == "https://127.0.0.1")
+            {
+                var port = addressParts[2];
+                Process.Start("adb", $"forward tcp:{port} tcp:{port}");
+            }
         }
 
         private void OnEnableExtensionExecuted(object sender, EventArgs e)
@@ -121,7 +136,7 @@ namespace Xamarin.Forms.HotReload.Extension
             UpdateUiElementsVisibility();
         }
 
-        //TODO: HANDLE THIS CASE FOR WINDOWS AND RIDER
+        //TODO: HANDLE THIS CASE FOR RIDER
         private void OnEnvironmentIdeClosing(object sender, EventArgs e)
         {
             DisableExtension();

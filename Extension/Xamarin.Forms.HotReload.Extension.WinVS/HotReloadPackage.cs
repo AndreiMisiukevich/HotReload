@@ -84,8 +84,9 @@ namespace Xamarin.Forms.HotReload.Extension.WinVS
             var dte = (DTE) await GetServiceAsync(typeof(SDTE));
             var applicationEvents = dte.Application.Events;
             var documentEvents = applicationEvents.DocumentEvents;
+            var devEnvEvents = dte.Events.DTEEvents;
             var enviromentEvents = new WindowsEnvironmentService(this, documentEvents, applicationEvents.SolutionEvents,
-                dte.Application.Solution);
+                dte.Application.Solution, devEnvEvents);
 
             var dependencyContainer = new DependencyContainer(new DependenciesRegistrar());
             var guiPresenter = new GuiService(this, dependencyContainer);
