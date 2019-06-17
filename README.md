@@ -42,11 +42,14 @@ Or by searching in Visual Studio's extension manager
  "Enable extension" menu item will appear as soon as solution is opened.
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/mac_extension_menu.png)
 
+NOTE: Restart Visual Studio after installation (in case of menu didn't appear in toolbar).
+
 ##### Visual Studio for **WINDOWS**
 
 * You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms. Also can be downloaded via extension manager 
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_manager.png)
- NOTE: Restart Visual Studio after installation.
+ 
+NOTE: Restart Visual Studio after installation.
 * To make "HotReload for Xamarin.Forms" extension's toolbar visible turn it on in "Tools/Customize" window.
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_enable.png)
  * As soon as solution is opened "Enable extension" button will appear on "Tabs panel".
