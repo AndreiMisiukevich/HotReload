@@ -122,7 +122,8 @@ namespace Xamarin.Forms
 
             try
             {
-                Console.WriteLine($"### HOTRELOAD STARTED ###");
+                Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
+
                 Task.Run(async () =>
                 {
                     while (IsRunning)

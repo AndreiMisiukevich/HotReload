@@ -112,6 +112,10 @@ In case `VS Extension` detects `xaml` changes but doesn't update in the emulator
 adb forward tcp:8000 tcp:8000
 ```
 
+**IMPORTANT**: keep in mind, that HotReload can change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind it).
+So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
+And execute *adb forward*  with that value.
+
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/Andrik_Just4Fun.svg?style=social&label=Follow%20%40Andrik_Just4Fun)](https://twitter.com/Andrik_Just4Fun)
 - [stanbav (Stanislav)](https://github.com/stanbav) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/stasbavtovich.svg?style=social&label=Follow%20%40stasbavtovich)](https://twitter.com/stasbavtovich)
