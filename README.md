@@ -33,7 +33,7 @@ namespace YourNamespace
 ```
 **IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
 
-#### Visual Studio for **MAC**
+### Visual Studio for **MAC**
 
 * Visual Studio for Mac extension is available for downloading here http://addins.monodevelop.com/Project/Index/376 
 Or by searching in Visual Studio's extension manager
@@ -44,7 +44,7 @@ Or by searching in Visual Studio's extension manager
 
 NOTE: Restart Visual Studio after installation (in case of menu didn't appear in toolbar).
 
-##### Visual Studio for **WINDOWS**
+### Visual Studio for **WINDOWS**
 
 * You may use official HotReload's Visual Studio Extension https://marketplace.visualstudio.com/items?itemName=StanislavBavtovich.hotreloadxamarinforms. Also can be downloaded via extension manager 
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_manager.png)
@@ -55,18 +55,18 @@ NOTE: Restart Visual Studio after installation.
  * As soon as solution is opened "Enable extension" button will appear on "Tabs panel".
  ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/win_extension_tab.png)
  
-##### JetBrains **Rider**
+### JetBrains **Rider**
 
 * You may use official HotReload's Rider plugin https://plugins.jetbrains.com/plugin/12534-hot-reload
 
-##### Other IDE/TextEditors (eg. NotePad++ | Sublime etc. | VS Code)
+### Other IDE/TextEditors (eg. NotePad++ | Sublime etc. | VS Code)
 
 * Build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start Xamarin.Forms.HotReload.Observer.exe via terminal (for MAC) ```mono Xamarin.Forms.HotReload.Observer.exe``` or via command line (Windows) ```Xamarin.Forms.HotReload.Observer.exe``` etc.
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono Xamarin.Forms.HotReload.Observer.exe p=/Users/yourUser/SpecificFolder/ u=http://192.168.0.3```
 
-### Run your app and start developing with **HotReload**!
+## Run your app and start developing with **HotReload**!
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure you your PC/Mac and device/emulator are in the same local network.)
@@ -111,7 +111,7 @@ public partial class MainPage : ContentPage, IReloadable
 
 ## Troubleshooting
 
-#### Android Emulator IP autodiscovery
+### Android Emulator IP autodiscovery
 **Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
 
 **BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you may need to forward the port to your ip yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
