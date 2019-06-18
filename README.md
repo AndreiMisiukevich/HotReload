@@ -71,13 +71,13 @@ NOTE: Restart Visual Studio after installation.
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure you your PC/Mac and device/emulator are in the same local network.)
 
-2) When you enable extension, it always shows you an actual **Extension Port** in message box. If port value *ISN'T* **15000**, you SHOULD pass this value to HotReload! if port IS **15000**, you may skip this step, because **15000** is default EXTENSION'S port value.
+2) When you enable extension, it always shows you an actual **Extension Port** in message box. If port value *ISN'T* **15000**, you **HAVE TO** pass this value to HotReload! if port IS **15000**, you may skip this step, because **15000** is default EXTENSION'S port value.
 
-* For example extension's alert shows you "15002"
+* For example extension's alert shows you "17502"
 ```csharp
 HotReloader.Current.Run(this, new HotReloader.Configuration
 {
-    ExtensionAutoDiscoveryPort = 15002 // VALUE FROM EXTENSION's ALERT
+    ExtensionAutoDiscoveryPort = 17502 // VALUE FROM EXTENSION's ALERT
 });
 ```
 
@@ -109,13 +109,18 @@ public partial class MainPage : ContentPage, IReloadable
 </ViewCell>
 ```
 
-## Android Emulator
-**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF BUT** In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
+## Troubleshooting
+
+#### Android Emulator IP autodiscovery
+**Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
+
+**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you may need to forward the port to your ip yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
+
 ```
 adb forward tcp:8000 tcp:8000
 ```
 
-**keep in mind** that HotReload can change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind it).
+**keep in mind** that HotReload may change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind that it's possible).
 So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
 And execute *adb forward*  with that value.
 
