@@ -110,12 +110,12 @@ public partial class MainPage : ContentPage, IReloadable
 ```
 
 ## Android Emulator
-In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
+**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF BUT** In case `VS Extension` detects `xaml` changes but doesn't update in the emulator, you may need to forward the port to your ip (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
 ```
 adb forward tcp:8000 tcp:8000
 ```
 
-**IMPORTANT**: keep in mind, that HotReload can change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind it).
+**keep in mind** that HotReload can change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind it).
 So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
 And execute *adb forward*  with that value.
 
