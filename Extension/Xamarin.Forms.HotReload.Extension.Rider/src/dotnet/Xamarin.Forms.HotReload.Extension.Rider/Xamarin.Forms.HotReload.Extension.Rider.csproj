@@ -1,9 +1,10 @@
-<Project>
+﻿<Project>
   <PropertyGroup>
     <LanguageTargets>$(MSBuildToolsPath)\Microsoft.CSharp.targets</LanguageTargets>
     <AssemblyName>Xamarin.Forms.HotReload.Extension.Rider</AssemblyName>
     <RootNamespace>Xamarin.Forms.HotReload.Extension.Rider</RootNamespace>
     <PackageId>Xamarin.Forms.HotReload.Extension.Rider</PackageId>
+    <PackageVersion>1.3.1</PackageVersion>
   </PropertyGroup>
   <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
   <PropertyGroup>

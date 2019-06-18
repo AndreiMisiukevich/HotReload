@@ -135,7 +135,6 @@ namespace Xamarin.Forms.HotReload.Extension
             UpdateUiElementsVisibility();
         }
 
-        //TODO: HANDLE THIS CASE FOR RIDER
         private void OnEnvironmentIdeClosing(object sender, EventArgs e)
         {
             DisableExtension();

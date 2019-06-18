@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using JetBrains.ProjectModel;
 using Xamarin.Forms.HotReload.Extension.Abstractions;
@@ -8,7 +9,7 @@ using Xamarin.Forms.HotReload.Extension.Rider.Implementations;
 namespace Xamarin.Forms.HotReload.Extension.Rider
 {
     [SolutionComponent]
-    public class PluginInitializer
+    public class PluginInitializer: IDisposable 
     {
         public static readonly Dictionary<HotReloadCommands, IEnvironmentCommand> RegisteredCommandInstances =
             new Dictionary<HotReloadCommands, IEnvironmentCommand>();
@@ -27,6 +28,12 @@ namespace Xamarin.Forms.HotReload.Extension.Rider
             }
 
             Main.Init(environmentService, RegisteredCommandInstances, service, settingsStore);
+        }
+
+        public void Dispose()
+        {
+            var disableCommand = RegisteredCommandInstances[HotReloadCommands.Disable] as EnvCommandStub;
+            disableCommand?.OnExecuted();
         }
     }
 }
