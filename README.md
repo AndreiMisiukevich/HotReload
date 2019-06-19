@@ -114,7 +114,7 @@ public partial class MainPage : ContentPage, IReloadable
 ### Android Emulator IP autodiscovery
 **Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
 
-**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you may need to forward the port to your ip yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
+**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
 
 ```
 adb forward tcp:8000 tcp:8000
