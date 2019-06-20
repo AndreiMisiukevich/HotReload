@@ -26,7 +26,7 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
                 {
                     try
                     {
-                        _udpClient = new UdpClient(possiblePort);
+                        _udpClient = new UdpClient(possiblePort) { EnableBroadcast = true };
                         _udpTokenSource = new CancellationTokenSource();
                         var token = _udpTokenSource.Token;
                         Task.Run(() =>

@@ -111,20 +111,43 @@ namespace Xamarin.Forms
                           .Where(x => x.Address.AddressFamily == AddressFamily.InterNetwork)
                           .Select(x => x.Address.MapToIPv4())
                           .Where(x => x.ToString() != "127.0.0.1")
-                          .Select(x => $"http://{x.ToString()}:{devicePort}")
                           .ToArray();
+
+            foreach (var addr in addresses)
+            {
+                Console.WriteLine($"### HOTRELOAD DEVICE's IP: {addr} ###");
+            }
 
             try
             {
                 Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
-                Console.WriteLine($"### HOTRELOAD EXTENSION'S AUTO DISCOVERY PORT: {config.ExtensionAutoDiscoveryPort} ###");
 
                 Task.Run(async () =>
                 {
                     while (IsRunning)
                     {
-                        SendAutoDiscoveryMessage(config.ExtensionIpAddress, addresses, $"http://127.0.0.1:{devicePort}", config.ExtensionAutoDiscoveryPort);
-                        await Task.Delay(12000);
+                        var bytesArr = addresses.Select(x => Encoding.ASCII.GetBytes($"http://{x}:{devicePort}"));
+                        var emulatorBytes = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
+                        var portsRange = config.ExtensionAutoDiscoveryPort == 15000
+                            ? Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 3))
+                            : Enumerable.Repeat(config.ExtensionAutoDiscoveryPort, 1);
+
+                        using (var client = new UdpClient { EnableBroadcast = true })
+                        {
+                            foreach (var possiblePort in portsRange)
+                            {
+                                if (Device.RuntimePlatform == Device.Android)
+                                {
+                                    client.Send(emulatorBytes, emulatorBytes.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
+                                }
+                                foreach (var bytes in bytesArr)
+                                {
+                                    client.Send(bytes, bytes.Length, new IPEndPoint(config.ExtensionIpAddress, possiblePort));
+                                    await Task.Delay(1000);
+                                }
+                                await Task.Delay(10000);
+                            }
+                        }
                     }
                 });
             }
@@ -144,38 +167,6 @@ namespace Xamarin.Forms
                 ExtensionAutoDiscoveryPort = extensionPort
             });
         #endregion
-
-        private void SendAutoDiscoveryMessage(IPAddress extensionIp, string[] addresses, string androidEmulatorSpecialAddress, int port)
-        {
-            var autoDiscoveryIpMessage = string.Join(";", addresses ?? new string[0]);
-            using (var client = new UdpClient())
-            {
-                try
-                {
-                    var ip = new IPEndPoint(extensionIp, port);
-                    var bytes = Encoding.ASCII.GetBytes(autoDiscoveryIpMessage);
-                    client.Send(bytes, bytes.Length, ip);
-                }
-                catch
-                {
-                    //suppress
-                }
-
-                if(Device.RuntimePlatform == Device.Android)
-                {
-                    try
-                    {
-                        var ip = new IPEndPoint(IPAddress.Parse("10.0.2.2"), port);
-                        var bytes = Encoding.ASCII.GetBytes(androidEmulatorSpecialAddress);
-                        client.Send(bytes, bytes.Length, ip);
-                    }
-                    catch
-                    {
-                        //suppress
-                    }
-                }
-            }
-        }
 
         private void TrySubscribeRendererPropertyChanged(params string[] paths)
         {
