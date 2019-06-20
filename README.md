@@ -120,6 +120,10 @@ public partial class MainPage : ContentPage, IReloadable
 adb forward tcp:8000 tcp:8000
 ```
 
+### Old Extensions (with mannual IP entering)
+If you wish to enter device's IP mannualy, you may use these extensions (Make sure you disabled extensions autoupdate)
+https://github.com/AndreiMisiukevich/HotReload/tree/master/old_extension_packages
+
 **keep in mind** that HotReload may change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind that it's possible).
 So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
 And execute *adb forward*  with that value.
