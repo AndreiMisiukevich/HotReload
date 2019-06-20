@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
@@ -28,14 +29,14 @@ namespace Xamarin.Forms.HotReload.Extension.Helpers
                         _udpClient = new UdpClient(possiblePort);
                         _udpTokenSource = new CancellationTokenSource();
                         var token = _udpTokenSource.Token;
-                        Task.Run(async () =>
+                        Task.Run(() =>
                         {
                             while (!token.IsCancellationRequested)
                             {
                                 try
                                 {
-                                    var receivedResult = await _udpClient.ReceiveAsync().ConfigureAwait(false);
-                                    var bytes = receivedResult.Buffer;
+                                    var remoteEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                                    var bytes = _udpClient.Receive(ref remoteEndPoint);
 
                                     if (!token.IsCancellationRequested && (bytes?.Any() ?? false))
                                     {
