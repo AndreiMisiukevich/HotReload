@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Net;
 
 namespace Xamarin.Forms
@@ -20,6 +21,7 @@ namespace Xamarin.Forms
             /// <summary>
             /// [SHOULD BE THE SAME WITH EXTENSION'S ALERT VALUE] Setup EXTENSION's autodiscovery port. Extension shows it in alert after enabling. Default value is 15000
             /// </summary>
+            [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("NO NEED TO SET THIS PROPERTY ANYMORE. RELOADER DETECTS THIS PORT AUTOMATICALLY")]
             public int ExtensionAutoDiscoveryPort { internal get; set; }
         }
