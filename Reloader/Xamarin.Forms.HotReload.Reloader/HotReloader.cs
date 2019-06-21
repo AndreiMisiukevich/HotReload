@@ -124,30 +124,45 @@ namespace Xamarin.Forms
 
                 Task.Run(async () =>
                 {
+                    var portsRange = config.ExtensionAutoDiscoveryPort == 15000
+                        ? Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 3))
+                        : Enumerable.Repeat(config.ExtensionAutoDiscoveryPort, 1);
+
                     while (IsRunning)
                     {
-                        var bytesArr = addresses.Select(x => Encoding.ASCII.GetBytes($"http://{x}:{devicePort}"));
-                        var emulatorBytes = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
-                        var portsRange = config.ExtensionAutoDiscoveryPort == 15000
-                            ? Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 3))
-                            : Enumerable.Repeat(config.ExtensionAutoDiscoveryPort, 1);
-
-                        using (var client = new UdpClient { EnableBroadcast = true })
+                        foreach (var possiblePort in portsRange)
                         {
-                            foreach (var possiblePort in portsRange)
+                            if (Device.RuntimePlatform == Device.Android)
                             {
-                                if (Device.RuntimePlatform == Device.Android)
+                                try
                                 {
-                                    client.Send(emulatorBytes, emulatorBytes.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
+                                    using (var client = new UdpClient { EnableBroadcast = true })
+                                    {
+                                        var emulatorData = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
+                                        client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
+                                    }
                                 }
-                                foreach (var bytes in bytesArr)
-                                {
-                                    client.Send(bytes, bytes.Length, new IPEndPoint(config.ExtensionIpAddress, possiblePort));
-                                    await Task.Delay(1000);
-                                }
-                                await Task.Delay(10000);
+                                catch { }
                             }
+
+                            foreach (var ip in addresses)
+                            {
+                                try
+                                { 
+                                    var remoteIp = new IPEndPoint(config.ExtensionIpAddress, possiblePort);
+                                    using (var client = new UdpClient(new IPEndPoint(ip, 0)) { EnableBroadcast = true })
+                                    {
+                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontRoute, 1);
+                                        var data = Encoding.ASCII.GetBytes($"http://{ip}:{devicePort}");
+                                        client.Send(data, data.Length, remoteIp);
+                                    }
+                                }
+                                catch { }
+                            }
+                            await Task.Delay(10000);
                         }
+
                     }
                 });
             }
