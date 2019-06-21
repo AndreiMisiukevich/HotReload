@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
 
@@ -24,6 +25,12 @@ namespace Xamarin.Forms
             [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("NO NEED TO SET THIS PROPERTY ANYMORE. RELOADER DETECTS THIS PORT AUTOMATICALLY")]
             public int ExtensionAutoDiscoveryPort { internal get; set; }
+        }
+
+        public sealed class ReloaderStartupInfo
+        {
+            public int SelectedDevicePort { get; internal set; }
+            public IReadOnlyList<IPAddress> IPAddresses { get; internal set; }
         }
     }
 }

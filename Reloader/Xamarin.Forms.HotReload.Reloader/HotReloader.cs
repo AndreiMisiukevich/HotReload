@@ -56,7 +56,7 @@ namespace Xamarin.Forms
         /// </summary>
         /// <param name="app">App.</param>
         /// <param name="config">Config.</param>
-        public void Run(Application app, Configuration config = null)
+        public ReloaderStartupInfo Run(Application app, Configuration config = null)
         {
             config = config ?? new Configuration();
             var devicePort = config.DeviceUrlPort;
@@ -163,6 +163,12 @@ namespace Xamarin.Forms
                     await Task.Delay(12000);
                 }
             });
+
+            return new ReloaderStartupInfo
+            {
+                SelectedDevicePort = devicePort,
+                IPAddresses = addresses
+            };
         }
 
         #region Obsolete
