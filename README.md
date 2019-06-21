@@ -7,8 +7,9 @@ Sample Video you can find here: https://twitter.com/i/status/1124314311151607809
 
 ![Sample GIF](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/gf1.gif?raw=true)
 
+# Setup
 
-## Setup
+## Reloader
 * Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
 * Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc. just in case (but adding to portable project should be enough)
 * Setup Reloader
@@ -24,14 +25,18 @@ namespace YourNamespace
             InitializeComponent();
 #if DEBUG
             HotReloader.Current.Run(this); 
-            //optionaly you may specify EXTENSION's port for auto discovery and device's port
+            //optionaly you may specify EXTENSION's IP (ExtensionIpAddress) 
+            //in case your PC/laptop and device are in different subnets
+            //e.g. 10.10.102.16 AND 10.10.9.12
 #endif
             MainPage = new NavigationPage(new MainPage());
         }
     }
 }
 ```
-**IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable please.
+**IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable.
+
+## Extension
 
 ### Visual Studio for **MAC**
 
@@ -66,18 +71,17 @@ NOTE: Restart Visual Studio after installation.
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono Xamarin.Forms.HotReload.Observer.exe p=/Users/yourUser/SpecificFolder/ u=http://192.168.0.3```
 
-## Run your app and start developing with **HotReload**!
+# Run your app and start developing with **HotReload**!
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure you your PC/Mac and device/emulator are in the same local network.)
 
-2) When you enable extension, it always shows you an actual **Extension Port** in message box. If port value *ISN'T* **15000**, you **HAVE TO** pass this value to HotReload! if port IS **15000**, you may skip this step, because **15000** is default EXTENSION'S port value.
+2) If your device and PC/Laptop are in different subnets (or extensio doesn't discover device), you should specify your Extension's IP during reloader setup
 
-* For example extension's alert shows you "17502"
 ```csharp
 HotReloader.Current.Run(this, new HotReloader.Configuration
 {
-    ExtensionAutoDiscoveryPort = 17502 // VALUE FROM EXTENSION's ALERT
+    ExtensionIpAddress = IPAddress.Parse("192.168.1.13") // use your PC/Laptop IP
 });
 ```
 
@@ -109,12 +113,12 @@ public partial class MainPage : ContentPage, IReloadable
 </ViewCell>
 ```
 
-## Troubleshooting
+# Troubleshooting
 
-### Android Emulator IP autodiscovery
+## Android Emulator IP autodiscovery
 **Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
 
-**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value). NOT TO BE CONFUSED WITH extension's port *ExtensionAutoDiscoveryPort* default value if 15000)):
+**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value).
 
 ```
 adb forward tcp:8000 tcp:8000
@@ -122,11 +126,19 @@ adb forward tcp:8000 tcp:8000
 
 **keep in mind** that HotReload may change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind that it's possible).
 So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
-And execute *adb forward*  with that value.
+And execute *adb forward*  with that value. Also you can get selected port and device IP's there
 
-### Old Extensions (with mannual IP entering)
+```csharp
+var info = HotReloader.Current.Run();
+var port = info.SelectedDevicePort;
+var addresses = info.IPAddresses;
+```
+
+## Old Extensions (with mannual IP entering)
 If you wish to enter device's IP mannualy, you may use these extensions (Make sure you disabled extensions autoupdate)
 https://github.com/AndreiMisiukevich/HotReload/tree/master/old_extension_packages
+
+# INFO
 
 ## Collaborators
 - [AndreiMisiukevich (Andrei)](https://github.com/AndreiMisiukevich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/Andrik_Just4Fun.svg?style=social&label=Follow%20%40Andrik_Just4Fun)](https://twitter.com/Andrik_Just4Fun)
