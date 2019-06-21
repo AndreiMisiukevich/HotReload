@@ -124,13 +124,13 @@ namespace Xamarin.Forms
 
                 Task.Run(async () =>
                 {
-                    var portsRange = config.ExtensionAutoDiscoveryPort == 15000
-                        ? Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 3))
-                        : Enumerable.Repeat(config.ExtensionAutoDiscoveryPort, 1);
+                    var portsRange = Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 18));
+
+                    var isFirstTry = true;
 
                     while (IsRunning)
                     {
-                        foreach (var possiblePort in portsRange)
+                        foreach (var possiblePort in portsRange.Take(isFirstTry ? 20 : 5))
                         {
                             if (Device.RuntimePlatform == Device.Android)
                             {
@@ -161,7 +161,8 @@ namespace Xamarin.Forms
                                 catch { }
                             }
                         }
-                        await Task.Delay(10000);
+                        isFirstTry = false;
+                        await Task.Delay(12000);
                     }
                 });
             }
@@ -177,8 +178,7 @@ namespace Xamarin.Forms
         public void Start(Application app, int devicePort = 8000, int extensionPort = 15000)
             => Run(app, new Configuration
             {
-                DeviceUrlPort = devicePort,
-                ExtensionAutoDiscoveryPort = extensionPort
+                DeviceUrlPort = devicePort
             });
         #endregion
 

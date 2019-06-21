@@ -9,12 +9,7 @@ namespace Xamarin.Forms.HotReload.Sample
         {
             InitializeComponent();
 #if DEBUG
-            HotReloader.Current.Run(this, new HotReloader.Configuration
-            {
-                //these are default values below
-                DeviceUrlPort = 8000,
-                ExtensionAutoDiscoveryPort = 15000
-            });
+            HotReloader.Current.Run(this, new HotReloader.Configuration());
 #endif
             MainPage = new NavigationPage(new ItemsPage { BindingContext = new ItemsViewModel() })
             {
