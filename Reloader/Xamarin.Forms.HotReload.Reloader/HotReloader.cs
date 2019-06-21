@@ -115,61 +115,54 @@ namespace Xamarin.Forms
 
             foreach (var addr in addresses)
             {
-                Console.WriteLine($"### HOTRELOAD DEVICE's IP: {addr} ###");
+                Console.WriteLine($"### [OLD] HOTRELOAD DEVICE's IP: {addr} ###");
             }
 
-            try
-            {
-                Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
+            Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
 
-                Task.Run(async () =>
+            Task.Run(async () =>
+            {
+                var portsRange = Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 18));
+
+                var isFirstTry = true;
+
+                while (IsRunning)
                 {
-                    var portsRange = Enumerable.Range(15000, 2).Union(Enumerable.Range(17502, 18));
-
-                    var isFirstTry = true;
-
-                    while (IsRunning)
+                    foreach (var possiblePort in portsRange.Take(isFirstTry ? 20 : 5))
                     {
-                        foreach (var possiblePort in portsRange.Take(isFirstTry ? 20 : 5))
+                        if (Device.RuntimePlatform == Device.Android)
                         {
-                            if (Device.RuntimePlatform == Device.Android)
+                            try
                             {
-                                try
+                                using (var client = new UdpClient { EnableBroadcast = true })
                                 {
-                                    using (var client = new UdpClient { EnableBroadcast = true })
-                                    {
-                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-                                        var emulatorData = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
-                                        client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
-                                    }
+                                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+                                    var emulatorData = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
+                                    client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
                                 }
-                                catch { }
                             }
-
-                            foreach (var ip in addresses)
-                            {
-                                try
-                                { 
-                                    var remoteIp = new IPEndPoint(config.ExtensionIpAddress, possiblePort);
-                                    using (var client = new UdpClient(new IPEndPoint(ip, 0)) { EnableBroadcast = true })
-                                    {
-                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-                                        var data = Encoding.ASCII.GetBytes($"http://{ip}:{devicePort}");
-                                        client.Send(data, data.Length, remoteIp);
-                                    }
-                                }
-                                catch { }
-                            }
+                            catch { }
                         }
-                        isFirstTry = false;
-                        await Task.Delay(12000);
+
+                        foreach (var ip in addresses)
+                        {
+                            try
+                            {
+                                var remoteIp = new IPEndPoint(config.ExtensionIpAddress, possiblePort);
+                                using (var client = new UdpClient(new IPEndPoint(ip, 0)) { EnableBroadcast = true })
+                                {
+                                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+                                    var data = Encoding.ASCII.GetBytes($"http://{ip}:{devicePort}");
+                                    client.Send(data, data.Length, remoteIp);
+                                }
+                            }
+                            catch { }
+                        }
                     }
-                });
-            }
-            catch
-            {
-                Console.WriteLine($"### HOTRELOAD AUTODISCOVERY ERROR ###");
-            }
+                    isFirstTry = false;
+                    await Task.Delay(12000);
+                }
+            });
         }
 
         #region Obsolete
@@ -449,7 +442,6 @@ namespace Xamarin.Forms
         {
             var xamlDoc = reloadItem.Xaml;
 
-            //TODO: make sure it doesn't break anything
             if (obj is VisualElement ve)
             {
                 ve.Resources = null;
@@ -483,7 +475,7 @@ namespace Xamarin.Forms
                 var sourceItem = GetItemForReloadingSourceRes(dict.Source, obj);
                 if (sourceItem != null)
                 {
-                    //TODO: (?): Seems no need in this stuff
+                    //(?): Seems no need in this stuff
                     //dict.GetType().GetField("_source", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(dict, null);
                     //var resType = obj.GetType().Assembly.GetType(RetrieveClassName(sourceItem.Xaml.InnerXml));
                     //var rd = Activator.CreateInstance(resType) as ResourceDictionary;

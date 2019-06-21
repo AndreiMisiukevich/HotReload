@@ -8,7 +8,7 @@ namespace Xamarin.Forms
         public sealed class Configuration
         {
             /// <summary>
-            /// Sets RELOADER's (Device/Simulator) desired port "http://127.0.0.1:{ReloaderPort}. Default value is 8000. Can be changed by reloader
+            /// Sets RELOADER's (Device/Simulator) desired port "http://127.0.0.1:{ReloaderPort}". Default value is 8000. Can be changed by reloader automatically.
             /// </summary>
             public int DeviceUrlPort { internal get; set; } = 8000;
 
