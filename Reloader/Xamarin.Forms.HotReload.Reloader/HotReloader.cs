@@ -138,6 +138,7 @@ namespace Xamarin.Forms
                                 {
                                     using (var client = new UdpClient { EnableBroadcast = true })
                                     {
+                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
                                         var emulatorData = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
                                         client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
                                     }
@@ -153,16 +154,14 @@ namespace Xamarin.Forms
                                     using (var client = new UdpClient(new IPEndPoint(ip, 0)) { EnableBroadcast = true })
                                     {
                                         client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-                                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.DontRoute, 1);
                                         var data = Encoding.ASCII.GetBytes($"http://{ip}:{devicePort}");
                                         client.Send(data, data.Length, remoteIp);
                                     }
                                 }
                                 catch { }
                             }
-                            await Task.Delay(10000);
                         }
-
+                        await Task.Delay(10000);
                     }
                 });
             }
