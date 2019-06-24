@@ -64,7 +64,7 @@ NOTE: Restart Visual Studio after installation.
 
 * You may use official HotReload's Rider plugin https://plugins.jetbrains.com/plugin/12534-hot-reload
 
-### Other IDE/TextEditors (eg. NotePad++ | Sublime etc. | VS Code)
+### Other IDE/TextEditors (eg. NotePad++ | Sublime | VS Code etc.)
 
 * Build observer project yourself (Release mode) and find **exe** file in bin/release folder https://github.com/AndreiMisiukevich/HotReload/tree/master/Observer/Xamarin.Forms.HotReload.Observer and put it in the root folder of your Xamarin.Forms NETSTANDARD/PCL project.
 * Start Xamarin.Forms.HotReload.Observer.exe via terminal (for MAC) ```mono Xamarin.Forms.HotReload.Observer.exe``` or via command line (Windows) ```Xamarin.Forms.HotReload.Observer.exe``` etc.
@@ -74,9 +74,9 @@ NOTE: Restart Visual Studio after installation.
 # Run your app and start developing with **HotReload**!
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
-Make sure you your PC/Mac and device/emulator are in the same local network.)
+Make sure your PC/Mac and device/emulator are in the same local network.)
 
-2) If your device and PC/Laptop are in different subnets (or extensio doesn't discover device), you should specify your Extension's IP during reloader setup
+2) If your device and PC/Laptop are in different subnets (or extension doesn't discover device), you should specify your Extension's IP during reloader setup
 
 ```csharp
 HotReloader.Current.Run(this, new HotReloader.Configuration
