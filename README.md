@@ -62,7 +62,11 @@ NOTE: Restart Visual Studio after installation.
  
 ### JetBrains **Rider**
 
-* You may use official HotReload's Rider plugin https://plugins.jetbrains.com/plugin/12534-hot-reload
+* In case if you use JetBrains Rider IDE you can download official HotReload's Rider plugin via setting menu (File -> Settings -> Plugins (pick "Marketplace" tab) -> search by "HotReload".
+![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/rider_extension_manager.png)
+All previous versions are available via link: https://plugins.jetbrains.com/plugin/12534-hot-reload
+* After Rider restart "Enable extension" button will appear on Navigation Bar.
+![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/rider_extension_tab.png)
 
 ### Other IDE/TextEditors (eg. NotePad++ | Sublime | VS Code etc.)
 
