@@ -9,33 +9,6 @@ Sample Video you can find here: https://twitter.com/i/status/1124314311151607809
 
 # Setup
 
-## Reloader
-* Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
-* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc. just in case (but adding to portable project should be enough)
-* Setup Reloader
-```csharp
-using Xamarin.Forms;
-
-namespace YourNamespace
-{
-    public partial class App : Application
-    {
-        public App()
-        {
-            InitializeComponent();
-#if DEBUG
-            HotReloader.Current.Run(this); 
-            //optionaly you may specify EXTENSION's IP (ExtensionIpAddress) 
-            //in case your PC/laptop and device are in different subnets
-            //e.g. 10.10.102.16 AND 10.10.9.12
-#endif
-            MainPage = new NavigationPage(new MainPage());
-        }
-    }
-}
-```
-**IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable.
-
 ## Extension
 
 ### Visual Studio for **MAC**
@@ -75,7 +48,34 @@ All previous versions are available via link: https://plugins.jetbrains.com/plug
 * Optionaly you can set specific folder for observing files (if you didn't put observer.exe to the root folder) and specific device url for sending changes.
 ```mono Xamarin.Forms.HotReload.Observer.exe p=/Users/yourUser/SpecificFolder/ u=http://192.168.0.3```
 
-# Run your app and start developing with **HotReload**!
+## Reloader
+
+### Base Setup
+
+* Available on NuGet: [Xamarin.HotReload](http://www.nuget.org/packages/Xamarin.HotReload) [![NuGet](https://img.shields.io/nuget/v/Xamarin.HotReload.svg?label=NuGet)](https://www.nuget.org/packages/Xamarin.HotReload)
+* Add nuget package to your Xamarin.Forms **NETSTANDARD**/**PCL** project and to all platform-specific projects **iOS**, **Android** etc. just in case (but adding to portable project should be enough)
+* Setup Reloader
+```csharp
+using Xamarin.Forms;
+
+namespace YourNamespace
+{
+    public partial class App : Application
+    {
+        public App()
+        {
+            InitializeComponent();
+#if DEBUG
+            HotReloader.Current.Run(this); 
+#endif
+            MainPage = new NavigationPage(new MainPage());
+        }
+    }
+}
+```
+**IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable.
+
+### Additional Setup / Troubleshooting
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure your PC/Mac and device/emulator are in the same local network.)
@@ -85,11 +85,33 @@ Make sure your PC/Mac and device/emulator are in the same local network.)
 ```csharp
 HotReloader.Current.Run(this, new HotReloader.Configuration
 {
-    ExtensionIpAddress = IPAddress.Parse("192.168.1.13") // use your PC/Laptop IP
+    //optionaly you may specify EXTENSION's IP (ExtensionIpAddress) 
+    //in case your PC/laptop and device are in different subnets
+    //e.g. Laptop - 10.10.102.16 AND Device - 10.10.9.12
+    ExtensionIpAddress = IPAddress.Parse("10.10.102.16") // use your PC/Laptop IP
 });
 ```
 
-3) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
+3) Android Emulator IP autodiscovery:
+**Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
+
+**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value).
+
+```
+adb forward tcp:8000 tcp:8000
+```
+
+**keep in mind** that HotReload may change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind that it's possible).
+So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
+And execute *adb forward*  with that value. Also you can get selected port and device IP's there:
+
+```csharp
+var info = HotReloader.Current.Run();
+var port = info.SelectedDevicePort;
+var addresses = info.IPAddresses;
+```
+
+4) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
 
 ```csharp
 public partial class MainPage : ContentPage, IReloadable
@@ -106,7 +128,7 @@ public partial class MainPage : ContentPage, IReloadable
 }
 ```
 
-4) **ViewCell** reloading: before starting app you MUST determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
+5) **ViewCell** reloading: before starting app you **MUST** determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
 
 ```xaml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -117,28 +139,7 @@ public partial class MainPage : ContentPage, IReloadable
 </ViewCell>
 ```
 
-# Troubleshooting
-
-## Android Emulator IP autodiscovery
-**Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
-
-**BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value).
-
-```
-adb forward tcp:8000 tcp:8000
-```
-
-**keep in mind** that HotReload may change your DEVICE's port (it's edge case and shouldn't happen, but just keep in mind that it's possible).
-So if *adb forward* doesn't help, open **APPLICATION OUTPUT** and look for ```$"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###"```
-And execute *adb forward*  with that value. Also you can get selected port and device IP's there
-
-```csharp
-var info = HotReloader.Current.Run();
-var port = info.SelectedDevicePort;
-var addresses = info.IPAddresses;
-```
-
-## Old Extensions (with mannual IP entering)
+# Old Extensions (with mannual IP entering)
 If you wish to enter device's IP mannualy, you may use these extensions (Make sure you disabled extensions autoupdate)
 https://github.com/AndreiMisiukevich/HotReload/tree/master/old_extension_packages
 
