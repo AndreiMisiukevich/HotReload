@@ -93,7 +93,7 @@ HotReloader.Current.Run(this, new HotReloader.Configuration
 ```
 
 3) Android Emulator IP autodiscovery:
-**Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself.
+**Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself. It it isn't added. Add it then restart visual studio or Rider
 
 **BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value).
 
