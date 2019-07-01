@@ -796,7 +796,7 @@ namespace Xamarin.Forms
         {
             var isCss = Path.GetExtension(dictName) == ".css";
             var element = item.Objects.FirstOrDefault() as VisualElement;
-            var matches = Regex.Matches(item.Xaml.InnerXml, @"Source[\n\r[:space:]]*=[\n\r[:space:]]*\""([^\""]+\.(xaml|css))\""", RegexOptions.Compiled);
+            var matches = Regex.Matches(item.Xaml.InnerXml, @"Source[\s]*=[\s]*""([^""]+\.(xaml|css))""", RegexOptions.Compiled);
             foreach (Match match in matches)
             {
                 var value = match.Groups[1].Value;
@@ -850,7 +850,7 @@ namespace Xamarin.Forms
         }
 
         private string RetrieveClassName(string xaml)
-            => Regex.Match(xaml ?? string.Empty, "x:Class[\n\r[:space:]]*=[\n\r[:space:]]*\"([^\"]+)\"", RegexOptions.Compiled).Groups[1].Value;
+            => Regex.Match(xaml ?? string.Empty, @"x:Class[\s]*=[\s]*""([^""]+)""", RegexOptions.Compiled).Groups[1].Value;
 
         private string RetrieveClassName(Type type)
             => type.FullName;
