@@ -139,6 +139,28 @@ public partial class MainPage : ContentPage, IReloadable
 </ViewCell>
 ```
 
+6) **Previewer** properties: if you want to use ```xmlns:d="http://xamarin.com/schemas/2014/forms/design"``` during your work with HotReload, you can achieve it by two approaches
+- Global setting. Manage previewer propertis use via **Configuration**. Design properties will be used by default unless you disable them via Xaml.
+
+```csharp
+HotReloader.Current.Run(this, new HotReloader.Configuration
+{
+    PreviewerDefaultMode = HotReloader.PreviewerMode.On
+});
+```
+
+- Local setting. Manage previewer propertis use via **XAML**. You can override default behavior for particular file with following markup:
+
+```xaml
+<?xml version="1.0" encoding="UTF-8"?>
+<?hotReload preview.on?>
+<ContentPage>
+...
+</ContentPage>
+```
+
+Use ```<?hotReload preview.on?>``` to allow design properties and ```<?hotReload preview.off?>``` to forbid them.
+
 # Old Extensions (with mannual IP entering)
 If you wish to enter device's IP mannualy, you may use these extensions (Make sure you disabled extensions autoupdate)
 https://github.com/AndreiMisiukevich/HotReload/tree/master/old_extension_packages
