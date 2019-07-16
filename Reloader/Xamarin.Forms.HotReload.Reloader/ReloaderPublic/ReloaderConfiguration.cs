@@ -19,18 +19,23 @@ namespace Xamarin.Forms
             /// </summary>
             public IPAddress ExtensionIpAddress { internal get; set; } = IPAddress.Broadcast;
 
-            /// <summary>
-            /// [SHOULD BE THE SAME WITH EXTENSION'S ALERT VALUE] Setup EXTENSION's autodiscovery port. Extension shows it in alert after enabling. Default value is 15000
-            /// </summary>
             [EditorBrowsable(EditorBrowsableState.Never)]
             [Obsolete("NO NEED TO SET THIS PROPERTY ANYMORE. RELOADER DETECTS THIS PORT AUTOMATICALLY")]
             public int ExtensionAutoDiscoveryPort { internal get; set; }
+
+            public PreviewerMode PreviewerDefaultMode { get; set; }
         }
 
         public sealed class ReloaderStartupInfo
         {
             public int SelectedDevicePort { get; internal set; }
             public IReadOnlyList<IPAddress> IPAddresses { get; internal set; }
+        }
+
+        public enum PreviewerMode
+        {
+            Off,
+            On
         }
     }
 }

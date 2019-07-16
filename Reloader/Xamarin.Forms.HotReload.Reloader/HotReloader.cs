@@ -34,7 +34,7 @@ namespace Xamarin.Forms
         private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
         private Application _app;
-        private Action<object, string, bool> _loadXaml;
+        private Action<object, string, bool?> _loadXaml;
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
 
@@ -127,7 +127,13 @@ namespace Xamarin.Forms
 
             _loadXaml = (obj, xaml, isPreviewer) =>
             {
-                loadXaml.Invoke(null, new object[] { obj, xaml, isPreviewer });
+                var isPreview = isPreviewer ?? config.PreviewerDefaultMode == PreviewerMode.On;
+                if (loadXaml != null && isPreview)
+                {
+                    loadXaml.Invoke(null, new object[] { obj, xaml, true });
+                    return;
+                }
+                obj.LoadFromXaml(xaml);
             };
 
             Task.Run(async () =>
@@ -611,8 +617,16 @@ namespace Xamarin.Forms
             return null;
         }
 
-        private void LoadFromXaml(object obj, XmlDocument xamlDoc) => _loadXaml.Invoke(obj, xamlDoc.InnerXml, xamlDoc.ChildNodes.Cast<XmlNode>()
-            .Any(x => (x.Name?.Equals("hotReload", StringComparison.InvariantCultureIgnoreCase) ?? false) && (x.Value?.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) ?? false)));
+        private void LoadFromXaml(object obj, XmlDocument xamlDoc)
+        {
+            var previewElement = xamlDoc.ChildNodes.Cast<XmlNode>()
+            .FirstOrDefault(x => (x.Name?.Equals("hotReload", StringComparison.InvariantCultureIgnoreCase) ?? false) &&
+            (x.Value?.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) ?? false) || (x.Value?.Equals("preview.off", StringComparison.InvariantCultureIgnoreCase) ?? false));
+
+            var isPreview = previewElement != null ? previewElement.Value.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) : default(bool?);
+            _loadXaml.Invoke(obj, xamlDoc.InnerXml, isPreview);
+
+        }
 
         private string GetResId(Uri source, object belongObj)
         {
