@@ -34,6 +34,7 @@ namespace Xamarin.Forms
         private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
         private Application _app;
+        private Action<object, string, bool> _loadXaml;
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
 
@@ -119,6 +120,15 @@ namespace Xamarin.Forms
             }
 
             Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
+
+            var xamlLodader = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader");
+            var loadXaml = xamlLodader.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                .FirstOrDefault(m => m.Name == "Load" && m.GetParameters().Length == 3);
+
+            _loadXaml = (obj, xaml, isPreviewer) =>
+            {
+                loadXaml.Invoke(null, new object[] { obj, xaml, isPreviewer });
+            };
 
             Task.Run(async () =>
             {
@@ -474,7 +484,7 @@ namespace Xamarin.Forms
                 if (_fileMapping.TryGetValue(name, out ReloadItem item))
                 {
                     dict.Clear();
-                    dict.LoadFromXaml(item.Xaml.InnerXml);
+                    LoadFromXaml(dict, item.Xaml);
                 }
 
                 //[1.1] Update Source resources
@@ -489,12 +499,12 @@ namespace Xamarin.Forms
                     //rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
                     //dict.Add(rd);
                     var rd = new ResourceDictionary();
-                    rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
-                    foreach(var key in rd.Keys)
+                    LoadFromXaml(rd, sourceItem.Xaml);
+                    foreach (var key in rd.Keys)
                     {
                         dict.Remove(key);
                     }
-                    dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                    LoadFromXaml(dict, sourceItem.Xaml);
                 }
                 else if (dict.Source != null)
                 {
@@ -505,12 +515,12 @@ namespace Xamarin.Forms
                         if (sourceItem != null)
                         {
                             var rd = new ResourceDictionary();
-                            rd.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                            LoadFromXaml(rd, sourceItem.Xaml);
                             foreach (var key in rd.Keys)
                             {
                                 dict.Remove(key);
                             }
-                            dict.LoadFromXaml(sourceItem.Xaml.InnerXml);
+                            LoadFromXaml(dict, sourceItem.Xaml);
                         }
                     }
                 }
@@ -601,6 +611,9 @@ namespace Xamarin.Forms
             return null;
         }
 
+        private void LoadFromXaml(object obj, XmlDocument xamlDoc) => _loadXaml.Invoke(obj, xamlDoc.InnerXml, xamlDoc.ChildNodes.Cast<XmlNode>()
+            .Any(x => (x.Name?.Equals("hotReload", StringComparison.InvariantCultureIgnoreCase) ?? false) && (x.Value?.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) ?? false)));
+
         private string GetResId(Uri source, object belongObj)
         {
             var rootTargetPath = typeof(XamlResourceIdAttribute).GetMethod("GetPathForType", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { belongObj.GetType() });
@@ -667,7 +680,7 @@ namespace Xamarin.Forms
                     return UpdateViewCell(cell, xmlDoc.InnerXml);
                 }
 
-                obj.LoadFromXaml(xmlDoc.InnerXml);
+                LoadFromXaml(obj, xmlDoc);
                 return null;
             }
             catch(Exception ex)
@@ -715,7 +728,9 @@ namespace Xamarin.Forms
                 }
                 xaml = xDoc.InnerXml;
             }
-            var newCell = new ViewCell().LoadFromXaml(xaml);
+
+            var newCell = new ViewCell();
+            LoadFromXaml(newCell, xDoc);
             var newCellView = newCell.View;
 
             if (newCellView?.GetType() != cell.View?.GetType())

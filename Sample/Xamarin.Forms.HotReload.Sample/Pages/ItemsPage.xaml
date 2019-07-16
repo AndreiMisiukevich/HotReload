@@ -1,9 +1,13 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
+<?hotReload preview.off?>
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:res="clr-namespace:Xamarin.Forms.HotReload.Sample;assembly=Xamarin.Forms.HotReload.Sample"
              xmlns:cell="clr-namespace:Xamarin.Forms.HotReload.Sample.Pages.Cells;assembly=Xamarin.Forms.HotReload.Sample"
              Title="MARVEL"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
              x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemsPage">
     
     <ContentPage.Resources> 
@@ -28,7 +32,9 @@
     
     
     <StackLayout Spacing="0">
-        <Label Text="HotReload" 
+        <Label Text="HotReload!!" 
+               d:Text="Name!"
+               d:TextColor="Green"
                HorizontalTextAlignment="Center"
                HorizontalOptions="FillAndExpand"
                 BackgroundColor="{StaticResource TestButtonBackColor}"
