@@ -36,6 +36,9 @@ namespace Xamarin.Forms
         private Application _app;
         private Action<object, string, bool?> _loadXaml;
 
+        private Type _xamlLoaderType;
+        Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
+
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
 
         private HotReloader()
@@ -121,9 +124,8 @@ namespace Xamarin.Forms
 
             Console.WriteLine($"### HOTRELOAD STARTED ON DEVICE's PORT: {devicePort} ###");
 
-            var xamlLodader = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader");
-            var loadXaml = xamlLodader.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                .FirstOrDefault(m => m.Name == "Load" && m.GetParameters().Length == 3);
+            var loadXaml = XamlLoaderType.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                ?.FirstOrDefault(m => m.Name == "Load" && m.GetParameters().Length == 3);
 
             _loadXaml = (obj, xaml, isPreviewer) =>
             {
@@ -203,7 +205,7 @@ namespace Xamarin.Forms
                 .GetType()
                 .Assembly;
 
-            foreach(var path in paths)
+            foreach (var path in paths)
             {
                 var parts = path.Split('.');
                 var typeName = string.Join(".", parts.Take(parts.Length - 1));
@@ -217,7 +219,7 @@ namespace Xamarin.Forms
                 var rendererProperty = rendererPropInfo?.GetValue(null) as BindableProperty;
 
                 var rendererPropertyChangedInfo = rendererProperty?.GetType().GetProperty("PropertyChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-                if(rendererPropertyChangedInfo == null)
+                if (rendererPropertyChangedInfo == null)
                 {
                     continue;
                 }
@@ -277,7 +279,7 @@ namespace Xamarin.Forms
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -307,31 +309,47 @@ namespace Xamarin.Forms
                 _fileMapping[className] = item;
 
                 var type = obj.GetType();
-                var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml");
-                try
-                {
-                    if (stream == null)
-                    {
-                        var appResName = type.Assembly.GetManifestResourceNames()
-                            .FirstOrDefault(x => (x.Contains("obj.Debug.") || x.Contains("obj.Release")) && x.Contains(type.Name));
 
-                        if (!string.IsNullOrWhiteSpace(appResName))
-                        {
-                            stream = type.Assembly.GetManifestResourceStream(appResName);
-                        }
-                    }
-                    if (stream != null && stream != Stream.Null)
-                    {
-                        using (var reader = new StreamReader(stream))
-                        {
-                            var xaml = reader.ReadToEnd();
-                            item.Xaml.LoadXml(xaml);
-                        }
-                    }
-                }
-                finally
+                var getXamlForType = XamlLoaderType.GetMethod("GetXamlForType", BindingFlags.Static | BindingFlags.NonPublic);
+
+                var xaml = getXamlForType == null
+                    ? null
+                    : getXamlForType.GetParameters().Length == 2
+                        ? getXamlForType.Invoke(null, new object[] { type, true })?.ToString()
+                        : getXamlForType.Invoke(null, new object[] { type, obj, true })?.ToString();
+
+                if (xaml != null)
                 {
-                    stream?.Dispose();
+                    item.Xaml.LoadXml(xaml);
+                }
+                else
+                {
+                    var stream = type.Assembly.GetManifestResourceStream(type.FullName + ".xaml");
+                    try
+                    {
+                        if (stream == null)
+                        {
+                            var appResName = type.Assembly.GetManifestResourceNames()
+                                .FirstOrDefault(x => (x.Contains("obj.Debug.") || x.Contains("obj.Release")) && x.Contains(type.Name));
+
+                            if (!string.IsNullOrWhiteSpace(appResName))
+                            {
+                                stream = type.Assembly.GetManifestResourceStream(appResName);
+                            }
+                        }
+                        if (stream != null && stream != Stream.Null)
+                        {
+                            using (var reader = new StreamReader(stream))
+                            {
+                                xaml = reader.ReadToEnd();
+                                item.Xaml.LoadXml(xaml);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        stream?.Dispose();
+                    }
                 }
             }
 
@@ -351,7 +369,7 @@ namespace Xamarin.Forms
 
         private void DestroyElement(object obj)
         {
-            if(obj is Cell cell)
+            if (obj is Cell cell)
             {
                 cell.PropertyChanged -= OnCellPropertyChanged;
             }
@@ -400,7 +418,7 @@ namespace Xamarin.Forms
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 Console.WriteLine("### HOTRELOAD ERROR: CANNOT PARSE XAML ###");
@@ -420,7 +438,8 @@ namespace Xamarin.Forms
                     IEnumerable<ReloadItem> affectedItems;
                     if (isCss)
                     {
-                        affectedItems = _fileMapping.Values.Where(e => ContainsResourceDictionary(e, resKey));
+                        var nameParts = resKey?.Split('.');
+                        affectedItems = _fileMapping.Values.Where(e => ContainsResourceDictionary(e, resKey, nameParts));
                     }
                     else
                     {
@@ -430,15 +449,16 @@ namespace Xamarin.Forms
                                 affectedItems = _fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource"));
                                 break;
                             case "ResourceDictionary":
+                                var nameParts = resKey?.Split('.');
                                 affectedItems = _fileMapping.Values.Where(
-                                    e => ContainsResourceDictionary(e, resKey));
+                                    e => ContainsResourceDictionary(e, resKey, nameParts));
                                 break;
                             default:
                                 return;
                         }
 
                         //reload all data in case of app resources update
-                        if(affectedItems.Any(x => x.Objects.Any(r => r is Application)))
+                        if (affectedItems.Any(x => x.Objects.Any(r => r is Application)))
                         {
                             affectedItems = affectedItems.Union(_fileMapping.Values.Where(x => x.Xaml.InnerXml.Contains("StaticResource")));
                         }
@@ -452,7 +472,7 @@ namespace Xamarin.Forms
                         }
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     Console.WriteLine(ex);
                     Console.WriteLine("### HOTRELOAD ERROR: CANNOT PARSE XAML ###");
@@ -471,9 +491,9 @@ namespace Xamarin.Forms
 
             //[0] Parse new xaml with resources
             var rebuildEx = RebuildElement(obj, xamlDoc);
-            if(!(obj is VisualElement) && !(obj is Application))
+            if (!(obj is VisualElement) && !(obj is Application))
             {
-                if(rebuildEx != null)
+                if (rebuildEx != null)
                 {
                     throw rebuildEx;
                 }
@@ -515,7 +535,7 @@ namespace Xamarin.Forms
                 else if (dict.Source != null)
                 {
                     var dId = GetResId(dict.Source, obj);
-                    if(dId != null)
+                    if (dId != null)
                     {
                         sourceItem = _fileMapping.FirstOrDefault(it => it.Key.EndsWith(dId, StringComparison.Ordinal)).Value;
                         if (sourceItem != null)
@@ -532,23 +552,23 @@ namespace Xamarin.Forms
                 }
 
                 var styleSheets = dict.GetType().GetProperty("StyleSheets", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(dict) as IList<StyleSheets.StyleSheet>;
-                if(styleSheets != null)
+                if (styleSheets != null)
                 {
                     var sheets = xamlDoc.GetElementsByTagName("StyleSheet");
-                    for(var i = 0; i < styleSheets.Count; ++i)
+                    for (var i = 0; i < styleSheets.Count; ++i)
                     {
                         var src = sheets[i].Attributes["Source"];
-                        if(src == null)
+                        if (src == null)
                         {
                             continue;
                         }
                         var rId = GetResId(new Uri(src.Value, UriKind.Relative), obj);
-                        if(rId == null)
+                        if (rId == null)
                         {
                             continue;
                         }
                         var rItem = _fileMapping.FirstOrDefault(it => it.Key.EndsWith(rId, StringComparison.Ordinal)).Value;
-                        if(rItem == null)
+                        if (rItem == null)
                         {
                             continue;
                         }
@@ -584,7 +604,7 @@ namespace Xamarin.Forms
                 rebuildEx = RebuildElement(obj, modifiedXml);
             }
 
-            if(rebuildEx != null)
+            if (rebuildEx != null)
             {
                 throw rebuildEx;
             }
@@ -665,7 +685,7 @@ namespace Xamarin.Forms
                         break;
                 }
 
-                if(IsSubclassOfShell(obj))
+                if (IsSubclassOfShell(obj))
                 {
                     var shellType = obj.GetType();
                     shellType.GetProperty("FlyoutHeaderTemplate", BindingFlags.Instance | BindingFlags.Public).SetValue(obj, null);
@@ -674,7 +694,7 @@ namespace Xamarin.Forms
                     items.GetType().GetMethod("Clear", BindingFlags.Instance | BindingFlags.Public).Invoke(items, null);
                 }
 
-                if(obj is Grid grid)
+                if (obj is Grid grid)
                 {
                     grid.RowDefinitions.Clear();
                     grid.ColumnDefinitions.Clear();
@@ -697,7 +717,7 @@ namespace Xamarin.Forms
                 LoadFromXaml(obj, xmlDoc);
                 return null;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return ex;
             }
@@ -708,7 +728,7 @@ namespace Xamarin.Forms
             var t = obj.GetType();
             while (t != null)
             {
-                if(t.FullName == "Xamarin.Forms.Shell")
+                if (t.FullName == "Xamarin.Forms.Shell")
                 {
                     return true;
                 }
@@ -733,9 +753,9 @@ namespace Xamarin.Forms
             var node = xDoc.LastChild?.LastChild?.ChildNodes?.Cast<XmlNode>().FirstOrDefault(n => n.Name.Contains(".Resources"));
             if (node != null)
             {
-                foreach(XmlNode st in node)
+                foreach (XmlNode st in node)
                 {
-                    if(st.Attributes["Source"] != null)
+                    if (st.Attributes["Source"] != null)
                     {
                         node.RemoveChild(st);
                     }
@@ -770,7 +790,7 @@ namespace Xamarin.Forms
             {
                 cell.View.Effects.Add(i);
             }
- 
+
             foreach (var prop in newCellView
                 .GetType()
                 .GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -794,7 +814,7 @@ namespace Xamarin.Forms
                     cellLayout.Children.Add(child);
                 }
             }
-            if(Math.Abs(cell.Height - newCell.Height) > double.Epsilon)
+            if (Math.Abs(cell.Height - newCell.Height) > double.Epsilon)
             {
                 cell.Height = newCell.Height;
                 cell.ForceUpdateSize();
@@ -821,7 +841,7 @@ namespace Xamarin.Forms
             }
         }
 
-        private bool ContainsResourceDictionary(ReloadItem item, string dictName)
+        private bool ContainsResourceDictionary(ReloadItem item, string dictName, string[] nameParts)
         {
             var isCss = Path.GetExtension(dictName) == ".css";
             var element = item.Objects.FirstOrDefault() as VisualElement;
@@ -839,11 +859,23 @@ namespace Xamarin.Forms
                     continue;
                 }
                 var checkItem = GetItemForReloadingSourceRes(new Uri(value, UriKind.Relative), element ?? (object)_app);
-                if(checkItem != null)
+                if (checkItem != null)
                 {
                     return true;
                 }
             }
+
+            if (nameParts?.Any() ?? false)
+            {
+                var nameSpace = string.Join("\\.", nameParts.Take(nameParts.Length - 1));
+
+                if (Regex.IsMatch(item.Xaml.InnerXml, $"[\\s]*=[\\s]*\\\".+({nameSpace})\\\"\\s", RegexOptions.Compiled) &&
+                   Regex.IsMatch(item.Xaml.InnerXml, $"[\\s]*\\:[\\s]*{nameParts.Last()}"))
+                {
+                    return true;
+                }
+            }
+
             return GetResourceDictionaries(element?.Resources).Any(x => x.GetType().FullName == dictName);
         }
 
@@ -872,7 +904,7 @@ namespace Xamarin.Forms
 
         private void OnCellPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if(e.PropertyName == "Parent" && (sender as Cell).Parent == null)
+            if (e.PropertyName == "Parent" && (sender as Cell).Parent == null)
             {
                 DestroyElement(sender);
             }
