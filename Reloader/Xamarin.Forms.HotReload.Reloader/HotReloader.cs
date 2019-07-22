@@ -312,11 +312,30 @@ namespace Xamarin.Forms
 
                 var getXamlForType = XamlLoaderType.GetMethod("GetXamlForType", BindingFlags.Static | BindingFlags.NonPublic);
 
-                var xaml = getXamlForType == null
-                    ? null
-                    : getXamlForType.GetParameters().Length == 2
-                        ? getXamlForType.Invoke(null, new object[] { type, true })?.ToString()
-                        : getXamlForType.Invoke(null, new object[] { type, obj, true })?.ToString();
+                string xaml = null;
+                try
+                {
+                    var length = getXamlForType?.GetParameters()?.Length;
+                    if(length.HasValue)
+                    {
+                        switch(length.Value)
+                        {
+                            case 1:
+                                xaml = getXamlForType.Invoke(null, new object[] { type })?.ToString();
+                                break;
+                            case 2:
+                                xaml = getXamlForType.Invoke(null, new object[] { type, true })?.ToString();
+                                break;
+                            case 3:
+                                getXamlForType.Invoke(null, new object[] { type, obj, true })?.ToString();
+                                break;
+                        }
+                    }
+                }
+                catch
+                {
+                    //preserve
+                }
 
                 if (xaml != null)
                 {
