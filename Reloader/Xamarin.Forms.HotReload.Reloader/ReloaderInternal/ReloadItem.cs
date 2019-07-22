@@ -17,6 +17,9 @@ namespace Xamarin.Forms
             public HashSet<object> Objects { get; }
             public bool HasUpdates { get; set; }
             public string Css { get; set; }
+
+            public string CodeKey { get; set; }
+            public string Code { get; set; }
         }
     }
 }

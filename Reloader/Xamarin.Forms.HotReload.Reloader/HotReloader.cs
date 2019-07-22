@@ -229,14 +229,13 @@ namespace Xamarin.Forms
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                    if (!HasCodegenAttribute(bindable))
-                    {
-                        return;
-                    }
-
                     if (newValue != null)
                     {
-                        InitializeElement(bindable);
+                        if (HasCodegenAttribute(bindable))
+                        {
+                            InitializeElement(bindable);
+                        }
+                        //InitializeCodeElement(bindable);
                         return;
                     }
 
@@ -408,6 +407,7 @@ namespace Xamarin.Forms
         private void ReloadElements(string content, string path)
         {
             var isCss = Path.GetExtension(path) == ".css";
+            var isCode = Path.GetExtension(path) == ".cs";
             var resKey = RetrieveClassName(content);
 
             if (string.IsNullOrWhiteSpace(resKey))
