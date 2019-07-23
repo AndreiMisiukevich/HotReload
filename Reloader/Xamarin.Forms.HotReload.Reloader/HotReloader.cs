@@ -408,6 +408,22 @@ namespace Xamarin.Forms
         {
             var isCss = Path.GetExtension(path) == ".css";
             var isCode = Path.GetExtension(path) == ".cs";
+
+            //TODO: REMOVE
+            if(isCode)
+            {
+
+                var nameSpace = Regex.Match(content, "namespace[\\s]*(.+\\s)").Groups[1]?.Value?.Trim();
+                var className = Regex.Match(content, "class[\\s]*(.+\\s)").Groups[1]?.Value?.Split(new char[] { ':', ' ' }).FirstOrDefault();
+                var inst = HotCompiler.Current.Compile(content, $"{nameSpace}.{className}") as ContentPage;
+                if(inst == null)
+                {
+                    return;
+                }
+                Device.BeginInvokeOnMainThread(() => _app.MainPage = inst);
+                return;
+            }
+
             var resKey = RetrieveClassName(content);
 
             if (string.IsNullOrWhiteSpace(resKey))
