@@ -24,6 +24,8 @@ namespace Xamarin.Forms
             public int ExtensionAutoDiscoveryPort { internal get; set; }
 
             public PreviewerMode PreviewerDefaultMode { get; set; }
+
+            public bool IsCodeReloadingEnabled { get; set; }
         }
 
         public sealed class ReloaderStartupInfo

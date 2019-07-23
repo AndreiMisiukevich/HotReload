@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Mono.CSharp;
 
@@ -7,11 +8,11 @@ namespace Xamarin.Forms
 {
     internal sealed class HotCompiler
     {
-        private static readonly Lazy<HotCompiler> _lazyHotReloader;
+        private static readonly Lazy<HotCompiler> _lazyHotCompiler;
 
-        static HotCompiler() => _lazyHotReloader = new Lazy<HotCompiler>(() => new HotCompiler());
+        static HotCompiler() => _lazyHotCompiler = new Lazy<HotCompiler>(() => new HotCompiler());
 
-        public static HotCompiler Current => _lazyHotReloader.Value;
+        public static HotCompiler Current => _lazyHotCompiler.Value;
 
         private readonly Evaluator _evaluator;
         private readonly ConsoleReportPrinter _reporter;
@@ -30,83 +31,63 @@ namespace Xamarin.Forms
             }, _reporter);
             _evaluator = new Evaluator(context);
 
-            AppDomain.CurrentDomain.AssemblyLoad += (_, e) => LoadAssembly(e.LoadedAssembly);
+            AppDomain.CurrentDomain.AssemblyLoad += (_, e) => TryLoadAssembly(e.LoadedAssembly);
             foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
             {
-                LoadAssembly(a);
+                TryLoadAssembly(a);
             }
+
+            //TODO: should be ADDED! new types would be created with some suffixes
+            //TryLoadAssembly(HotReloader.Current.App.GetType().Assembly);
         }
 
-        private void LoadAssembly(Assembly assembly)
+        public Type Compile(string code, string className)
         {
-            var name = assembly.GetName().Name;
-            if (name == "mscorlib" ||
-                name == "System" ||
-                name == "System.Core" ||
-                name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
-                return;
-            _evaluator?.ReferenceAssembly(assembly);
-        }
+            //var oldClassName = className.Split('.').LastOrDefault();
+            //className = oldClassName + "GENERATED_POSTFIX" + Path.GetRandomFileName();
+            //code = code.Replace(oldClassName, className);
 
-        private readonly string _code;
-        private readonly Assembly[] _referencedAssemblies;
-        private readonly string _mainClassName;
-
-        public HotCompiler(string code, string mainClassName, params Assembly[] referencedAssemblies)
-        {
-            _code = code;
-            _mainClassName = mainClassName;
-            _referencedAssemblies = referencedAssemblies;
-        }
-
-        public object Compile(string code, string className)
-        {
             var writerStringBuilder = _writer.GetStringBuilder();
             writerStringBuilder.Remove(0, writerStringBuilder.Length);
-
+            
             try
             {
-//                _evaluator.Run(@"
-//using System;
-//using System.Net;
-//using System.Net.Sockets;
-//using System.Threading;
-//using System.Net.Http;
-//using System.Collections.Concurrent;
-//using System.Linq;
-//using Xamarin.Forms.Internals;
-//using Xamarin.Forms.Xaml;
-//using System.Text.RegularExpressions;
-//using System.Net.NetworkInformation;
-//using System.CodeDom.Compiler;
-//using System.Reflection;
-//using System.IO;
-//using System.Xml;
-//using System.Collections.Generic;
-//using System.Text;
-//using System.Threading.Tasks;
-//using System.ComponentModel;");
-
                 if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
                 {
                     throw new Exception();
                 }
-                var createMethod = _evaluator.Compile("new " + className + "()");
+                var getTypeMethod = _evaluator.Compile($"typeof({className})");
 
-                if (createMethod == null)
+                if (getTypeMethod == null)
                 {
                     throw new Exception();
                 }
 
-                object instance = null;
-                createMethod(ref instance);
-                return instance;
+                object typeObject = null;
+                getTypeMethod(ref typeObject);
+                var type = typeObject as Type;
+                return type;
             }
             catch
             {
                 Console.WriteLine($"HOTRELOADER ERROR: {_writer.ToString()}");
                 return null;
             }
+        }
+
+        private bool TryLoadAssembly(Assembly assembly)
+        {
+            var name = assembly.GetName().Name;
+            if (name == "mscorlib" ||
+                name == "System" ||
+                name == "System.Core" ||
+                name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return false;
+            }
+
+            _evaluator?.ReferenceAssembly(assembly);
+            return true;
         }
     }
 }

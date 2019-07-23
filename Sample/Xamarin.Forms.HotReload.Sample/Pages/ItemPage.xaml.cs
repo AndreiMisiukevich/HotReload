@@ -5,6 +5,7 @@
         public ItemPage()
         {
             InitializeComponent();
+            BackgroundColor = Color.Red;
         }
     }
 }
