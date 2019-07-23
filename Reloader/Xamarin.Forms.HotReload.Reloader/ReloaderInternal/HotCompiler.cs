@@ -7,6 +7,47 @@ namespace Xamarin.Forms
 {
     internal sealed class HotCompiler
     {
+        private static readonly Lazy<HotCompiler> _lazyHotReloader;
+
+        static HotCompiler() => _lazyHotReloader = new Lazy<HotCompiler>(() => new HotCompiler());
+
+        public static HotCompiler Current => _lazyHotReloader.Value;
+
+        private readonly Evaluator _evaluator;
+        private readonly ConsoleReportPrinter _reporter;
+        private readonly StringWriter _writer;
+
+        private HotCompiler()
+        {
+            _writer = new StringWriter();
+            _reporter = new ConsoleReportPrinter(_writer);
+            var context = new CompilerContext(new CompilerSettings
+            {
+                GenerateDebugInfo = false,
+                WarningsAreErrors = false,
+                LoadDefaultReferences = true,
+                Optimize = true,
+            }, _reporter);
+            _evaluator = new Evaluator(context);
+
+            AppDomain.CurrentDomain.AssemblyLoad += (_, e) => LoadAssembly(e.LoadedAssembly);
+            foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                LoadAssembly(a);
+            }
+        }
+
+        private void LoadAssembly(Assembly assembly)
+        {
+            var name = assembly.GetName().Name;
+            if (name == "mscorlib" ||
+                name == "System" ||
+                name == "System.Core" ||
+                name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
+                return;
+            _evaluator?.ReferenceAssembly(assembly);
+        }
+
         private readonly string _code;
         private readonly Assembly[] _referencedAssemblies;
         private readonly string _mainClassName;
@@ -18,56 +59,39 @@ namespace Xamarin.Forms
             _referencedAssemblies = referencedAssemblies;
         }
 
-        public object Compile()
+        public object Compile(string code, string className)
         {
-            var writer = new StringWriter();
-            var reporter = new ConsoleReportPrinter(writer);
+            var writerStringBuilder = _writer.GetStringBuilder();
+            writerStringBuilder.Remove(0, writerStringBuilder.Length);
+
             try
             {
-                var context = new CompilerContext(new CompilerSettings
-                {
-                    GenerateDebugInfo = false,
-                    WarningsAreErrors = false,
-                    LoadDefaultReferences = true,
-                    Optimize = true,
-                }, reporter);
-                var evaluator = new Evaluator(context);
+//                _evaluator.Run(@"
+//using System;
+//using System.Net;
+//using System.Net.Sockets;
+//using System.Threading;
+//using System.Net.Http;
+//using System.Collections.Concurrent;
+//using System.Linq;
+//using Xamarin.Forms.Internals;
+//using Xamarin.Forms.Xaml;
+//using System.Text.RegularExpressions;
+//using System.Net.NetworkInformation;
+//using System.CodeDom.Compiler;
+//using System.Reflection;
+//using System.IO;
+//using System.Xml;
+//using System.Collections.Generic;
+//using System.Text;
+//using System.Threading.Tasks;
+//using System.ComponentModel;");
 
-                evaluator.ReferenceAssembly(typeof(Label).Assembly);
-                evaluator.ReferenceAssembly(typeof(Xaml.StaticExtension).Assembly);
-                evaluator.ReferenceAssembly(typeof(Uri).Assembly);
-                evaluator.ReferenceAssembly(typeof(Action).Assembly);
-                foreach(var assembly in _referencedAssemblies)
-                {
-                    evaluator.ReferenceAssembly(assembly);
-                }
-
-                evaluator.Run(@"using System;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-using System.Net.Http;
-using System.Collections.Concurrent;
-using System.Linq;
-using Xamarin.Forms.Internals;
-using Xamarin.Forms.Xaml;
-using System.Text.RegularExpressions;
-using System.Net.NetworkInformation;
-using System.CodeDom.Compiler;
-using System.Reflection;
-using System.IO;
-using System.Xml;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-using System.ComponentModel;");
-
-                if (!evaluator.Run(_code) || reporter.ErrorsCount > 0)
+                if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
                 {
                     throw new Exception();
                 }
-
-                var createMethod = evaluator.Compile("new " + _mainClassName + "()");
+                var createMethod = _evaluator.Compile("new " + className + "()");
 
                 if (createMethod == null)
                 {
@@ -80,7 +104,7 @@ using System.ComponentModel;");
             }
             catch
             {
-                Console.WriteLine($"HOTRELOADER ERROR: {writer.ToString()}");
+                Console.WriteLine($"HOTRELOADER ERROR: {_writer.ToString()}");
                 return null;
             }
         }

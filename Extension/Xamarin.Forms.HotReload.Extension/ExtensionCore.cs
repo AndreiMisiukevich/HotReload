@@ -15,6 +15,7 @@ namespace Xamarin.Forms.HotReload.Extension
     {
         private const string XamlResourceExtension = ".xaml";
         private const string CssResourceExtension = ".css";
+        private const string CsFileExtension = ".cs";
 
         private readonly IGuiService _guiService;
         private readonly ISettingsService _settingsService;
@@ -35,7 +36,8 @@ namespace Xamarin.Forms.HotReload.Extension
             _supportedResourceExtensions = new HashSet<string>
             {
                 XamlResourceExtension,
-                CssResourceExtension
+                CssResourceExtension,
+                CsFileExtension
             };
         }
 
@@ -167,18 +169,26 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private async void OnEnviromentDocumentSaved(object sender, DevEnviromentDocument e)
         {
-            var documentExtension = Path.GetExtension(e.Path);
+            var documentExtension = Path.GetExtension(e.Path)?.ToLowerInvariant();
 
             try
             {
-                if (_supportedResourceExtensions.Contains(documentExtension.ToLowerInvariant()))
+                if (_supportedResourceExtensions.Contains(documentExtension))
                 {
+                    if(documentExtension == CsFileExtension && string.IsNullOrWhiteSpace(e.Content))
+                    {
+                        e.Content = File.ReadAllText(e.Path);
+                    }
                     await _clientsHolder.UpdateResourceAsync(e.Path, e.Content);
                 }
             }
             catch (AggregateException)
             {
                 _logger.Log($"{TextResources.Update_Failed_Message} {TextResources.Device_Offline_Message}");
+            }
+            catch
+            {
+                _logger.Log($"{TextResources.Update_Failed_Message} {TextResources.Unknown_Error}");
             }
         }
     }
