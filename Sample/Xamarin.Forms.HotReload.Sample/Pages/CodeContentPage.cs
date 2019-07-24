@@ -18,8 +18,7 @@ namespace Xamarin.Forms.HotReload.Sample.Pages
                     new Button
                     {
                         FontSize = 40,
-                        Text = "Text!",
-                        Command = new Command()
+                        Text = "Text!"
                     }
                 }
             };
