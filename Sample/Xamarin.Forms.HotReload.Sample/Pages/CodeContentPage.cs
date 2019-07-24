@@ -1,29 +1,30 @@
-﻿
-using Xamarin.Forms.HotReload.Sample.ViewModels;
-
-namespace Xamarin.Forms.HotReload.Sample.Pages
+﻿namespace Xamarin.Forms.HotReload.Sample.Pages
 {
-    [HotReloader.CSharp]
-    public class CodeContentPage : ContentPage
+    [HotReloader.CSharpVisual]
+    public class CodeContentPage : ContentPage, ICsharpRestorable
     {
-        public CodeContentPage()
+        private Color _backColor;
+
+        public CodeContentPage(Color backColor)
         {
-            BackgroundColor = Color.Green;
+            BackgroundColor = _backColor = backColor;
             Content = new StackLayout
             {
-                BackgroundColor = Color.White,
+                BackgroundColor = Color.Red,
                 Margin = 50,
                 Children =
                 {
                     new Button
                     {
                         FontSize = 40,
-                        Text = "Text!"
+                        Text = "Text."
                     }
                 }
             };
 
             this.SetBinding(TitleProperty, "Title");
         }
+
+        public object[] RestoringConstructorParameters => new object[] { _backColor };
     }
 }

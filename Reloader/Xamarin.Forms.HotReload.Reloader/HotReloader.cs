@@ -17,9 +17,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 
 namespace Xamarin.Forms
 {
@@ -239,7 +237,7 @@ namespace Xamarin.Forms
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                    var isCSharpReloadable = bindable?.GetType().GetCustomAttribute<CSharpAttribute>() != null;
+                    var isCSharpReloadable = bindable?.GetType().GetCustomAttribute<CSharpVisualAttribute>() != null;
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
                     if (!isCSharpReloadable && !hasCodegenAttribute)
@@ -570,10 +568,11 @@ namespace Xamarin.Forms
         {
             if(!string.IsNullOrWhiteSpace(reloadItem.Code))
             {
+                var parameters = (obj as ICsharpRestorable)?.RestoringConstructorParameters ?? new object[0];
                 switch (obj)
                 {
                     case Page page:
-                        var newPage = Activator.CreateInstance(csharpType) as Page;
+                        var newPage = Activator.CreateInstance(csharpType, parameters) as Page;
                         if (newPage == null)
                         {
                             return;
@@ -590,7 +589,7 @@ namespace Xamarin.Forms
                         //page.Navigation.RemovePage(page); //Works with animation. Not so neat
                         break;
                     case View view:
-                        var newView = Activator.CreateInstance(csharpType) as View;
+                        var newView = Activator.CreateInstance(csharpType, parameters) as View;
                         if (newView == null)
                         {
                             return;
