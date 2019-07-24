@@ -18,6 +18,9 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+
 namespace Xamarin.Forms
 {
     public sealed partial class HotReloader
@@ -31,9 +34,10 @@ namespace Xamarin.Forms
         private string _prevXaml;
         private Thread _daemonThread;
         private ConcurrentDictionary<string, ReloadItem> _resourceMapping;
-        private readonly Type _xamlFilePathAttributeType = typeof(XamlFilePathAttribute);
         private readonly object _requestLocker = new object();
         private Action<object, string, bool?> _loadXaml;
+
+        private VisualElement _ignoredElementInit;
 
         private Type _xamlLoaderType;
         Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
@@ -233,9 +237,17 @@ namespace Xamarin.Forms
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
+                    var isCSharpReloadable = bindable?.GetType().GetCustomAttribute<CSharpAttribute>() != null;
+                    var hasCodegenAttribute = HasCodegenAttribute(bindable);
+
+                    if (!isCSharpReloadable && !hasCodegenAttribute)
+                    {
+                        return;
+                    }
+
                     if (newValue != null)
                     {
-                        InitializeElement(bindable, HasCodegenAttribute(bindable));
+                        InitializeElement(bindable, hasCodegenAttribute);
                         return;
                     }
 
@@ -288,14 +300,14 @@ namespace Xamarin.Forms
             }
         }
 
-        private ReloadItem InitializeElement(object obj, bool hasCodeGenAttr, bool isInjected = false)
+        private async void InitializeElement(object obj, bool hasCodeGenAttr, bool isInjected = false)
         {
             if (obj == null)
             {
-                return null;
+                return;
             }
 
-            if (obj is Cell cell)
+            if (obj is Cell cell && _ignoredElementInit != obj)
             {
                 cell.PropertyChanged += OnCellPropertyChanged;
             }
@@ -379,15 +391,24 @@ namespace Xamarin.Forms
                 item.Objects.Add(obj);
             }
 
-            if ((!item.HasUpdates && !isInjected) || !item.HasXaml)
+            if(_ignoredElementInit == obj)
+            {
+                return;
+            }
+
+            if (!item.HasUpdates && !isInjected)
             {
                 OnLoaded(obj);
             }
             else
             {
-                ReloadElement(obj, item);
+                var csharpType = !string.IsNullOrWhiteSpace(item.Code) ? HotCompiler.Current.Compile(item.Code, obj.GetType().FullName) : null;
+                if(csharpType != null)
+                {
+                    await Task.Delay(50);
+                }
+                ReloadElement(obj, item, csharpType);
             }
-            return item;
         }
 
         private void DestroyElement(object obj)
@@ -412,83 +433,39 @@ namespace Xamarin.Forms
         private void ReloadElements(string content, string path)
         {
             ReloadItem item = null;
-
+            string resKey = null;
+            Type csharpType = null;
+             
             var isCss = Path.GetExtension(path) == ".css";
             var isCode = Path.GetExtension(path) == ".cs";
 
             if(isCode)
             {
-                var originalContent = content;
                 content = content.Replace("InitializeComponent()", "HotReloader.Current.InjectComponentInitialization(this)");
                 var nameSpace = Regex.Match(content, "namespace[\\s]*(.+\\s)").Groups[1]?.Value?.Trim();
                 var className = Regex.Match(content, "class[\\s]*(.+\\s)").Groups[1]?.Value?.Split(new char[] { ':', ' ' }).FirstOrDefault()?.Trim();
-                var fullClassName = $"{nameSpace}.{className}";
-                var type = HotCompiler.Current.Compile(content, fullClassName);
-                if(!_resourceMapping.TryGetValue(fullClassName, out item))
+                resKey = $"{nameSpace}.{className}";
+                csharpType = HotCompiler.Current.Compile(content, resKey);
+                if(csharpType == null)
+                {
+                    return;
+                }
+
+                if(!_resourceMapping.TryGetValue(resKey, out item))
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        foreach (var page in _resourceMapping.Values.SelectMany(x => x.Objects).OfType<ContentPage>().Where(x => x.BindingContext?.GetType().FullName == fullClassName))
+                        foreach (var page in _resourceMapping.Values.SelectMany(x => x.Objects).OfType<ContentPage>().Where(x => x.BindingContext?.GetType().FullName == resKey))
                         {
-                            var newContext = Activator.CreateInstance(type);
+                            var newContext = Activator.CreateInstance(csharpType);
                             page.BindingContext = newContext;
                         }
                     });
                     return;
                 }
-                item.Code = originalContent;
-                Device.BeginInvokeOnMainThread(() =>
-                {
-                    foreach (var elem in item.Objects.ToArray())
-                    {
-                        switch (elem)
-                        {
-                            case Page page:
-                                var newPage = Activator.CreateInstance(type) as Page;
-                                if (newPage == null)
-                                {
-                                    return;
-                                }
-                                if(App.MainPage == page)
-                                {
-                                    App.MainPage = newPage;
-                                    break;
-                                }
-                                newPage.BindingContext = page.BindingContext;
-                                page.Navigation.InsertPageBefore(newPage, page);
-                                page.Navigation.PopAsync(false);
-                                //page.Navigation.RemovePage(page);
-                                break;
-                            case View view:
-                                var newView = Activator.CreateInstance(type) as View;
-                                if (newView == null)
-                                {
-                                    return;
-                                }
-                                switch(view.Parent)
-                                {
-                                    case ContentView contentView:
-                                        contentView.Content = newView;
-                                        break;
-                                    case ScrollView scrollView:
-                                        scrollView.Content = newView;
-                                        break;
-                                    case Layout<View> layout:
-                                        var index = layout.Children.IndexOf(view);
-                                        layout.Children.Insert(index, newView);
-                                        layout.Children.Remove(view);
-                                        break;
-                                }
-                                break;
-                        }
-
-                    }
-                });
-
-                return;
             }
 
-            var resKey = RetrieveClassName(content);
+            resKey = resKey ?? RetrieveClassName(content);
 
             if (string.IsNullOrWhiteSpace(resKey))
             {
@@ -505,6 +482,10 @@ namespace Xamarin.Forms
                 if (isCss)
                 {
                     item.Css = content;
+                }
+                if (isCode)
+                {
+                    item.Code = content;
                 }
                 else
                 {
@@ -528,9 +509,14 @@ namespace Xamarin.Forms
                 try
                 {
                     item.HasUpdates = true;
-                    foreach (var element in item.Objects)
+                    foreach (var element in item.Objects.ToArray())
                     {
-                        ReloadElement(element, item);
+                        ReloadElement(element, item, csharpType);
+                    }
+
+                    if (isCode)
+                    {
+                        return;
                     }
 
                     IEnumerable<ReloadItem> affectedItems;
@@ -578,8 +564,60 @@ namespace Xamarin.Forms
             });
         }
 
-        private void ReloadElement(object obj, ReloadItem reloadItem)
+        private void ReloadElement(object obj, ReloadItem reloadItem, Type csharpType = null)
         {
+            if(!string.IsNullOrWhiteSpace(reloadItem.Code))
+            {
+                switch (obj)
+                {
+                    case Page page:
+                        var newPage = Activator.CreateInstance(csharpType) as Page;
+                        if (newPage == null)
+                        {
+                            return;
+                        }
+                        _ignoredElementInit = newPage;
+                        if (App.MainPage == page)
+                        {
+                            App.MainPage = newPage;
+                            break;
+                        }
+                        newPage.BindingContext = page.BindingContext;
+                        page.Navigation.InsertPageBefore(newPage, page);
+                        page.Navigation.PopAsync(false);
+                        //page.Navigation.RemovePage(page); //Works with animation. Not so neat
+                        break;
+                    case View view:
+                        var newView = Activator.CreateInstance(csharpType) as View;
+                        if (newView == null)
+                        {
+                            return;
+                        }
+                        _ignoredElementInit = newView;
+                        switch (view.Parent)
+                        {
+                            case ContentView contentView:
+                                contentView.Content = newView;
+                                break;
+                            case ScrollView scrollView:
+                                scrollView.Content = newView;
+                                break;
+                            case Layout<View> layout:
+                                var index = layout.Children.IndexOf(view);
+                                layout.Children.Insert(index, newView);
+                                layout.Children.Remove(view);
+                                break;
+                        }
+                        break;
+                }
+            }
+
+            if(!reloadItem.HasXaml)
+            {
+                OnLoaded(obj);
+                return;
+            }
+
             var xamlDoc = reloadItem.Xaml;
 
             if (obj is VisualElement ve)
@@ -1028,7 +1066,7 @@ namespace Xamarin.Forms
         }
 
         private bool HasCodegenAttribute(BindableObject bindable)
-            => bindable.GetType().CustomAttributes.Any(x => x.AttributeType == _xamlFilePathAttributeType);
+            => bindable.GetType().GetCustomAttribute<XamlFilePathAttribute>() != null;
 
         private void OnLoaded(object element)
             => (element as IReloadable)?.OnLoaded();
