@@ -187,6 +187,8 @@ namespace Xamarin.Forms
                 }
             });
 
+            Task.Run(() => HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler"));
+
             return new ReloaderStartupInfo
             {
                 SelectedDevicePort = devicePort,
