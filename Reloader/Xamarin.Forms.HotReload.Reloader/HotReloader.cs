@@ -379,7 +379,7 @@ namespace Xamarin.Forms
                 item.Objects.Add(obj);
             }
 
-            if (!item.HasUpdates && !isInjected)
+            if ((!item.HasUpdates && !isInjected) || !item.HasXaml)
             {
                 OnLoaded(obj);
             }
