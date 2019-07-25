@@ -584,6 +584,25 @@ namespace Xamarin.Forms
                             break;
                         }
                         newPage.BindingContext = page.BindingContext;
+
+
+                        if (page.Parent is MultiPage<Page> mPage)
+                        {
+                            mPage.Children.Insert(mPage.Children.IndexOf(page), newPage);
+                            mPage.Children.Remove(page);
+                            break;
+                        }
+                        if(page.Parent is MasterDetailPage mdPage)
+                        {
+                            if(mdPage.Master == page)
+                            {
+                                mdPage.Master = newPage;
+                            } else if(mdPage.Detail == page)
+                            {
+                                mdPage.Detail = newPage;
+                            }
+                            break;
+                        }
                         page.Navigation.InsertPageBefore(newPage, page);
                         page.Navigation.PopAsync(false);
                         //page.Navigation.RemovePage(page); //Works with animation. Not so neat
@@ -604,8 +623,7 @@ namespace Xamarin.Forms
                                 scrollView.Content = newView;
                                 break;
                             case Layout<View> layout:
-                                var index = layout.Children.IndexOf(view);
-                                layout.Children.Insert(index, newView);
+                                layout.Children.Insert(layout.Children.IndexOf(view), newView);
                                 layout.Children.Remove(view);
                                 break;
                         }
