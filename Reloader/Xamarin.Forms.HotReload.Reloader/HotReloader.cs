@@ -160,6 +160,7 @@ namespace Xamarin.Forms
                                     client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
                                     var emulatorData = Encoding.ASCII.GetBytes($"http://127.0.0.1:{devicePort}");
                                     client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.2.2"), possiblePort));
+                                    client.Send(emulatorData, emulatorData.Length, new IPEndPoint(IPAddress.Parse("10.0.3.2"), possiblePort));
                                 }
                             }
                             catch { }
