@@ -17,7 +17,7 @@
                     new Button
                     {
                         FontSize = 40,
-                        Text = "Text."
+                        Text = "Button Click"
                     }
                 }
             };
@@ -25,6 +25,6 @@
             this.SetBinding(TitleProperty, "Title");
         }
 
-        public object[] RestoringConstructorParameters => new object[] { _backColor };
+        public object[] ConstructorRestoringParameters => new object[] { _backColor };
     }
 }

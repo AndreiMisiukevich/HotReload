@@ -2,6 +2,6 @@
 {
     public interface ICsharpRestorable
     {
-        object[] RestoringConstructorParameters { get; }
+        object[] ConstructorRestoringParameters { get; }
     }
 }

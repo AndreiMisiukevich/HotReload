@@ -26,12 +26,12 @@ namespace Xamarin.Forms
             {
                 Current.TryLoadAssembly(a);
             }
-
-            //TODO: should be ADDED! new types would be created with some suffixes
             Current.TryLoadAssembly(HotReloader.Current.App.GetType().Assembly);
         }
 
         public static IHotCompiler Current => _lazyHotCompiler.Value;
+
+        internal static bool? IsSupported { get; set; }
 
         #region Microsoft
         private class MicrosoftHotCompiler : IHotCompiler
@@ -40,6 +40,10 @@ namespace Xamarin.Forms
 
             public Type Compile(string code, string className)
             {
+                if(IsSupported == false)
+                {
+                    return null;
+                }
                 var syntaxTree = CSharpSyntaxTree.ParseText(code);
                 var assemblyName = $"HotReload.HotCompile.{Path.GetRandomFileName().Replace(".", string.Empty) }";
 

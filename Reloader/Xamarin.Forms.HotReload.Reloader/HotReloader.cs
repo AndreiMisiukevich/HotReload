@@ -185,7 +185,11 @@ namespace Xamarin.Forms
                 }
             });
 
-            Task.Run(() => HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler"));
+            Task.Run(() =>
+            {
+                var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
+                HotCompiler.IsSupported = testType != null;
+            });
 
             return new ReloaderStartupInfo
             {
@@ -568,7 +572,7 @@ namespace Xamarin.Forms
         {
             if(!string.IsNullOrWhiteSpace(reloadItem.Code))
             {
-                var parameters = (obj as ICsharpRestorable)?.RestoringConstructorParameters ?? new object[0];
+                var parameters = (obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
                 switch (obj)
                 {
                     case Page page:
