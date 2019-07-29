@@ -15,7 +15,7 @@ namespace Xamarin.Forms.HotReload.Observer
 {
     public static class FileObserver
     {
-        private static readonly string[] _supportedFileExtensions = { ".xaml", ".css" };
+        private static readonly string[] _supportedFileExtensions = { ".xaml", ".css", ".cs" };
         private static readonly object _locker = new object();
         private static HttpClient _client;
         private static DateTime _lastChangeTime;

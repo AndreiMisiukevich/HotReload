@@ -35,6 +35,7 @@ namespace Xamarin.Forms.HotReload.Extension.MacVS.Implementations
         private void OnSolutionLoaded(object sender, SolutionEventArgs e)
         {
             OnSolutionOpened();
+            OnActiveDocumentChanged(IdeApp.Workbench, EventArgs.Empty);
         }
 
         private void OnActiveDocumentChanged(object sender, EventArgs e)
