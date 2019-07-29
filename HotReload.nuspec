@@ -17,11 +17,9 @@
       <group>
         <dependency id="Xamarin.Forms" version="3.0" />
         <dependency id="Microsoft.CodeAnalysis.CSharp" version="3.1.0" />
+        <dependency id="Mono.CSharp" version="4.0.0.143" />
       </group>
     </dependencies>
-    <frameworkAssemblies>
-      <frameworkAssembly assemblyName="Mono.CSharp"/>
-    </frameworkAssemblies>
   </metadata>
   <files>
     <!--Net Standard-->
