@@ -12,12 +12,16 @@
     <iconUrl>https://github.com/AndreiMisiukevich/HotReload/blob/master/logo/hotreload-logodesign-colored-square.png?raw=true</iconUrl>
     <description>Allows reloading XAML views from Visual Studio on your running app</description>
     <summary>Allows reloading XAML views from Visual Studio on your running app</summary>
-    <tags>livereload, live reload, hotreload, hot reload, livexaml, live xaml, xamarin froms, reloading, xaml, xamlreloading devtool, dev tool, xamarin.forms</tags>
+    <tags>livereload, live reload, hotreload, hot reload, livexaml, live xaml, xamarin froms, reloading, xaml, xamlreloading devtool, dev tool, xamarin.forms, csharp reload, code reload, csharpreload, codereload, hotreload</tags>
     <dependencies>
       <group>
-          <dependency id="Xamarin.Forms" version="3.0" />
+        <dependency id="Xamarin.Forms" version="3.0" />
+        <dependency id="Microsoft.CodeAnalysis.CSharp" version="3.1.0" />
       </group>
     </dependencies>
+    <frameworkAssemblies>
+      <frameworkAssembly assemblyName="Mono.CSharp"/>
+    </frameworkAssemblies>
   </metadata>
   <files>
     <!--Net Standard-->
