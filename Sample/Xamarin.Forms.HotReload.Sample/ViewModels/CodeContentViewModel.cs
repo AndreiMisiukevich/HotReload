@@ -9,5 +9,7 @@ namespace Xamarin.Forms.HotReload.Sample.ViewModels
         {
             Title = "I am very limited, but reloadable";
         }
+
+        public string ButtonText { get; set; } = "Click Me";
     }
 }
