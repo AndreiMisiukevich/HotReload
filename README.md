@@ -75,6 +75,38 @@ namespace YourNamespace
 ```
 **IMPORTANT:** i suggest to NOT use ```[Xaml.XamlCompilation(Xaml.XamlCompilationOptions.Compile)]``` with HotReload. It can cause errors. So, don't enable it for Debug or disable.
 
+### C# Elements reloading
+* For Reloading C# view you NEED to mark it with an attribute - **[HotReloader.CSharpVisual]**:
+```csharp
+    [HotReloader.CSharpVisual]
+    public class CodeContentPage : ContentPage
+    {
+        private Color _backColor;
+
+        public CodeContentPage(Color backColor)
+        {
+        }
+    }
+```
+**NOTE**: BindingContext will be copied automaticaly, but if your view constructor has any parameters, you will have to implement an interface - **ICsharpRestorable**:
+```csharp
+    [HotReloader.CSharpVisual]
+    public class CodeContentPage : ContentPage
+    {
+        private Color _backColor;
+
+        public CodeContentPage(Color backColor)
+        {
+            _backColor = backColor;
+            BackgroundColor = backColor;
+        }
+
+        public object[] ConstructorRestoringParameters => new object[] { _backColor }; //These arguments will be passed in case of reloading
+    }
+```
+
+* ViewModels (BindingContext) can be updated as well. No need to to mark them with any attribute.
+
 ### Additional Setup / Troubleshooting
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
