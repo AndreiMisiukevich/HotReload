@@ -175,7 +175,7 @@ namespace Xamarin.Forms.HotReload.Extension
             {
                 if (_supportedResourceExtensions.Contains(documentExtension))
                 {
-                    if(documentExtension == CsFileExtension && string.IsNullOrWhiteSpace(e.Content))
+                    if(string.IsNullOrWhiteSpace(e.Content) && File.Exists(e.Path))
                     {
                         e.Content = File.ReadAllText(e.Path);
                     }
