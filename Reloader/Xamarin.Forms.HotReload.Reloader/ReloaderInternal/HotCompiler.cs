@@ -19,9 +19,16 @@ namespace Xamarin.Forms
     {
         static HotCompiler()
         {
-            Current = Device.RuntimePlatform == Device.Android
-                    ? new MonoHotCompiler() as IHotCompiler
-                    : new MicrosoftHotCompiler();
+            try
+            {
+                Current = Device.RuntimePlatform == Device.Android
+                        ? new MonoHotCompiler() as IHotCompiler
+                        : new MicrosoftHotCompiler();
+            }
+            catch
+            {
+                Current = new StubHotCompiler();
+            }
             AppDomain.CurrentDomain.AssemblyLoad += (_, e) => Current.TryLoadAssembly(e.LoadedAssembly);
             foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
             {
@@ -38,6 +45,14 @@ namespace Xamarin.Forms
 
         internal static bool? IsSupported { get; set; }
 
+        #region Stub
+        private class StubHotCompiler : IHotCompiler
+        {
+            public Type Compile(string code, string className) => null;
+            public bool TryLoadAssembly(Assembly assembly) => false;
+        }
+        #endregion
+
         #region Microsoft
         private class MicrosoftHotCompiler : IHotCompiler
         {
@@ -49,37 +64,45 @@ namespace Xamarin.Forms
                 {
                     return null;
                 }
-                var syntaxTree = CSharpSyntaxTree.ParseText(code);
-                var assemblyName = $"HotReload.HotCompile.{Path.GetRandomFileName().Replace(".", string.Empty) }";
-
-                var compilation = CSharpCompilation.Create(
-                    assemblyName,
-                    new[] { syntaxTree },
-                    _references,
-                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-
-                using (var stream = new MemoryStream())
+                try
                 {
-                    var compilationResult = compilation.Emit(stream);
+                    var syntaxTree = CSharpSyntaxTree.ParseText(code);
+                    var assemblyName = $"HotReload.HotCompile.{Path.GetRandomFileName().Replace(".", string.Empty) }";
 
-                    if (!compilationResult.Success)
+                    var compilation = CSharpCompilation.Create(
+                        assemblyName,
+                        new[] { syntaxTree },
+                        _references,
+                        new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                    using (var stream = new MemoryStream())
                     {
-                        var failures = compilationResult.Diagnostics
-                            .Where(diagnostic => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error);
+                        var compilationResult = compilation.Emit(stream);
 
-                        foreach (var failure in failures)
+                        if (!compilationResult.Success)
                         {
-                            Console.Error.WriteLine("\t{0}: {1}", failure.Id, failure.GetMessage());
+                            var failures = compilationResult.Diagnostics
+                                .Where(diagnostic => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error);
+
+                            foreach (var failure in failures)
+                            {
+                                Console.Error.WriteLine("\t{0}: {1}", failure.Id, failure.GetMessage());
+                            }
+
+                            return null;
                         }
+                        stream.Seek(0, SeekOrigin.Begin);
 
-                        return null;
+                        var bytes = stream.ToArray();
+                        var assembly = Assembly.Load(bytes);
+                        var type = assembly.GetType(className);
+                        return type;
                     }
-                    stream.Seek(0, SeekOrigin.Begin);
-
-                    var bytes = stream.ToArray();
-                    var assembly = Assembly.Load(bytes);
-                    var type = assembly.GetType(className);
-                    return type;
+                }
+                catch
+                {
+                    Console.WriteLine($"HOTRELOADER ERROR: Couldn't compile {code}");
+                    return null;
                 }
             }
 
@@ -93,8 +116,15 @@ namespace Xamarin.Forms
                 {
                     return false;
                 }
-                _references.Add(MetadataReference.CreateFromFile(assembly.Location));
-                return true;
+                try
+                {
+                    _references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
             }
         }
 		#endregion
@@ -127,12 +157,12 @@ namespace Xamarin.Forms
                     return null;
                 }
 
-                var writerStringBuilder = _writer.GetStringBuilder();
-				writerStringBuilder.Remove(0, writerStringBuilder.Length);
-
 				try
 				{
-					if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
+                    var writerStringBuilder = _writer.GetStringBuilder();
+                    writerStringBuilder.Remove(0, writerStringBuilder.Length);
+
+                    if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
 					{
 						throw new Exception();
 					}
@@ -169,8 +199,15 @@ namespace Xamarin.Forms
 					return false;
 				}
 
-				_evaluator?.ReferenceAssembly(assembly);
-				return true;
+                try
+                {
+                    _evaluator?.ReferenceAssembly(assembly);
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
 			}
 		}
 		#endregion

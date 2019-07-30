@@ -188,8 +188,15 @@ namespace Xamarin.Forms
 
             Task.Run(() =>
             {
-                var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
-                HotCompiler.IsSupported = testType != null;
+                try
+                {
+                    var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
+                    HotCompiler.IsSupported = testType != null;
+                }
+                catch
+                {
+                    HotCompiler.IsSupported = false;
+                }
             });
 
             return new ReloaderStartupInfo
