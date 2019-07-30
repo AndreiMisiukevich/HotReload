@@ -616,8 +616,14 @@ namespace Xamarin.Forms
                             break;
                         }
                         page.Navigation.InsertPageBefore(newPage, page);
-                        page.Navigation.PopAsync(false);
-                        //page.Navigation.RemovePage(page); //Works with animation. Not so neat
+                        if (page.Navigation.NavigationStack.LastOrDefault() == page)
+                        {
+                            page.Navigation.PopAsync(false);
+                        }
+                        else
+                        {
+                            page.Navigation.RemovePage(page);
+                        }
                         break;
                     case View view:
                         var newView = Activator.CreateInstance(csharpType, parameters) as View;

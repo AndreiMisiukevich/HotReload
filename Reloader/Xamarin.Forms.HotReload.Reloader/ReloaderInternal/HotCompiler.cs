@@ -60,7 +60,7 @@ namespace Xamarin.Forms
 
             public Type Compile(string code, string className)
             {
-                if(IsSupported == false)
+                if (IsSupported == false)
                 {
                     return null;
                 }
@@ -127,77 +127,77 @@ namespace Xamarin.Forms
                 }
             }
         }
-		#endregion
+        #endregion
 
-		#region Mono
-		private sealed class MonoHotCompiler : IHotCompiler
-		{
-			private readonly Evaluator _evaluator;
-			private readonly ConsoleReportPrinter _reporter;
-			private readonly StringWriter _writer;
+        #region Mono
+        private sealed class MonoHotCompiler : IHotCompiler
+        {
+            private readonly Evaluator _evaluator;
+            private readonly ConsoleReportPrinter _reporter;
+            private readonly StringWriter _writer;
 
-			internal MonoHotCompiler()
-			{
-				_writer = new StringWriter();
-				_reporter = new ConsoleReportPrinter(_writer);
-				var context = new CompilerContext(new CompilerSettings
-				{
-					GenerateDebugInfo = false,
-					WarningsAreErrors = false,
-					LoadDefaultReferences = true,
-					Optimize = true
-				}, _reporter);
-				_evaluator = new Evaluator(context);
-			}
+            internal MonoHotCompiler()
+            {
+                _writer = new StringWriter();
+                _reporter = new ConsoleReportPrinter(_writer);
+                var context = new CompilerContext(new CompilerSettings
+                {
+                    GenerateDebugInfo = false,
+                    WarningsAreErrors = false,
+                    LoadDefaultReferences = true,
+                    Optimize = true
+                }, _reporter);
+                _evaluator = new Evaluator(context);
+            }
 
-			public Type Compile(string code, string className)
-			{
+            public Type Compile(string code, string className)
+            {
                 if (IsSupported == false)
                 {
                     return null;
                 }
 
-				try
-				{
+                try
+                {
                     var writerStringBuilder = _writer.GetStringBuilder();
                     writerStringBuilder.Remove(0, writerStringBuilder.Length);
 
                     if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
-					{
-						throw new Exception();
-					}
-					var getTypeMethod = _evaluator.Compile($"typeof({className})");
+                    {
+                        throw new Exception();
+                    }
+                    var getTypeMethod = _evaluator.Compile($"typeof({className})");
 
-					if (getTypeMethod == null)
-					{
-						throw new Exception();
-					}
+                    if (getTypeMethod == null)
+                    {
+                        throw new Exception();
+                    }
 
-					object typeObject = null;
-					getTypeMethod(ref typeObject);
-					var type = typeObject as Type;
-					return type;
-				}
-				catch
-				{
-					Console.WriteLine($"HOTRELOADER ERROR: {_writer.ToString()}");
-					return null;
-				}
-			}
+                    object typeObject = null;
+                    getTypeMethod(ref typeObject);
+                    var type = typeObject as Type;
+                    return type;
+                }
+                catch
+                {
+                    Console.WriteLine($"HOTRELOADER ERROR: {_writer.ToString()}");
+                    return null;
+                }
+            }
 
-			public bool TryLoadAssembly(Assembly assembly)
-			{
-				var name = assembly.GetName().Name;
-				if (name == "mscorlib" ||
-					name == "System" ||
-					name == "System.Core" ||
-					name.StartsWith("Mono.CSharp", StringComparison.CurrentCultureIgnoreCase) ||
-					name.StartsWith("Microsoft.CodeAnalysis", StringComparison.CurrentCultureIgnoreCase) ||
-					name.StartsWith("HotReload.HotCompile", StringComparison.CurrentCultureIgnoreCase) ||
-					name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
-				{
-					return false;
-				}
+            public bool TryLoadAssembly(Assembly assembly)
+            {
+                var name = assembly.GetName().Name;
+                if (name == "mscorlib" ||
+                    name == "System" ||
+                    name == "System.Core" ||
+                    name.StartsWith("Mono.CSharp", StringComparison.CurrentCultureIgnoreCase) ||
+                    name.StartsWith("Microsoft.CodeAnalysis", StringComparison.CurrentCultureIgnoreCase) ||
+                    name.StartsWith("HotReload.HotCompile", StringComparison.CurrentCultureIgnoreCase) ||
+                    name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
+                {
+                    return false;
+                }
 
                 try
                 {
@@ -208,8 +208,8 @@ namespace Xamarin.Forms
                 {
                     return false;
                 }
-			}
-		}
-		#endregion
-	}
+            }
+        }
+        #endregion
+    }
 }
