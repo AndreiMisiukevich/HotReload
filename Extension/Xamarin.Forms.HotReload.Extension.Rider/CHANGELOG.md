@@ -1,5 +1,5 @@
 # Changelog
 
-## 1.3.1
-- Fix: close socket when solution/application disappears
-- Updated core of plugin
+## 1.4.0
+- Added support of 2019.2 Rider versions
+- Support .cs files reloading
