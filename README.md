@@ -110,6 +110,8 @@ public class CodeContentPage : ContentPage
 
 ### Additional Setup / Troubleshooting
 
+0) If you want to disable HotReload for Release mode, follow instructions here https://github.com/AndreiMisiukevich/HotReload/issues/115#issuecomment-522475773
+
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure your PC/Mac and device/emulator are in the same local network.)
 
