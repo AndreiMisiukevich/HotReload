@@ -11,10 +11,12 @@
       any configuration
   </description>
 
-    <project-components>
+    <application-components>
         <component>
             <implementation-class>hotreload.extension.rider.component.StartUpProjectComponent</implementation-class>
         </component>
+    </application-components>
+    <project-components>
         <component>
             <implementation-class>hotreload.extension.rider.component.SaveDocumentListener</implementation-class>
         </component>

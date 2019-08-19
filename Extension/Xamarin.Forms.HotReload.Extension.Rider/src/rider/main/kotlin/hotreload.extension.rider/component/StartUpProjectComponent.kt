@@ -9,7 +9,7 @@ import hotreload.extension.rider.action.RunPluginAction
 import hotreload.extension.rider.icons.HotReloadIcons
 
 
-class StartUpProjectComponent: ProjectComponent, Disposable {
+class StartUpProjectComponent: Disposable {
     override fun dispose() {
         val actionManager = ActionManager.getInstance()
         actionManager.unregisterAction("HotReloadAction")    }
