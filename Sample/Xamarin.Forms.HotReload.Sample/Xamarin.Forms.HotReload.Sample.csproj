@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Xamarin.Forms" Version="4.1.0.581479" />
+    <PackageReference Include="Xamarin.Forms" Version="4.2.0.815419" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Reloader\Xamarin.Forms.HotReload.Reloader\Xamarin.Forms.HotReload.Reloader.csproj" />
