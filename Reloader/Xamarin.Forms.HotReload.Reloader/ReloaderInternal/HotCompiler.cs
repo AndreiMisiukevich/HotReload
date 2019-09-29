@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Mono.CSharp;
 
 namespace Xamarin.Forms
 {
@@ -21,9 +20,7 @@ namespace Xamarin.Forms
         {
             try
             {
-                Current = Device.RuntimePlatform == Device.Android
-                        ? new MonoHotCompiler() as IHotCompiler
-                        : new MicrosoftHotCompiler();
+                Current = new RealHotCompiler();
             }
             catch
             {
@@ -35,26 +32,20 @@ namespace Xamarin.Forms
                 Current.TryLoadAssembly(a);
             }
 
-            if (!(Current is MonoHotCompiler))
-            {
-                Current.TryLoadAssembly(HotReloader.Current.App.GetType().Assembly);
-            }
+            Current.TryLoadAssembly(HotReloader.Current.App.GetType().Assembly);
         }
 
         public static IHotCompiler Current { get; }
 
         internal static bool? IsSupported { get; set; }
 
-        #region Stub
         private class StubHotCompiler : IHotCompiler
         {
             public Type Compile(string code, string className) => null;
             public bool TryLoadAssembly(Assembly assembly) => false;
         }
-        #endregion
 
-        #region Microsoft
-        private class MicrosoftHotCompiler : IHotCompiler
+        private class RealHotCompiler : IHotCompiler
         {
             private HashSet<MetadataReference> _references = new HashSet<MetadataReference>();
 
@@ -127,89 +118,5 @@ namespace Xamarin.Forms
                 }
             }
         }
-        #endregion
-
-        #region Mono
-        private sealed class MonoHotCompiler : IHotCompiler
-        {
-            private readonly Evaluator _evaluator;
-            private readonly ConsoleReportPrinter _reporter;
-            private readonly StringWriter _writer;
-
-            internal MonoHotCompiler()
-            {
-                _writer = new StringWriter();
-                _reporter = new ConsoleReportPrinter(_writer);
-                var context = new CompilerContext(new CompilerSettings
-                {
-                    GenerateDebugInfo = false,
-                    WarningsAreErrors = false,
-                    LoadDefaultReferences = true,
-                    Optimize = true
-                }, _reporter);
-                _evaluator = new Evaluator(context);
-            }
-
-            public Type Compile(string code, string className)
-            {
-                if (IsSupported == false)
-                {
-                    return null;
-                }
-
-                try
-                {
-                    var writerStringBuilder = _writer.GetStringBuilder();
-                    writerStringBuilder.Remove(0, writerStringBuilder.Length);
-
-                    if (!_evaluator.Run(code) || _reporter.ErrorsCount > 0)
-                    {
-                        throw new Exception();
-                    }
-                    var getTypeMethod = _evaluator.Compile($"typeof({className})");
-
-                    if (getTypeMethod == null)
-                    {
-                        throw new Exception();
-                    }
-
-                    object typeObject = null;
-                    getTypeMethod(ref typeObject);
-                    var type = typeObject as Type;
-                    return type;
-                }
-                catch
-                {
-                    Console.WriteLine($"HOTRELOADER ERROR: {_writer.ToString()}");
-                    return null;
-                }
-            }
-
-            public bool TryLoadAssembly(Assembly assembly)
-            {
-                var name = assembly.GetName().Name;
-                if (name == "mscorlib" ||
-                    name == "System" ||
-                    name == "System.Core" ||
-                    name.StartsWith("Mono.CSharp", StringComparison.CurrentCultureIgnoreCase) ||
-                    name.StartsWith("Microsoft.CodeAnalysis", StringComparison.CurrentCultureIgnoreCase) ||
-                    name.StartsWith("HotReload.HotCompile", StringComparison.CurrentCultureIgnoreCase) ||
-                    name.StartsWith("eval-", StringComparison.CurrentCultureIgnoreCase))
-                {
-                    return false;
-                }
-
-                try
-                {
-                    _evaluator?.ReferenceAssembly(assembly);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-            }
-        }
-        #endregion
     }
 }
