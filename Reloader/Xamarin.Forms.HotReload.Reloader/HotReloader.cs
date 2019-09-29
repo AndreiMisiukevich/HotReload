@@ -71,7 +71,7 @@ namespace Xamarin.Forms
             App = app;
             IsRunning = true;
 
-            TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty");
+            TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty", "CellRenderer.s_realCellProperty");
 
             _resourceMapping = new ConcurrentDictionary<string, ReloadItem>();
 
