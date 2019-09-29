@@ -17,7 +17,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
-using Microsoft.CodeAnalysis;
 
 namespace Xamarin.Forms
 {
