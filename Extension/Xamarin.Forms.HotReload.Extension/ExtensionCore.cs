@@ -57,9 +57,9 @@ namespace Xamarin.Forms.HotReload.Extension
             _environmentService = environmentService;
 
             _clientsHolder.NewAddressAdded += OnNewClientAddressAdded;
-            
+
             UpdateUiElementsVisibility();
-     
+
             _disableExtensionCommand.IsEnabled = true;
             _enableExtensionCommand.IsEnabled = true;
         }
@@ -128,7 +128,7 @@ namespace Xamarin.Forms.HotReload.Extension
 
         private void OnEnviromentSolutionClosed(object sender, EventArgs e)
         {
-            _environmentService.DocumentSaved -= OnEnviromentDocumentSaved;
+            DisableExtension();
             UpdateUiElementsVisibility();
         }
 
