@@ -8,7 +8,8 @@
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemsPage">
+             x:Class="Xamarin.Forms.HotReload.Sample.Pages.ItemsPage"
+             x:Name="page">
     
     <ContentPage.Resources> 
         <StyleSheet>
@@ -39,7 +40,8 @@
                 HorizontalTextAlignment="Center"
                 HorizontalOptions="FillAndExpand"
                 BackgroundColor="{StaticResource TestButtonBackColor}"
-                StyleClass="TestButtonStyle">
+                StyleClass="TestButtonStyle"
+                x:Name="label">
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCodePageTapped" />
             </Label.GestureRecognizers>
@@ -48,6 +50,7 @@
             SelectionMode="None"
             VerticalOptions="FillAndExpand"
             ItemTapped="OnItemTapped"
+            x:Name="listView"
             RowHeight="180"
             BackgroundColor="{StaticResource ListBgColor}"
             ItemsSource="{Binding Items}">

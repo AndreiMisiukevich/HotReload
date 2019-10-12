@@ -40,6 +40,7 @@ namespace Xamarin.Forms
         Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
+        private const string _nameRegexPattern = @"\s+x:[Nn]ame=""\w+""";
 
         internal Application App { get; private set; }
 
@@ -137,6 +138,7 @@ namespace Xamarin.Forms
                     loadXaml.Invoke(null, new object[] { obj, xaml, true });
                     return;
                 }
+                xaml = Regex.Replace(xaml, _nameRegexPattern, "", RegexOptions.Compiled);
                 obj.LoadFromXaml(xaml);
             };
 
