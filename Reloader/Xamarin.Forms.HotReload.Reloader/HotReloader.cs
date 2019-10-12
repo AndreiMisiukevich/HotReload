@@ -40,7 +40,6 @@ namespace Xamarin.Forms
         Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
-        private const string _nameRegexPattern = @"\s+x:[Nn]ame=""\w+""";
 
         internal Application App { get; private set; }
 
@@ -138,7 +137,6 @@ namespace Xamarin.Forms
                     loadXaml.Invoke(null, new object[] { obj, xaml, true });
                     return;
                 }
-                xaml = Regex.Replace(xaml, _nameRegexPattern, "", RegexOptions.Compiled);
                 obj.LoadFromXaml(xaml);
             };
 
@@ -657,6 +655,10 @@ namespace Xamarin.Forms
             }
 
             var xamlDoc = reloadItem.Xaml;
+            foreach (XmlNode child in xamlDoc.ChildNodes)
+            {
+                RemoveNamedScopes(child);
+            }
 
             if (obj is VisualElement ve)
             {
@@ -785,6 +787,22 @@ namespace Xamarin.Forms
 
             SetupNamedChildren(obj);
             OnLoaded(obj);
+        }
+
+        private void RemoveNamedScopes(XmlNode xmlNode)
+        {
+            var allowedNameAttributes = new[] { "VisualState", "VisualStateGroup" };
+
+            if (!allowedNameAttributes.Contains(xmlNode.Name))
+                xmlNode?.Attributes?.RemoveNamedItem("x:Name");
+
+            if (xmlNode.HasChildNodes && !string.IsNullOrWhiteSpace(xmlNode.InnerXml))
+            {
+                foreach (XmlNode child in xmlNode.ChildNodes)
+                {
+                    RemoveNamedScopes(child);
+                }
+            }
         }
 
         private ReloadItem GetItemForReloadingSourceRes(Uri source, object belongObj)

@@ -45,6 +45,15 @@
             <Label.GestureRecognizers>
                 <TapGestureRecognizer Tapped="OnCodePageTapped" />
             </Label.GestureRecognizers>
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup x:Name="CommonStates">
+                    <VisualState x:Name="Normal">
+                        <VisualState.Setters>
+                            <Setter Property="BackgroundColor" Value="Lime" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
         </Label>
         <ListView
             SelectionMode="None"
