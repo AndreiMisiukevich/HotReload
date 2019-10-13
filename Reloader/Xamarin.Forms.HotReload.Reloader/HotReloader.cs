@@ -816,6 +816,11 @@ namespace Xamarin.Forms
             (x.Value?.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) ?? false) || (x.Value?.Equals("preview.off", StringComparison.InvariantCultureIgnoreCase) ?? false));
 
             var isPreview = previewElement != null ? previewElement.Value.Equals("preview.on", StringComparison.InvariantCultureIgnoreCase) : default(bool?);
+
+            var nameScope = obj.GetType().GetMethod("GetNameScope", BindingFlags.Instance | BindingFlags.NonPublic)?.Invoke(obj, new object[0]);
+            var namesDict = nameScope?.GetType().GetField("_names", BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(nameScope) as Dictionary<string, object>;
+            namesDict?.Clear();
+
             _loadXaml.Invoke(obj, xamlDoc.InnerXml, isPreview);
 
         }
