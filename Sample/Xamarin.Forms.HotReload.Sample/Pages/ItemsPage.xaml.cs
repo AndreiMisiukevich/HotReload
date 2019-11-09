@@ -13,10 +13,5 @@ namespace Xamarin.Forms.HotReload.Sample.Pages
         {
             Navigation.PushAsync(new ItemPage { BindingContext = e.Item });
         }
-
-        void OnCodePageTapped(object sender, System.EventArgs e)
-        {
-            Navigation.PushAsync(new CodeContentPage(Color.Purple) { BindingContext = new CodeContentViewModel() });
-        }
     }
 }

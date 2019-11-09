@@ -185,18 +185,19 @@ namespace Xamarin.Forms
                 }
             });
 
-            Task.Run(() =>
-            {
-                try
-                {
-                    var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
-                    HotCompiler.IsSupported = testType != null;
-                }
-                catch
-                {
-                    HotCompiler.IsSupported = false;
-                }
-            });
+            //DISABLED
+            //Task.Run(() =>
+            //{
+            //    try
+            //    {
+            //        var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
+            //        HotCompiler.IsSupported = testType != null;
+            //    }
+            //    catch
+            //    {
+            //        HotCompiler.IsSupported = false;
+            //    }
+            //});
 
             return new ReloaderStartupInfo
             {
@@ -248,7 +249,7 @@ namespace Xamarin.Forms
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                    var isCSharpReloadable = bindable?.GetType().GetCustomAttribute<CSharpVisualAttribute>() != null;
+                    var isCSharpReloadable = false; //bindable?.GetType().GetCustomAttribute<CSharpVisualAttribute>() != null;
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
                     if (!isCSharpReloadable && !hasCodegenAttribute)
@@ -358,7 +359,7 @@ namespace Xamarin.Forms
                     }
                     catch
                     {
-                        //preserve
+                        //suppress
                     }
 
                     if (xaml != null)
@@ -413,12 +414,13 @@ namespace Xamarin.Forms
             }
             else
             {
-                var csharpType = !string.IsNullOrWhiteSpace(item.Code) ? HotCompiler.Current.Compile(item.Code, obj.GetType().FullName) : null;
-                if(csharpType != null)
-                {
-                    await Task.Delay(50);
-                }
-                ReloadElement(obj, item, csharpType);
+                ///DISABLED
+                //var csharpType = !string.IsNullOrWhiteSpace(item.Code) ? HotCompiler.Current.Compile(item.Code, obj.GetType().FullName) : null;
+                //if(csharpType != null)
+                //{
+                //    await Task.Delay(50);
+                //}
+                ReloadElement(obj, item, null);
             }
         }
 
@@ -456,7 +458,8 @@ namespace Xamarin.Forms
                 var nameSpace = Regex.Match(content, "namespace[\\s]*(.+\\s)").Groups[1]?.Value?.Trim();
                 var className = Regex.Match(content, "class[\\s]*(.+\\s)").Groups[1]?.Value?.Split(new char[] { ':', ' ' }).FirstOrDefault()?.Trim();
                 resKey = $"{nameSpace}.{className}";
-                csharpType = HotCompiler.Current.Compile(content, resKey);
+                //DISABLED
+                //csharpType = HotCompiler.Current.Compile(content, resKey);
                 if(csharpType == null)
                 {
                     return;
@@ -579,7 +582,7 @@ namespace Xamarin.Forms
         {
             if(!string.IsNullOrWhiteSpace(reloadItem.Code))
             {
-                var parameters = (obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
+                var parameters = new object[0];//(obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
                 switch (obj)
                 {
                     case Page page:

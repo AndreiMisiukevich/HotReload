@@ -1,7 +1,7 @@
-﻿namespace Xamarin.Forms
-{
-    public interface ICsharpRestorable
-    {
-        object[] ConstructorRestoringParameters { get; }
-    }
-}
+﻿//namespace Xamarin.Forms
+//{
+//    public interface ICsharpRestorable
+//    {
+//        object[] ConstructorRestoringParameters { get; }
+//    }
+//}

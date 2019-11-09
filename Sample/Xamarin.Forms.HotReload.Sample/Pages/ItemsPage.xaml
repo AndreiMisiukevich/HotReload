@@ -32,18 +32,6 @@
     
     
     <StackLayout Spacing="0">
-        
-        <Label  Text="Show Code Page" 
-                d:Text="Name!"
-                d:TextColor="Green"
-                HorizontalTextAlignment="Center"
-                HorizontalOptions="FillAndExpand"
-                BackgroundColor="{StaticResource TestButtonBackColor}"
-                StyleClass="TestButtonStyle">
-            <Label.GestureRecognizers>
-                <TapGestureRecognizer Tapped="OnCodePageTapped" />
-            </Label.GestureRecognizers>
-        </Label>
         <ListView
             SelectionMode="None"
             VerticalOptions="FillAndExpand"
