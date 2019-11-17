@@ -49,7 +49,7 @@ if (!ext.has("BuildConfiguration"))
 if (ext.has("pluginVersion"))
     ext.version = ext.pluginVersion
 else
-    ext.version = "1.4.0"
+    ext.version = "1.4.1"
 
 if (ext.has("username"))
     intellij.publish.username = ext.username
@@ -131,7 +131,7 @@ intellij {
 //    Only one of the arguments `version` or `localPath` should be passes in a time
 //    version = "$sdkVersion-SNAPSHOT"
 //    localPath = 'HERE SHOULD BE PATH TO YOUR LOCAL RIDER'
-    localPath = 'C:\\Users\\Bavtovich\\AppData\\Local\\JetBrains\\Toolbox\\apps\\Rider\\ch-1\\192.5895.291'
+    localPath = 'C:\\Users\\Bavtovich\\AppData\\Local\\JetBrains\\Toolbox\\apps\\Rider\\ch-1\\192.5895.1276'
 
     downloadSources = false
 }
@@ -168,6 +168,7 @@ rdgen {
 
 patchPluginXml {
     sinceBuild = '191.*'
+    untilBuild = '192.*'
     def changelogText = file("$repoRoot/CHANGELOG.md").text
     def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
 
