@@ -7,33 +7,32 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.jetbrains.rd:rd-gen:0.191.59")
+        classpath("com.jetbrains.rd:rd-gen:0.193.119")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.31")
     }
 }
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.31'
-    id 'org.jetbrains.intellij' version '0.4.7'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'org.jetbrains.intellij' version '0.4.13'
 }
 
 ext {
     repoRoot = projectDir
+    pluginVersion = '1.4.2'
+    // https://www.jetbrains.com/intellij-repository/snapshots - link to repo of RD snapshots
+    ProductVersion = "${productVersion}-SNAPSHOT"
     isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
-    sdkVersion = "2019.2"
-    rdLibDirectory = new File(repoRoot, "build/riderRD-$sdkVersion-SNAPSHOT/lib/rd")
+    rdLibDirectory = new File(repoRoot, "build/riderRD-${ProductVersion}/lib/rd")
     dotNetDir = new File(repoRoot, "src/dotnet")
     dotNetPluginId = "Xamarin.Forms.HotReload.Extension.Rider"
     dotnetSolution = new File(repoRoot, "Xamarin.Forms.HotReload.Extension.Rider.sln")
 }
 
 repositories {
-//    maven { url 'https://repo.labs.intellij.net/central-proxy' }
-//    maven { url 'https://repo.labs.intellij.net/rd-snapshots-maven' }
-//  maven { url 'https://repo.labs.intellij.net/jitpack.io' }
-    mavenLocal()
-    mavenCentral()
+    maven { url 'https://cache-redirector.jetbrains.com/intellij-repository/snapshots' }
+    maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
     flatDir { dirs rdLibDirectory.absolutePath }
 }
 
@@ -48,14 +47,6 @@ if (!ext.has("BuildConfiguration"))
 
 if (ext.has("pluginVersion"))
     ext.version = ext.pluginVersion
-else
-    ext.version = "1.4.1"
-
-if (ext.has("username"))
-    intellij.publish.username = ext.username
-
-if (ext.has("password"))
-    intellij.publish.password = ext.password
 
 version ext.version
 
@@ -70,42 +61,49 @@ compileKotlin {
     kotlinOptions { jvmTarget = "1.8" }
 }
 
-task findMsBuild {
-    doLast {
-        ByteArrayOutputStream stdout = new ByteArrayOutputStream()
-        if (isWindows) {
-            exec {
-                executable "$repoRoot\\tools\\vswhere.exe"
-                args '-latest','-property','installationPath'
-                standardOutput = stdout
-                workingDir project.rootDir
-            }
-            List<String> files = new FileNameFinder().getFileNames("${stdout.toString().trim()}\\MSBuild", "**/MSBuild.exe")
-            ext.executable = files.get(0)
-        } else {
-            exec {
-                executable 'which'
-                args 'msbuild'
-                standardOutput = stdout
-                workingDir project.rootDir
-            }
-            ext.executable = stdout.toString().trim()
-        }
-    }
+intellij {
+    type = 'RD'
+    //Only one of the arguments `version` or `localPath` should be passes in a time
+    //localPath = 'HERE SHOULD BE PATH TO YOUR LOCAL RIDER'
+    version = "${ProductVersion}"
+    downloadSources = false
+}
+
+def riderSdkPackageVersion = {
+    def sdkPath = new File(repoRoot, "/build/riderRD-$ProductVersion")
+    def path = new File(sdkPath, "lib/ReSharperHostSdk")
+    if (!path.isDirectory()) error("$path does not exist or not a directory")
+
+    def sdkPackageName = "JetBrains.Rider.SDK"
+
+    def regex = "${sdkPackageName}\\.([\\d\\.]+.*)\\.nupkg"
+    def matchingPackage = path.list().find{ it =~ regex}
+    def groups = matchingPackage =~ regex
+    return groups[0][1]
 }
 
 task compileDotNet {
-    dependsOn findMsBuild
+    def riderSdkVersionPropsPath = new File(dotNetDir, "SdkVersion.props")
+    def version = "2019.3.0-*"
+
+//  ToDo: Better to use in future def version = riderSdkPackageVersion()
+    riderSdkVersionPropsPath.text = ''
+    riderSdkVersionPropsPath << "<Project>\n"
+    riderSdkVersionPropsPath << "   <PropertyGroup>\n"
+    riderSdkVersionPropsPath << "     <SdkVersion>${version}</SdkVersion>\n"
+    riderSdkVersionPropsPath << "  </PropertyGroup>\n"
+    riderSdkVersionPropsPath << " </Project>\n"
+
     doLast {
         exec {
-            executable findMsBuild.executable
-            args "/t:Restore;Rebuild","$dotnetSolution","/v:minimal","/p:Configuration=$BuildConfiguration"
+            executable "dotnet"
+            args "msbuild", "/t:Restore;Rebuild", "$dotnetSolution", "/p:Configuration=$BuildConfiguration"
+            workingDir rootDir
         }
     }
 }
 
 buildPlugin {
-    dependsOn findMsBuild
     outputs.upToDateWhen { false }
     doLast {
         copy {
@@ -120,20 +118,10 @@ buildPlugin {
         }.take(1).join("")
 
         exec {
-            executable findMsBuild.executable
-            args "/t:Pack","$dotnetSolution","/v:minimal","/p:Configuration=$BuildConfiguration","/p:PackageOutputPath=$rootDir/output","/p:PackageReleaseNotes=$changeNotes","/p:PackageVersion=$version"
+            executable "dotnet"
+            args "msbuild", "/t:Pack", "$dotnetSolution", "/p:Configuration=$BuildConfiguration", "/p:PackageOutputPath=$rootDir/output", "/p:PackageReleaseNotes=$changeNotes", "/p:PackageVersion=$version"
         }
     }
-}
-
-intellij {
-    type = 'RD'
-//    Only one of the arguments `version` or `localPath` should be passes in a time
-//    version = "$sdkVersion-SNAPSHOT"
-//    localPath = 'HERE SHOULD BE PATH TO YOUR LOCAL RIDER'
-    localPath = 'C:\\Users\\Bavtovich\\AppData\\Local\\JetBrains\\Toolbox\\apps\\Rider\\ch-1\\192.5895.1276'
-
-    downloadSources = false
 }
 
 apply plugin: 'com.jetbrains.rdgen'
@@ -167,8 +155,7 @@ rdgen {
 }
 
 patchPluginXml {
-    sinceBuild = '191.*'
-    untilBuild = '192.*'
+    sinceBuild = '193.0'
     def changelogText = file("$repoRoot/CHANGELOG.md").text
     def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
 
@@ -180,10 +167,16 @@ patchPluginXml {
 prepareSandbox {
     dependsOn compileDotNet
 
+    def rootExtFolder = file("$projectDir/..").getAbsolutePath()
+
+    def coreExtId = "Xamarin.Forms.HotReload.Extension"
+    def coreExtOutputFolder = "$rootExtFolder/$coreExtId/bin/$BuildConfiguration/net472"
     def outputFolder = "$dotNetDir/$dotNetPluginId/bin/${dotNetPluginId}/$BuildConfiguration"
     def dllFiles = [
             "$outputFolder/${dotNetPluginId}.dll",
-            "$outputFolder/${dotNetPluginId}.pdb"
+            "$outputFolder/${dotNetPluginId}.pdb",
+            "$coreExtOutputFolder/${coreExtId}.dll",
+            "$coreExtOutputFolder/${coreExtId}.pdb"
     ]
 
     dllFiles.forEach({ f ->

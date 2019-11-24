@@ -1,7 +1,5 @@
 <Project>
   <PropertyGroup>
-    <SdkVersion>2019.1.0-*</SdkVersion>
-    
     <Title>Xamarin.Forms.HotReload.Extension.Rider</Title>
     <Description>Rider plugin for HotReload Xamarin project</Description>
   

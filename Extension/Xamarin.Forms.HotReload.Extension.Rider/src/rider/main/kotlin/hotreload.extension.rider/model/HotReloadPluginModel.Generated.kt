@@ -1,4 +1,4 @@
-@file:Suppress("PackageDirectoryMismatch", "UnusedImport", "unused", "LocalVariableName")
+@file:Suppress("EXPERIMENTAL_API_USAGE","EXPERIMENTAL_UNSIGNED_LITERALS","PackageDirectoryMismatch","UnusedImport","unused","LocalVariableName","CanBeVal","PropertyName","EnumEntryName","ClassName","ObjectPropertyName","UnnecessaryVariable")
 package com.jetbrains.rider.model
 
 import com.jetbrains.rd.framework.*
@@ -13,6 +13,9 @@ import kotlin.reflect.KClass
 
 
 
+/**
+ * #### Generated from [HotReload.Extension.RiderModel.kt:8]
+ */
 class HotReloadPluginModel private constructor(
     private val _reload: RdSignal<SavedDocument>,
     private val _enable: RdSignal<Boolean>,
@@ -23,7 +26,7 @@ class HotReloadPluginModel private constructor(
     
     companion object : ISerializersOwner {
         
-        override fun registerSerializersCore(serializers: ISerializers) {
+        override fun registerSerializersCore(serializers: ISerializers)  {
             serializers.register(SavedDocument)
             serializers.register(MessageInfo)
         }
@@ -32,6 +35,7 @@ class HotReloadPluginModel private constructor(
         
         
         const val serializationHash = 8012157446499618967L
+        
     }
     override val serializersOwner: ISerializersOwner get() = HotReloadPluginModel
     override val serializationHash: Long get() = HotReloadPluginModel.serializationHash
@@ -65,7 +69,7 @@ class HotReloadPluginModel private constructor(
     //equals trait
     //hash code trait
     //pretty print
-    override fun print(printer: PrettyPrinter) {
+    override fun print(printer: PrettyPrinter)  {
         printer.println("HotReloadPluginModel (")
         printer.indent {
             print("reload = "); _reload.print(printer); println()
@@ -75,11 +79,23 @@ class HotReloadPluginModel private constructor(
         }
         printer.print(")")
     }
+    //deepClone
+    override fun deepClone(): HotReloadPluginModel   {
+        return HotReloadPluginModel(
+            _reload.deepClonePolymorphic(),
+            _enable.deepClonePolymorphic(),
+            _isEnabled.deepClonePolymorphic(),
+            _showMessage.deepClonePolymorphic()
+        )
+    }
 }
 val Solution.hotReloadPluginModel get() = getOrCreateExtension("hotReloadPluginModel", ::HotReloadPluginModel)
 
 
 
+/**
+ * #### Generated from [HotReload.Extension.RiderModel.kt:15]
+ */
 data class MessageInfo (
     val title: String,
     val message: String
@@ -90,23 +106,24 @@ data class MessageInfo (
         override val _type: KClass<MessageInfo> = MessageInfo::class
         
         @Suppress("UNCHECKED_CAST")
-        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): MessageInfo {
+        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): MessageInfo  {
             val title = buffer.readString()
             val message = buffer.readString()
             return MessageInfo(title, message)
         }
         
-        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: MessageInfo) {
+        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: MessageInfo)  {
             buffer.writeString(value.title)
             buffer.writeString(value.message)
         }
+        
         
     }
     //fields
     //initializer
     //secondary constructor
     //equals trait
-    override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean  {
         if (this === other) return true
         if (other == null || other::class != this::class) return false
         
@@ -118,14 +135,14 @@ data class MessageInfo (
         return true
     }
     //hash code trait
-    override fun hashCode(): Int {
+    override fun hashCode(): Int  {
         var __r = 0
         __r = __r*31 + title.hashCode()
         __r = __r*31 + message.hashCode()
         return __r
     }
     //pretty print
-    override fun print(printer: PrettyPrinter) {
+    override fun print(printer: PrettyPrinter)  {
         printer.println("MessageInfo (")
         printer.indent {
             print("title = "); title.print(printer); println()
@@ -133,9 +150,13 @@ data class MessageInfo (
         }
         printer.print(")")
     }
+    //deepClone
 }
 
 
+/**
+ * #### Generated from [HotReload.Extension.RiderModel.kt:10]
+ */
 data class SavedDocument (
     val filePath: String,
     val content: CharArray
@@ -146,23 +167,24 @@ data class SavedDocument (
         override val _type: KClass<SavedDocument> = SavedDocument::class
         
         @Suppress("UNCHECKED_CAST")
-        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): SavedDocument {
+        override fun read(ctx: SerializationCtx, buffer: AbstractBuffer): SavedDocument  {
             val filePath = buffer.readString()
             val content = buffer.readCharArray()
             return SavedDocument(filePath, content)
         }
         
-        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: SavedDocument) {
+        override fun write(ctx: SerializationCtx, buffer: AbstractBuffer, value: SavedDocument)  {
             buffer.writeString(value.filePath)
             buffer.writeCharArray(value.content)
         }
+        
         
     }
     //fields
     //initializer
     //secondary constructor
     //equals trait
-    override fun equals(other: Any?): Boolean {
+    override fun equals(other: Any?): Boolean  {
         if (this === other) return true
         if (other == null || other::class != this::class) return false
         
@@ -174,14 +196,14 @@ data class SavedDocument (
         return true
     }
     //hash code trait
-    override fun hashCode(): Int {
+    override fun hashCode(): Int  {
         var __r = 0
         __r = __r*31 + filePath.hashCode()
         __r = __r*31 + content.contentHashCode()
         return __r
     }
     //pretty print
-    override fun print(printer: PrettyPrinter) {
+    override fun print(printer: PrettyPrinter)  {
         printer.println("SavedDocument (")
         printer.indent {
             print("filePath = "); filePath.print(printer); println()
@@ -189,4 +211,5 @@ data class SavedDocument (
         }
         printer.print(")")
     }
+    //deepClone
 }
