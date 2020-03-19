@@ -82,12 +82,6 @@ namespace YourNamespace
 
 ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/enable_repl.png)
 
-* For Reloading C# view you NEED to mark it with an attribute - **[HotReloader.CSharpVisual]**:
-```csharp
-[HotReloader.CSharpVisual] // Add this attribute
-public class CodeContentPage : ContentPage
-{
-}
 ```
 **NOTE**: BindingContext will be copied automaticaly, but if your view constructor has any parameters, you will have to implement an interface - **ICsharpRestorable**:
 ```csharp
