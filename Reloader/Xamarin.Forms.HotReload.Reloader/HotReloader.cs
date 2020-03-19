@@ -185,19 +185,18 @@ namespace Xamarin.Forms
                 }
             });
 
-            //DISABLED
-            //Task.Run(() =>
-            //{
-            //    try
-            //    {
-            //        var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
-            //        HotCompiler.IsSupported = testType != null;
-            //    }
-            //    catch
-            //    {
-            //        HotCompiler.IsSupported = false;
-            //    }
-            //});
+            Task.Run(() =>
+            {
+                try
+                {
+                    var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
+                    HotCompiler.IsSupported = testType != null;
+                }
+                catch
+                {
+                    HotCompiler.IsSupported = false;
+                }
+            });
 
             return new ReloaderStartupInfo
             {
@@ -249,10 +248,9 @@ namespace Xamarin.Forms
                 {
                     originalRendererPropertyChanged?.Invoke(bindable, oldValue, newValue);
 
-                    var isCSharpReloadable = false; //bindable?.GetType().GetCustomAttribute<CSharpVisualAttribute>() != null;
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
-                    if (!isCSharpReloadable && !hasCodegenAttribute)
+                    if (!(bindable is Page) && !hasCodegenAttribute)
                     {
                         return;
                     }
@@ -414,13 +412,17 @@ namespace Xamarin.Forms
             }
             else
             {
-                ///DISABLED
-                //var csharpType = !string.IsNullOrWhiteSpace(item.Code) ? HotCompiler.Current.Compile(item.Code, obj.GetType().FullName) : null;
-                //if(csharpType != null)
-                //{
-                //    await Task.Delay(50);
-                //}
-                ReloadElement(obj, item, null);
+                var code = item.Code;
+                if(isInjected)
+                {
+                    code = code?.Replace("HotReloader.Current.InjectComponentInitialization(this)", string.Empty);
+                }
+                var csharpType = !string.IsNullOrWhiteSpace(item.Code) ? HotCompiler.Current.Compile(item.Code, obj.GetType().FullName) : null;
+                if (csharpType != null)
+                {
+                    await Task.Delay(50);
+                }
+                ReloadElement(obj, item, csharpType);
             }
         }
 
@@ -458,8 +460,7 @@ namespace Xamarin.Forms
                 var nameSpace = Regex.Match(content, "namespace[\\s]*(.+\\s)").Groups[1]?.Value?.Trim();
                 var className = Regex.Match(content, "class[\\s]*(.+\\s)").Groups[1]?.Value?.Split(new char[] { ':', ' ' }).FirstOrDefault()?.Trim();
                 resKey = $"{nameSpace}.{className}";
-                //DISABLED
-                //csharpType = HotCompiler.Current.Compile(content, resKey);
+                csharpType = HotCompiler.Current.Compile(content, resKey);
                 if(csharpType == null)
                 {
                     return;
@@ -580,75 +581,83 @@ namespace Xamarin.Forms
 
         private void ReloadElement(object obj, ReloadItem reloadItem, Type csharpType = null)
         {
-            if(!string.IsNullOrWhiteSpace(reloadItem.Code))
+            try
             {
-                var parameters = new object[0];//(obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
-                switch (obj)
+                if (!string.IsNullOrWhiteSpace(reloadItem.Code) && csharpType != null)
                 {
-                    case Page page:
-                        var newPage = Activator.CreateInstance(csharpType, parameters) as Page;
-                        if (newPage == null)
-                        {
-                            return;
-                        }
-                        _ignoredElementInit = newPage;
-                        if (App.MainPage == page)
-                        {
-                            App.MainPage = newPage;
-                            break;
-                        }
-                        newPage.BindingContext = page.BindingContext;
+                    var parameters = (obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
+                    switch (obj)
+                    {
+                        case Page page:
+                            var newPage = Activator.CreateInstance(csharpType, parameters) as Page;
+                            if (newPage == null)
+                            {
+                                return;
+                            }
+                            _ignoredElementInit = newPage;
+                            if (App.MainPage == page)
+                            {
+                                App.MainPage = newPage;
+                                break;
+                            }
+                            newPage.BindingContext = page.BindingContext;
 
 
-                        if (page.Parent is MultiPage<Page> mPage)
-                        {
-                            mPage.Children.Insert(mPage.Children.IndexOf(page), newPage);
-                            mPage.Children.Remove(page);
-                            break;
-                        }
-                        if(page.Parent is MasterDetailPage mdPage)
-                        {
-                            if(mdPage.Master == page)
+                            if (page.Parent is MultiPage<Page> mPage)
                             {
-                                mdPage.Master = newPage;
-                            } else if(mdPage.Detail == page)
+                                mPage.Children.Insert(mPage.Children.IndexOf(page), newPage);
+                                mPage.Children.Remove(page);
+                                break;
+                            }
+                            if (page.Parent is MasterDetailPage mdPage)
                             {
-                                mdPage.Detail = newPage;
+                                if (mdPage.Master == page)
+                                {
+                                    mdPage.Master = newPage;
+                                }
+                                else if (mdPage.Detail == page)
+                                {
+                                    mdPage.Detail = newPage;
+                                }
+                                break;
+                            }
+                            page.Navigation.InsertPageBefore(newPage, page);
+                            if (page.Navigation.NavigationStack.LastOrDefault() == page)
+                            {
+                                page.Navigation.PopAsync(false);
+                            }
+                            else
+                            {
+                                page.Navigation.RemovePage(page);
                             }
                             break;
-                        }
-                        page.Navigation.InsertPageBefore(newPage, page);
-                        if (page.Navigation.NavigationStack.LastOrDefault() == page)
-                        {
-                            page.Navigation.PopAsync(false);
-                        }
-                        else
-                        {
-                            page.Navigation.RemovePage(page);
-                        }
-                        break;
-                    case View view:
-                        var newView = Activator.CreateInstance(csharpType, parameters) as View;
-                        if (newView == null)
-                        {
-                            return;
-                        }
-                        _ignoredElementInit = newView;
-                        switch (view.Parent)
-                        {
-                            case ContentView contentView:
-                                contentView.Content = newView;
-                                break;
-                            case ScrollView scrollView:
-                                scrollView.Content = newView;
-                                break;
-                            case Layout<View> layout:
-                                layout.Children.Insert(layout.Children.IndexOf(view), newView);
-                                layout.Children.Remove(view);
-                                break;
-                        }
-                        break;
+                        case View view:
+                            var newView = Activator.CreateInstance(csharpType, parameters) as View;
+                            if (newView == null)
+                            {
+                                return;
+                            }
+                            _ignoredElementInit = newView;
+                            switch (view.Parent)
+                            {
+                                case ContentView contentView:
+                                    contentView.Content = newView;
+                                    break;
+                                case ScrollView scrollView:
+                                    scrollView.Content = newView;
+                                    break;
+                                case Layout<View> layout:
+                                    layout.Children.Insert(layout.Children.IndexOf(view), newView);
+                                    layout.Children.Remove(view);
+                                    break;
+                            }
+                            break;
+                    }
                 }
+            }
+            catch
+            {
+                Console.WriteLine("### HOTRELOAD ERROR: CANNOT RELOAD C# CODE ###");
             }
 
             if(!reloadItem.HasXaml)

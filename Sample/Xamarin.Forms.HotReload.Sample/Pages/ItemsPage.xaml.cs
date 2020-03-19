@@ -7,6 +7,7 @@ namespace Xamarin.Forms.HotReload.Sample.Pages
         public ItemsPage()
         {
             InitializeComponent();
+            BackgroundColor = Color.Red;
         }
 
         void OnItemTapped(object sender, Xamarin.Forms.ItemTappedEventArgs e)
