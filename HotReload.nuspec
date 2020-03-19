@@ -16,6 +16,7 @@
     <dependencies>
       <group>
         <dependency id="Xamarin.Forms" version="3.0" />
+        <dependency id="Microsoft.CodeAnalysis.CSharp" version="3.5.0" />
       </group>
     </dependencies>
   </metadata>
