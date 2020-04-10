@@ -185,18 +185,25 @@ namespace Xamarin.Forms
                 }
             });
 
-            Task.Run(() =>
+            if (config.CodeReloadingEnabled)
             {
-                try
+                Task.Run(() =>
                 {
-                    var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
-                    HotCompiler.IsSupported = testType != null;
-                }
-                catch
-                {
-                    HotCompiler.IsSupported = false;
-                }
-            });
+                    try
+                    {
+                        var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
+                        HotCompiler.IsSupported = testType != null;
+                    }
+                    catch
+                    {
+                        HotCompiler.IsSupported = false;
+                    }
+                });
+            }
+            else
+            {
+                HotCompiler.IsSupported = false;
+            }
 
             return new ReloaderStartupInfo
             {
