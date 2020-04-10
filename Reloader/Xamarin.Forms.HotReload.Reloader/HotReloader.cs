@@ -191,6 +191,10 @@ namespace Xamarin.Forms
                 {
                     try
                     {
+                        foreach(var asm in config.AppAssemblies ?? new Assembly[0])
+                        {
+                            HotCompiler.Current.TryLoadAssembly(asm);
+                        }
                         var testType = HotCompiler.Current.Compile("public class TestHotCompiler { }", "TestHotCompiler");
                         HotCompiler.IsSupported = testType != null;
                     }

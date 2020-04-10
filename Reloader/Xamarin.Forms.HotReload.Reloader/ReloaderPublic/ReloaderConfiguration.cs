@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
+using System.Reflection;
 
 namespace Xamarin.Forms
 {
@@ -29,6 +30,8 @@ namespace Xamarin.Forms
             /// C# code reloading
             /// </summary>
             public bool CodeReloadingEnabled { get; set; } = true;
+
+            public Assembly[] AppAssemblies { get; set; }
         }
 
         public sealed class ReloaderStartupInfo
