@@ -891,7 +891,7 @@ namespace Xamarin.Forms
 
                 if (obj is View view)
                 {
-                    ClearView(view);
+                    ClearView(view, xmlDoc);
                 }
                 if (obj is Page page)
                 {
@@ -926,12 +926,28 @@ namespace Xamarin.Forms
             return false;
         }
 
-        private void ClearView(View view)
+        private void ClearView(View view, XmlDocument xamlDoc = null)
         {
-            view.Behaviors.Clear();
-            view.GestureRecognizers.Clear();
-            view.Effects.Clear();
-            view.Triggers.Clear();
+            var settingAttribute = xamlDoc?.ChildNodes.Cast<XmlNode>()
+            .FirstOrDefault(x => (x.Name?.Equals("hotReload", StringComparison.InvariantCultureIgnoreCase) ?? false));
+
+            var value = settingAttribute?.Value?.ToLower();
+            if (!(value?.Contains("preserve.gesturerecognizers") ?? false))
+            {
+                view.GestureRecognizers.Clear();
+            }
+            if (!(value?.Contains("preserve.behaviors") ?? false))
+            {
+                view.Behaviors.Clear();
+            }
+            if (!(value?.Contains("preserve.effects") ?? false))
+            {
+                view.Effects.Clear();
+            }
+            if (!(value?.Contains("preserve.triggers") ?? false))
+            {
+                view.Triggers.Clear();
+            }
             view.Style = null;
         }
 
