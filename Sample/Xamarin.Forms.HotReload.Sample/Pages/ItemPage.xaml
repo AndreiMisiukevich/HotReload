@@ -26,7 +26,8 @@
         <Button Text="Do nothing" FontSize="20" 
                 HeightRequest="60"
                 CornerRadius="0"
-                TextColor="{StaticResource BtnColor}" 
+                TextColor="{StaticResource BtnColor}"
+                Clicked="Button_Clicked"
                 BackgroundColor="Black"/>
     </StackLayout>
     

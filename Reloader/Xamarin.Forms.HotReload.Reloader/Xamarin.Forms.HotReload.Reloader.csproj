@@ -17,5 +17,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove=".DS_Store" />
+    <None Remove="res\netstandard.dll" />
+    <None Remove="res\mscorlib.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="res\netstandard.dll" />
+    <EmbeddedResource Include="res\mscorlib.dll" />
   </ItemGroup>
 </Project>

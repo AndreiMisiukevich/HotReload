@@ -7,5 +7,10 @@
             InitializeComponent();
             BackgroundColor = Color.White;
         }
+
+        void Button_Clicked(System.Object sender, System.EventArgs e)
+        {
+            Navigation.PushAsync(new CodePage());
+        }
     }
 }

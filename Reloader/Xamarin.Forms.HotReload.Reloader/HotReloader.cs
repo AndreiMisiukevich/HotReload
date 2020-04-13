@@ -40,6 +40,7 @@ namespace Xamarin.Forms
         Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
 
         private HashSet<string> _cellViewReloadProps = new HashSet<string> { "Orientation", "Spacing", "IsClippedToBounds", "Padding", "HorizontalOptions", "Margin", "VerticalOptions", "Visual", "FlowDirection", "AnchorX", "AnchorY", "BackgroundColor", "HeightRequest", "InputTransparent", "IsEnabled", "IsVisible", "MinimumHeightRequest", "MinimumWidthRequest", "Opacity", "Rotation", "RotationX", "RotationY", "Scale", "ScaleX", "ScaleY", "Style", "TabIndex", "IsTabStop", "StyleClass", "TranslationX", "TranslationY", "WidthRequest", "DisableLayout", "Resources", "AutomationId", "ClassId", "StyleId" };
+        private HashSet<Assembly> _assemblies = new HashSet<Assembly>();
 
         internal Application App { get; private set; }
 
@@ -70,6 +71,15 @@ namespace Xamarin.Forms
             Stop();
             App = app;
             IsRunning = true;
+
+            if (app != null)
+            {
+                _assemblies.Add(app.GetType().Assembly);
+            }
+            foreach(var asm in config.AppAssemblies ?? new Assembly[0])
+            {
+                _assemblies.Add(asm);
+            }
 
             TrySubscribeRendererPropertyChanged("Platform.RendererProperty", "CellRenderer.RendererProperty", "CellRenderer.RealCellProperty", "CellRenderer.s_realCellProperty");
 
@@ -191,7 +201,7 @@ namespace Xamarin.Forms
                 {
                     try
                     {
-                        foreach(var asm in config.AppAssemblies ?? new Assembly[0])
+                        foreach(var asm in _assemblies)
                         {
                             HotCompiler.Current.TryLoadAssembly(asm);
                         }
@@ -261,7 +271,7 @@ namespace Xamarin.Forms
 
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
-                    if (!(bindable is Page) && !hasCodegenAttribute)
+                    if (!_assemblies.Contains(bindable.GetType().Assembly) && !hasCodegenAttribute)
                     {
                         return;
                     }
@@ -481,7 +491,7 @@ namespace Xamarin.Forms
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        foreach (var page in _resourceMapping.Values.SelectMany(x => x.Objects).OfType<ContentPage>().Where(x => x.BindingContext?.GetType().FullName == resKey))
+                        foreach (var page in _resourceMapping.Values.SelectMany(x => x.Objects).OfType<View>().Where(x => x.BindingContext?.GetType().FullName == resKey))
                         {
                             var newContext = Activator.CreateInstance(csharpType);
                             page.BindingContext = newContext;
@@ -660,6 +670,9 @@ namespace Xamarin.Forms
                                 case Layout<View> layout:
                                     layout.Children.Insert(layout.Children.IndexOf(view), newView);
                                     layout.Children.Remove(view);
+                                    break;
+                                case ContentPage page:
+                                    page.Content = view;
                                     break;
                             }
                             break;

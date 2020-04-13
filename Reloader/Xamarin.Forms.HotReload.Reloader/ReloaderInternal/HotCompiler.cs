@@ -12,6 +12,7 @@ namespace Xamarin.Forms
     {
         Type Compile(string code, string className);
         bool TryLoadAssembly(Assembly assembly);
+        bool TryLoadAssembly(string res);
     }
 
     internal static class HotCompiler
@@ -26,13 +27,17 @@ namespace Xamarin.Forms
             {
                 Current = new StubHotCompiler();
             }
+
             AppDomain.CurrentDomain.AssemblyLoad += (_, e) => Current.TryLoadAssembly(e.LoadedAssembly);
             foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
             {
                 Current.TryLoadAssembly(a);
             }
-
-            Current.TryLoadAssembly(HotReloader.Current.App.GetType().Assembly);
+            if (Device.RuntimePlatform == Device.Android)
+            {
+                Current.TryLoadAssembly("mscorlib");
+                Current.TryLoadAssembly("netstandard");
+            }
         }
 
         public static IHotCompiler Current { get; }
@@ -43,6 +48,7 @@ namespace Xamarin.Forms
         {
             public Type Compile(string code, string className) => null;
             public bool TryLoadAssembly(Assembly assembly) => false;
+            public bool TryLoadAssembly(string res) => false;
         }
 
         private class RealHotCompiler : IHotCompiler
@@ -110,6 +116,20 @@ namespace Xamarin.Forms
                 try
                 {
                     _references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                    return true;
+                }
+                catch
+                {
+                    return false;
+                }
+            }
+
+            public bool TryLoadAssembly(string res)
+            {
+                try
+                {
+                    var stream = typeof(HotCompiler).Assembly.GetManifestResourceStream($"Xamarin.Forms.HotReload.Reloader.res.{res}.dll");
+                    _references.Add(MetadataReference.CreateFromStream(stream));
                     return true;
                 }
                 catch
