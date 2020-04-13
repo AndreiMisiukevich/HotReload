@@ -36,6 +36,7 @@ namespace Xamarin.Forms
 
         private VisualElement _ignoredElementInit;
 
+        private bool _codeReloadingEnabled;
         private Type _xamlLoaderType;
         Type XamlLoaderType => _xamlLoaderType ?? (_xamlLoaderType = Assembly.Load("Xamarin.Forms.Xaml").GetType("Xamarin.Forms.Xaml.XamlLoader"));
 
@@ -67,6 +68,7 @@ namespace Xamarin.Forms
         {
             config = config ?? new Configuration();
             var devicePort = config.DeviceUrlPort;
+            _codeReloadingEnabled = config.CodeReloadingEnabled;
 
             Stop();
             App = app;
@@ -271,7 +273,7 @@ namespace Xamarin.Forms
 
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
-                    if (!_assemblies.Contains(bindable.GetType().Assembly) && !hasCodegenAttribute)
+                    if ((!_assemblies.Contains(bindable.GetType().Assembly) || !_codeReloadingEnabled) && !hasCodegenAttribute)
                     {
                         return;
                     }
