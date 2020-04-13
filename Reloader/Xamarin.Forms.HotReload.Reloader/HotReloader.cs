@@ -273,7 +273,9 @@ namespace Xamarin.Forms
 
                     var hasCodegenAttribute = HasCodegenAttribute(bindable);
 
-                    if ((!_assemblies.Contains(bindable.GetType().Assembly) || !_codeReloadingEnabled) && !hasCodegenAttribute)
+                    var bAsm = bindable.GetType().Assembly;
+                    var validAssembly = (_assemblies.Contains(bAsm) || bAsm.FullName.StartsWith("HotReload.HotCompile")) && _codeReloadingEnabled;
+                    if (!validAssembly && !hasCodegenAttribute)
                     {
                         return;
                     }
