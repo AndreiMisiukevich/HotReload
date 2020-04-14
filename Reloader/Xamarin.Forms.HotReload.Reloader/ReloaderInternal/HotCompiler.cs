@@ -37,6 +37,7 @@ namespace Xamarin.Forms
             {
                 Current.TryLoadAssembly("mscorlib");
                 Current.TryLoadAssembly("netstandard");
+                Current.TryLoadAssembly("System");
             }
         }
 
