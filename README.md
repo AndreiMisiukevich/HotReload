@@ -82,8 +82,7 @@ namespace YourNamespace
 
 ![alt text](https://github.com/AndreiMisiukevich/HotReload/blob/master/files/enable_repl.png)
 
-```
-**NOTE**: BindingContext will be copied automaticaly, but if your view constructor has any parameters, you will have to implement an interface - **ICsharpRestorable**:
+**NOTE**: BindingContext will be copied automaticaly, but if your view constructor has any parameters, you will have to define a property **object[] HotReloadCtorParams => new object[] { }**:
 ```csharp
 [HotReloader.CSharpVisual]
 public class CodeContentPage : ContentPage
@@ -96,7 +95,7 @@ public class CodeContentPage : ContentPage
         BackgroundColor = backColor;
     }
 
-    public object[] ConstructorRestoringParameters => new object[] { _backColor }; //These arguments will be passed in case of reloading
+    object[] HotReloadCtorParams => new object[] { _backColor }; //These arguments will be passed in case of reloading
 }
 ```
 
@@ -104,7 +103,7 @@ public class CodeContentPage : ContentPage
 
 ### Additional Setup / Troubleshooting
 
-0) If you want to disable HotReload for Release mode, follow instructions here https://github.com/AndreiMisiukevich/HotReload/issues/115#issuecomment-522475773
+0) If you want to disable HotReload for Release mode, follow instructions here https://github.com/AndreiMisiukevich/HotReload/issues/115#issuecomment-524545788
 
 1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure your PC/Mac and device/emulator are in the same local network.)
@@ -140,19 +139,19 @@ var port = info.SelectedDevicePort;
 var addresses = info.IPAddresses;
 ```
 
-4) If you want to make any initialization of your element after reloading, you should implement **IReloadable** interface. **OnLoaded** will be called each time when element is created (constructor called) AND element's Xaml updated. So, you needn't duplicate code in constructor and in **OnLoaded** method. Just use **OnLoaded** then.
+4) If you want to make any initialization of your element after reloading, you should define a method **void OnHotReloaded ()**. It will be called each time when element's content (xaml/code) updated.
 
 ```csharp
-public partial class MainPage : ContentPage, IReloadable
+public partial class MainPage : ContentPage
 {
     public MainPage()
     {
         InitializeComponent();
     }
 
-    public void OnLoaded() // Add logic here
+    void OnHotReloaded() // Add logic here
     {
-        //label.Text = "I'm loaded again";
+        label.Text = "I'm loaded again";
     }
 }
 ```
