@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Xamarin.Forms;
+using Xamarin.Forms.HotReload.Sample.Pages.Views;
 
 namespace Xamarin.Forms.HotReload.Sample.Pages
 {
@@ -8,14 +9,13 @@ namespace Xamarin.Forms.HotReload.Sample.Pages
     {
         public CodePage()
         {
+            BackgroundColor = Color.Red;
             Content = new StackLayout
             {
-                Children = {
-                    new Label {
-                        VerticalOptions = LayoutOptions.CenterAndExpand,
-                        HorizontalOptions = LayoutOptions.CenterAndExpand,
-                        Text = "Hello ContentPage!!!!"
-                    }
+                Children =
+                {
+                    new CustomContentView(),
+                    new Button { Text = "Click", BackgroundColor = Color.White }
                 }
             };
         }

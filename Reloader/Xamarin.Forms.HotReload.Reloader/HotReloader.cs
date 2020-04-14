@@ -678,7 +678,7 @@ namespace Xamarin.Forms
                                     layout.Children.Remove(view);
                                     break;
                                 case ContentPage page:
-                                    page.Content = view;
+                                    page.Content = newView;
                                     break;
                             }
                             break;
