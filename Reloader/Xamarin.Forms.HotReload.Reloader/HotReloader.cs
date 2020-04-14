@@ -78,7 +78,7 @@ namespace Xamarin.Forms
             {
                 _assemblies.Add(app.GetType().Assembly);
             }
-            foreach(var asm in config.AppAssemblies ?? new Assembly[0])
+            foreach (var asm in config.AppAssemblies ?? new Assembly[0])
             {
                 _assemblies.Add(asm);
             }
@@ -203,7 +203,7 @@ namespace Xamarin.Forms
                 {
                     try
                     {
-                        foreach(var asm in _assemblies)
+                        foreach (var asm in _assemblies)
                         {
                             HotCompiler.Current.TryLoadAssembly(asm);
                         }
@@ -354,7 +354,7 @@ namespace Xamarin.Forms
                 item = new ReloadItem { HasXaml = hasCodeGenAttr };
                 _resourceMapping[className] = item;
 
-                if(item.HasXaml)
+                if (item.HasXaml)
                 {
                     var type = obj.GetType();
 
@@ -426,19 +426,19 @@ namespace Xamarin.Forms
                 item.Objects.Add(obj);
             }
 
-            if(_ignoredElementInit == obj)
+            if (_ignoredElementInit == obj)
             {
                 return;
             }
 
             if (!item.HasUpdates && !isInjected)
             {
-                OnLoaded(obj);
+                OnLoaded(obj, false);
             }
             else
             {
                 var code = item.Code;
-                if(isInjected)
+                if (isInjected)
                 {
                     code = code?.Replace("HotReloader.Current.InjectComponentInitialization(this)", string.Empty);
                 }
@@ -475,23 +475,23 @@ namespace Xamarin.Forms
             ReloadItem item = null;
             string resKey = null;
             Type csharpType = null;
-             
+
             var isCss = Path.GetExtension(path) == ".css";
             var isCode = Path.GetExtension(path) == ".cs";
 
-            if(isCode)
+            if (isCode)
             {
                 content = content.Replace("InitializeComponent()", "HotReloader.Current.InjectComponentInitialization(this)");
                 var nameSpace = Regex.Match(content, "namespace[\\s]*(.+\\s)").Groups[1]?.Value?.Trim();
                 var className = Regex.Match(content, "class[\\s]*(.+\\s)").Groups[1]?.Value?.Split(new char[] { ':', ' ' }).FirstOrDefault()?.Trim();
                 resKey = $"{nameSpace}.{className}";
                 csharpType = HotCompiler.Current.Compile(content, resKey);
-                if(csharpType == null)
+                if (csharpType == null)
                 {
                     return;
                 }
 
-                if(!_resourceMapping.TryGetValue(resKey, out item))
+                if (!_resourceMapping.TryGetValue(resKey, out item))
                 {
                     Device.BeginInvokeOnMainThread(() =>
                     {
@@ -610,7 +610,9 @@ namespace Xamarin.Forms
             {
                 if (!string.IsNullOrWhiteSpace(reloadItem.Code) && csharpType != null)
                 {
-                    var parameters = (obj as ICsharpRestorable)?.ConstructorRestoringParameters ?? new object[0];
+                    var prop = obj.GetType().GetProperty("HotReloadCtorParams", BindingFlags.Instance | BindingFlags.NonPublic)
+                        ?? obj.GetType().GetProperty("HotReloadCtorParams", BindingFlags.Instance | BindingFlags.Public);
+                    var parameters = prop?.GetValue(obj) ?? new object[0];
                     switch (obj)
                     {
                         case Page page:
@@ -688,9 +690,9 @@ namespace Xamarin.Forms
                 Console.WriteLine("### HOTRELOAD ERROR: CANNOT RELOAD C# CODE ###");
             }
 
-            if(!reloadItem.HasXaml)
+            if (!reloadItem.HasXaml)
             {
-                OnLoaded(obj);
+                OnLoaded(obj, csharpType != null);
                 return;
             }
 
@@ -709,7 +711,7 @@ namespace Xamarin.Forms
                 {
                     throw rebuildEx;
                 }
-                OnLoaded(obj);
+                OnLoaded(obj, true);
                 return;
             }
 
@@ -822,7 +824,7 @@ namespace Xamarin.Forms
             }
 
             SetupNamedChildren(obj);
-            OnLoaded(obj);
+            OnLoaded(obj, true);
         }
 
         private ReloadItem GetItemForReloadingSourceRes(Uri source, object belongObj)
@@ -1165,7 +1167,24 @@ namespace Xamarin.Forms
         private bool HasCodegenAttribute(BindableObject bindable)
             => bindable.GetType().GetCustomAttribute<XamlFilePathAttribute>() != null;
 
-        private void OnLoaded(object element)
-            => (element as IReloadable)?.OnLoaded();
+        private void OnLoaded(object element, bool isReloaded)
+        {
+            try
+            {
+#pragma warning disable
+                (element as IReloadable)?.OnLoaded();
+#pragma warning restore
+                if (isReloaded)
+                {
+                    var method = element.GetType().GetMethod("OnHotReloaded", BindingFlags.Instance | BindingFlags.NonPublic)
+                        ?? element.GetType().GetMethod("OnHotReloaded", BindingFlags.Instance | BindingFlags.Public);
+                    method?.Invoke(element, null);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
     }
 }
