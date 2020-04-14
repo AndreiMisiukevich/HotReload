@@ -612,7 +612,7 @@ namespace Xamarin.Forms
                 {
                     var prop = obj.GetType().GetProperty("HotReloadCtorParams", BindingFlags.Instance | BindingFlags.NonPublic)
                         ?? obj.GetType().GetProperty("HotReloadCtorParams", BindingFlags.Instance | BindingFlags.Public);
-                    var parameters = prop?.GetValue(obj) ?? new object[0];
+                    var parameters = (prop?.GetValue(obj) as object[]) ?? new object[0];
                     switch (obj)
                     {
                         case Page page:
@@ -685,7 +685,7 @@ namespace Xamarin.Forms
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
                 Console.WriteLine("### HOTRELOAD ERROR: CANNOT RELOAD C# CODE ###");
             }
@@ -1178,7 +1178,7 @@ namespace Xamarin.Forms
                 {
                     var method = element.GetType().GetMethod("OnHotReloaded", BindingFlags.Instance | BindingFlags.NonPublic)
                         ?? element.GetType().GetMethod("OnHotReloaded", BindingFlags.Instance | BindingFlags.Public);
-                    method?.Invoke(element, null);
+                    method?.Invoke(element, new object[0]);
                 }
             }
             catch (Exception ex)

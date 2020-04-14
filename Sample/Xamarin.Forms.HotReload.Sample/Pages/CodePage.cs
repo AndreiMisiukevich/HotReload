@@ -14,7 +14,7 @@ namespace Xamarin.Forms.HotReload.Sample.Pages
                     new Label {
                         VerticalOptions = LayoutOptions.CenterAndExpand,
                         HorizontalOptions = LayoutOptions.CenterAndExpand,
-                        Text = "Hello ContentPage!!!!!"
+                        Text = "Hello ContentPage!!!!"
                     }
                 }
             };
