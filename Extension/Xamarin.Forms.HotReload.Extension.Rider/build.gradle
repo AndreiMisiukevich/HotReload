@@ -63,6 +63,8 @@ compileKotlin {
 
 intellij {
     type = 'RD'
+    // Don't patch `untilBuild` version.
+    patchPluginXml.untilBuild(null)
     //Only one of the arguments `version` or `localPath` should be passes in a time
     //localPath = 'HERE SHOULD BE PATH TO YOUR LOCAL RIDER'
     version = "${ProductVersion}"
@@ -161,7 +163,6 @@ rdgen {
 
 patchPluginXml {
     sinceBuild = '201.0'
-    untilBuild = '*.*'
     def changelogText = file("$repoRoot/CHANGELOG.md").text
     def changelogMatches = changelogText =~ /(?s)(-.+?)(?=##|$)/
 
