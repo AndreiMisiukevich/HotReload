@@ -162,7 +162,7 @@ namespace Xamarin.Forms
                 {
                     foreach (var possiblePort in portsRange.Take(isFirstTry ? 20 : 5))
                     {
-                        if (Device.RuntimePlatform == Device.Android)
+                        if (Device.RuntimePlatform == Device.Android || Device.RuntimePlatform == Device.Tizen)
                         {
                             try
                             {
