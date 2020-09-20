@@ -23,7 +23,7 @@ class ShowNotificationComponent(project: Project) : LifetimedProjectComponent(pr
         }
     }
 
-    private fun showNotification(messageInfo: MessageInfo){
+    private fun showNotification(messageInfo: MessageInfo) {
         val yamlNotification = Notification(notificationGroupId.displayId, messageInfo.title, messageInfo.message, NotificationType.INFORMATION)
         Notifications.Bus.notify(yamlNotification, project)
     }

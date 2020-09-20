@@ -1,5 +1,5 @@
 # Changelog
 
-## 1.4.3
-- Support for 2020.x version
-- Open end `until` version 
+## 1.4.4
+- Switch to up-to-date Rider plugin architecture
+- Fix bug, related to plugin start-up initialization

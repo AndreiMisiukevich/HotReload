@@ -9,7 +9,9 @@ import com.jetbrains.rider.projectView.solution
 import hotreload.extension.rider.icons.HotReloadIcons
 import javax.swing.Icon
 
-class RunPluginAction(icon: Icon) : AnAction("Enable HotReload", "", icon) {
+class RunPluginAction(icon: Icon) : AnAction("Enable HotReload", null, icon) {
+
+    constructor(): this(HotReloadIcons.IconOff)
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return

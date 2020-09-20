@@ -7,20 +7,21 @@ buildscript {
     }
 
     dependencies {
-        classpath("com.jetbrains.rd:rd-gen:0.193.119")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.31")
+        classpath("com.jetbrains.rd:rd-gen:0.201.40")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.72")
+        classpath("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.3.72")
     }
 }
 
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.3.41'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.72'
     id 'org.jetbrains.intellij' version '0.4.21'
 }
 
 ext {
     repoRoot = projectDir
-    pluginVersion = '1.4.3'
+    pluginVersion = '1.4.4'
     // https://www.jetbrains.com/intellij-repository/snapshots - link to repo of RD snapshots
     ProductVersion = "${productVersion}-SNAPSHOT"
     isWindows = Os.isFamily(Os.FAMILY_WINDOWS)
@@ -31,13 +32,14 @@ ext {
 }
 
 repositories {
+    maven { url 'https://jetbrains.com/intellij-repository/snapshots' }
     maven { url 'https://cache-redirector.jetbrains.com/intellij-repository/snapshots' }
     maven { url 'https://cache-redirector.jetbrains.com/maven-central' }
     flatDir { dirs rdLibDirectory.absolutePath }
 }
 
 wrapper {
-    gradleVersion = '4.9'
+    gradleVersion = '5.3'
     distributionType = Wrapper.DistributionType.ALL
     distributionUrl = "https://cache-redirector.jetbrains.com/services.gradle.org/distributions/gradle-${gradleVersion}-all.zip"
 }
@@ -86,7 +88,7 @@ def riderSdkPackageVersion = {
 
 task compileDotNet {
     def riderSdkVersionPropsPath = new File(dotNetDir, "SdkVersion.props")
-    def version = "2019.3.0-*"
+    def version = "2020.1.0-*"
 
 //  ToDo: Better to use in future def version = riderSdkPackageVersion()
     riderSdkVersionPropsPath.text = ''
@@ -100,7 +102,11 @@ task compileDotNet {
         exec {
             boolean isUnix = Os.isFamily(Os.FAMILY_UNIX)
             if (isUnix) {
-                environment "FrameworkPathOverride", "/usr/lib/mono/4.5"
+                if (Os.isFamily(Os.FAMILY_MAC)) {
+                    environment "FrameworkPathOverride", "/Library/Frameworks/Mono.framework/Versions/Current/lib/mono/4.5"
+                } else {
+                    environment "FrameworkPathOverride", "/usr/lib/mono/4.5"
+                }
             }
 
             executable "dotnet"

@@ -1,26 +1,27 @@
 <idea-plugin>
-  <id>hotreloadplugin-rider</id>
-  <name>Hot Reload</name>
-  <version>_PLACEHOLDER_</version>
-  <vendor url="https://github.com/AndreiMisiukevich/HotReload">Ignat Bavtovich</vendor>
-  <depends>com.intellij.modules.rider</depends>
+    <id>hotreloadplugin-rider</id>
+    <name>Hot Reload</name>
+    <version>_PLACEHOLDER_</version>
+    <vendor url="https://github.com/AndreiMisiukevich/HotReload">Ignat Bavtovich</vendor>
+    <depends>com.intellij.modules.rider</depends>
 
-  <description>
-    Plugin helps to integrate Xamarin HotReload project with Rider and easily apply new changes in your code without
-      any configuration
-  </description>
+    <description>
+        Plugin helps to integrate Xamarin HotReload project with Rider and easily apply new changes in your code without
+        any configuration
+    </description>
 
-    <application-components>
-        <component>
-            <implementation-class>hotreload.extension.rider.component.StartUpProjectComponent</implementation-class>
-        </component>
-    </application-components>
     <project-components>
-        <component>
-            <implementation-class>hotreload.extension.rider.component.SaveDocumentListener</implementation-class>
-        </component>
         <component>
             <implementation-class>hotreload.extension.rider.component.ShowNotificationComponent</implementation-class>
         </component>
     </project-components>
+    <actions>
+        <action class="hotreload.extension.rider.action.RunPluginAction" icon="/logo/hotReloadOff.png">
+            <add-to-group group-id="NavBarToolBar" anchor="last"/>
+        </action>
+    </actions>
+    <projectListeners>
+        <listener class="hotreload.extension.rider.services.SaveDocumentListener"
+                  topic="com.intellij.openapi.actionSystem.ex.AnActionListener" />
+    </projectListeners>
 </idea-plugin>
