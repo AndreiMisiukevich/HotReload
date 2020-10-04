@@ -1,10 +1,10 @@
 ﻿.TestButtonStyle {
     color: red; 
-    font-size: 30; 
+    font-size: x-large; 
 }
 
 .TeamLabel
 {
     color: purple;
-    font-size: 40;
+    font-size: xx-large;
 }
