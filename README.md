@@ -200,7 +200,7 @@ https://github.com/AndreiMisiukevich/HotReload/tree/master/old_extension_package
 - [stanbav (Stanislav)](https://github.com/stanbav) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/stasbavtovich.svg?style=social&label=Follow%20%40stasbavtovich)](https://twitter.com/stasbavtovich)
 - [iBavtovich (Ignat)](https://github.com/iBavtovich) [![Twitter URL](https://img.shields.io/twitter/url/https/twitter.com/iBavtovich.svg?style=social&label=Follow%20%40iBavtovich)](https://twitter.com/iBavtovich)
 
-Are there any questions? 🇧🇾 ***just ask us =)*** 🇧🇾
+Are there any questions? ***just ask us =)***
 
 ## License
 The MIT License (MIT) see [License file](LICENSE)
