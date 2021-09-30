@@ -10,6 +10,9 @@
         any configuration
     </description>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="Hot Reload Group" displayType="BALLOON"/>
+    </extensions>
     <project-components>
         <component>
             <implementation-class>hotreload.extension.rider.component.ShowNotificationComponent</implementation-class>

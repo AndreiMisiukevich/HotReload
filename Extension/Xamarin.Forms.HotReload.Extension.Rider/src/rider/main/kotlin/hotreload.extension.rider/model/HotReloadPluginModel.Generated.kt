@@ -1,5 +1,5 @@
-@file:Suppress("EXPERIMENTAL_API_USAGE","EXPERIMENTAL_UNSIGNED_LITERALS","PackageDirectoryMismatch","UnusedImport","unused","LocalVariableName","CanBeVal","PropertyName","EnumEntryName","ClassName","ObjectPropertyName","UnnecessaryVariable")
-package com.jetbrains.rider.model
+@file:Suppress("EXPERIMENTAL_API_USAGE","EXPERIMENTAL_UNSIGNED_LITERALS","PackageDirectoryMismatch","UnusedImport","unused","LocalVariableName","CanBeVal","PropertyName","EnumEntryName","ClassName","ObjectPropertyName","UnnecessaryVariable","SpellCheckingInspection")
+package com.jetbrains.rd.ide.model
 
 import com.jetbrains.rd.framework.*
 import com.jetbrains.rd.framework.base.*
@@ -10,6 +10,7 @@ import com.jetbrains.rd.util.reactive.*
 import com.jetbrains.rd.util.string.*
 import com.jetbrains.rd.util.*
 import kotlin.reflect.KClass
+import kotlin.jvm.JvmStatic
 
 
 
@@ -45,6 +46,7 @@ class HotReloadPluginModel private constructor(
     val enable: ISignal<Boolean> get() = _enable
     val isEnabled: IOptProperty<Boolean> get() = _isEnabled
     val showMessage: ISource<MessageInfo> get() = _showMessage
+    //methods
     //initializer
     init {
         _isEnabled.optimizeNested = true
@@ -88,6 +90,7 @@ class HotReloadPluginModel private constructor(
             _showMessage.deepClonePolymorphic()
         )
     }
+    //contexts
 }
 val Solution.hotReloadPluginModel get() = getOrCreateExtension("hotReloadPluginModel", ::HotReloadPluginModel)
 
@@ -120,6 +123,7 @@ data class MessageInfo (
         
     }
     //fields
+    //methods
     //initializer
     //secondary constructor
     //equals trait
@@ -151,6 +155,7 @@ data class MessageInfo (
         printer.print(")")
     }
     //deepClone
+    //contexts
 }
 
 
@@ -181,6 +186,7 @@ data class SavedDocument (
         
     }
     //fields
+    //methods
     //initializer
     //secondary constructor
     //equals trait
@@ -212,4 +218,5 @@ data class SavedDocument (
         printer.print(")")
     }
     //deepClone
+    //contexts
 }

@@ -102,6 +102,7 @@ namespace JetBrains.Rider.Model
     //constants
     
     //custom body
+    //methods
     //equals trait
     //hash code trait
     //pretty print
@@ -136,7 +137,7 @@ namespace JetBrains.Rider.Model
   /// <summary>
   /// <p>Generated from: HotReload.Extension.RiderModel.kt:15</p>
   /// </summary>
-  public class MessageInfo : IPrintable, IEquatable<MessageInfo>
+  public sealed class MessageInfo : IPrintable, IEquatable<MessageInfo>
   {
     //fields
     //public fields
@@ -182,6 +183,7 @@ namespace JetBrains.Rider.Model
     //constants
     
     //custom body
+    //methods
     //equals trait
     public override bool Equals(object obj)
     {
@@ -229,7 +231,7 @@ namespace JetBrains.Rider.Model
   /// <summary>
   /// <p>Generated from: HotReload.Extension.RiderModel.kt:10</p>
   /// </summary>
-  public class SavedDocument : IPrintable, IEquatable<SavedDocument>
+  public sealed class SavedDocument : IPrintable, IEquatable<SavedDocument>
   {
     //fields
     //public fields
@@ -275,6 +277,7 @@ namespace JetBrains.Rider.Model
     //constants
     
     //custom body
+    //methods
     //equals trait
     public override bool Equals(object obj)
     {

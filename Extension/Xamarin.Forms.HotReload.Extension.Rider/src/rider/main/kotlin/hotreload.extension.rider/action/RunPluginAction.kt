@@ -2,9 +2,9 @@ package hotreload.extension.rider.action
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.jetbrains.rd.ide.model.hotReloadPluginModel
 import com.jetbrains.rd.util.reactive.IOptProperty
 import com.jetbrains.rd.util.reactive.valueOrDefault
-import com.jetbrains.rider.model.hotReloadPluginModel
 import com.jetbrains.rider.projectView.solution
 import hotreload.extension.rider.icons.HotReloadIcons
 import javax.swing.Icon

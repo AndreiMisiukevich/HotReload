@@ -1,6 +1,6 @@
 using System;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Host.Features;
+using JetBrains.RdBackend.Common.Features;
 using JetBrains.Rider.Model;
 
 namespace Xamarin.Forms.HotReload.Extension.Rider

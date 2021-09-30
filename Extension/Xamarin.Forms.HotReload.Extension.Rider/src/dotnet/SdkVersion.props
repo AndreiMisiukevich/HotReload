@@ -1,5 +1,5 @@
 <Project>
    <PropertyGroup>
-     <SdkVersion>2020.1.0-*</SdkVersion>
+     <SdkVersion>2021.2.0-*</SdkVersion>
   </PropertyGroup>
  </Project>

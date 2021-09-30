@@ -1,5 +1,6 @@
 # Changelog
 
-## 1.4.4
-- Switch to up-to-date Rider plugin architecture
-- Fix bug, related to plugin start-up initialization
+## 1.4.6
+- Migrated from the deprecated Rider API
+- Fix: Plugin now is working from Rider 2021.2 
+- Bumped dependencies

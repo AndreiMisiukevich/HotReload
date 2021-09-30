@@ -14,14 +14,6 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JetBrains.ReSharper.SDK" Version="$(SdkVersion)">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="JetBrains.Rider.SDK" Version="$(SdkVersion)" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Remove="Rider\**\*" />
     <None Remove="Rider\**\*" />
     <EmbeddedResource Remove="Rider\**\*" />
@@ -29,6 +21,20 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="bin\Xamarin.Forms.HotReload.Extension.Rider\$(Configuration)\Xamarin.Forms.HotReload.Extension.Rider.*" PackagePath="dotFiles" Pack="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2021.2.0" />
+    <PackageReference Include="JetBrains.Lifetimes" Version="2021.3.4" />
+    <PackageReference Include="JetBrains.RdFramework" Version="2021.3.4" />
+    <PackageReference Include="JetBrains.RdFramework.Reflection" Version="2021.3.4" />
+    <PackageReference Include="JetBrains.ReSharper.SDK" Version="2021.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="JetBrains.Rider.SDK" Version="2021.2.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Xamarin.Forms.HotReload.Extension\Xamarin.Forms.HotReload.Extension.csproj" />

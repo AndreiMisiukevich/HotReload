@@ -1,6 +1,6 @@
 using JetBrains.Lifetimes;
 using JetBrains.ProjectModel;
-using JetBrains.ReSharper.Host.Features;
+using JetBrains.RdBackend.Common.Features;
 using Xamarin.Forms.HotReload.Extension.Enums;
 using Xamarin.Forms.HotReload.Extension.Rider.Implementations;
 
