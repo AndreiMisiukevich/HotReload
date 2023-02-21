@@ -103,12 +103,12 @@ public class CodeContentPage : ContentPage
 
 ### Additional Setup / Troubleshooting
 
-0) If you want to disable HotReload for Release mode, follow instructions here https://github.com/AndreiMisiukevich/HotReload/issues/115#issuecomment-524545788
+1) If you want to disable HotReload for Release mode, follow instructions here https://github.com/AndreiMisiukevich/HotReload/issues/115#issuecomment-524545788
 
-1) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
+2) Your device/simulator/emulator will be discovered automatically. (**IMPORTANT**: 
 Make sure your PC/Mac and device/emulator are in the same local network.)
 
-2) If your device and PC/Laptop are in different subnets (or extension doesn't discover device), you should specify your Extension's IP during reloader setup
+3) If your device and PC/Laptop are in different subnets (or extension doesn't discover device), you should specify your Extension's IP during reloader setup
 
 ```csharp
 HotReloader.Current.Run(this, new HotReloader.Configuration
@@ -120,7 +120,7 @@ HotReloader.Current.Run(this, new HotReloader.Configuration
 });
 ```
 
-3) Android Emulator IP autodiscovery:
+4) Android Emulator IP autodiscovery:
 **Windows:** Make sure that **adb** (usually located in C:\Program Files (x86)\Android\android-sdk\platform-tools) is added to PATH enviromnet variable in other case you will have to forward ports yourself. It it isn't added. Add it then restart visual studio or Rider
 
 **BY DEFAULT EXTENSION TRIES TO FORWARD PORTS ITSELF (and you should skip this step) BUT** in case it is not working you should forward the port yourself (here is example with **DEVICE** port 8000 (*DeviceUrlPort* default value).
@@ -139,7 +139,7 @@ var port = info.SelectedDevicePort;
 var addresses = info.IPAddresses;
 ```
 
-4) If you want to make any initialization of your element after reloading, you should define a method **void OnHotReloaded ()**. It will be called each time when element's content (xaml/code) updated.
+5) If you want to make any initialization of your element after reloading, you should define a method **void OnHotReloaded ()**. It will be called each time when element's content (xaml/code) updated.
 
 ```csharp
 public partial class MainPage : ContentPage
@@ -156,7 +156,7 @@ public partial class MainPage : ContentPage
 }
 ```
 
-5) **ViewCell** reloading: before starting app you **MUST** determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
+6) **ViewCell** reloading: before starting app you **MUST** determine type of root view (e.g. StackLayout). It cannot be changed during app work (I mean, you still can change StackLayout props (e.g. BackgroundColor etc.), but you CANNOT change StackLayout to AbsoluteLayout e.g.). 
 
 ```xaml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -167,7 +167,7 @@ public partial class MainPage : ContentPage
 </ViewCell>
 ```
 
-6) **Previewer** properties: if you want to use ```xmlns:d="http://xamarin.com/schemas/2014/forms/design"``` during your work with HotReload, you can achieve it by two approaches
+7) **Previewer** properties: if you want to use ```xmlns:d="http://xamarin.com/schemas/2014/forms/design"``` during your work with HotReload, you can achieve it by two approaches
 - Global setting. Manage previewer propertis use via **Configuration**. Design properties will be used by default unless you disable them via Xaml.
 
 ```csharp
